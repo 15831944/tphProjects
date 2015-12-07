@@ -705,3 +705,13 @@ CREATE INDEX temp_rdf_poi_poi_id_idx
   ON temp_rdf_poi
   USING btree
   (poi_id);
+
+CREATE INDEX temp_node_uturn_linkrow_linkids_idx
+  ON temp_node_uturn_linkrow
+  USING btree
+  (linkids);
+
+CREATE INDEX temp_forbid_entry_regulation_linkrow_linkids_idx
+  ON temp_forbid_entry_regulation_linkrow
+  USING btree
+  (linkids);

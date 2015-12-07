@@ -6,6 +6,7 @@ Created on 2015-10-15
 '''
 
 
+
 class Node:
     '''
         双向链表中节点的定义

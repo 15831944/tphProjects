@@ -10,6 +10,7 @@ import threading
 import common.sql
 import common.log
 import common.config
+import datetime
 BATCH_SIZE = 1024 * 10
 
 
@@ -801,7 +802,9 @@ class pg_client(object):
 
     def batch_query2(self, sql, parameters=(), batch_size=BATCH_SIZE):
         try:
-            curs = self.conn2.cursor(name='batch2')
+            time = datetime.datetime.now().strftime("%m-%d_%H-%M-%S-%f")
+            curr_name = 'batch2-' + time
+            curs = self.conn2.cursor(name=curr_name)
             curs.arraysize = batch_size
             # print curs.mogrify(sql, parameters)
             curs.execute(sql, parameters)

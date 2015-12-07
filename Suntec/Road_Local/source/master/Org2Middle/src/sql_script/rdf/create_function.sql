@@ -1350,11 +1350,6 @@ DECLARE
 	cur_regulation_id integer;
 	nIndex integer;
 	nCount integer;
-	exist_regulation_id integer[];
-	exist_regulation_id_len integer;
-	exist_regulation_id_idx integer;
-	exist_linkids varchar;
-	exist_linkids_flag boolean;
 BEGIN
 	-- regulation_id
 	select (case when max(regulation_id) is null then 0 else max(regulation_id) end)
@@ -1362,65 +1357,12 @@ BEGIN
 	into cur_regulation_id;
     
     FOR rec IN
-    	select	a.linkid_array, a.linkid_array::varchar as linkids, a.node_id
-    	from
-    	(
-    		-- mainnode uturn
-	    	select 	(ARRAY[in_link::bigint] || string_to_array(inner_path, ',')::bigint[] || ARRAY[out_link::bigint]) as linkid_array,
-	    			in_node as node_id
-	    	from
-	    	(
-		    	select 	*, 
-		    			unnest(mid_find_awr_inner_path(in_link, out_link, in_node, out_node)) as inner_path
-		    	from temp_awr_mainnode_uturn
-	    	)as t
-	    	where (inner_path is not null) and (inner_path != '')
-	    	
-	    	-- node uturn
-	    	union
-	    	select ARRAY[in_link, out_link] as linkid_array, node_id
-	    	from temp_awr_node_uturn
-    	)as a
-    	left join temp_awr_pdm_linkrow as b
-    	on 	b.first_link = ANY(a.linkid_array) 
-    		and 
-    		rdb_contains(a.linkid_array, b.link_array) is true
-    	where b.regulation_id is null
-    
+    	SELECT a.*
+		FROM temp_node_uturn_linkrow a
+		LEFT JOIN temp_forbid_entry_regulation_linkrow b
+			ON a.linkids = b.linkids
+		WHERE b.linkid_array is null
     LOOP
-		-- avoid redundancy regulation
-		exist_linkids_flag := false;
-		SELECT array_agg(regulation_id) INTO exist_regulation_id
-		FROM regulation_relation_tbl
-		WHERE nodeid IS NOT DISTINCT FROM rec.node_id and 
-			inlinkid IS NOT DISTINCT FROM rec.linkid_array[1] and
-			outlinkid IS NOT DISTINCT FROM rec.linkid_array[array_upper(rec.linkid_array,1)] and
-			condtype = 1 and 
-			cond_id IS NULL;
-		
-		IF FOUND and (exist_regulation_id IS NOT NULL) THEN
-			exist_regulation_id_len := array_upper(exist_regulation_id, 1);
-			FOR exist_regulation_id_idx IN 1..exist_regulation_id_len LOOP
-				SELECT array_agg(linkid)::varchar INTO exist_linkids
-				FROM (
-					SELECT *
-					FROM regulation_item_tbl
-					WHERE regulation_id = exist_regulation_id[exist_regulation_id_idx] and seq_num != 2
-					ORDER BY regulation_id, seq_num
-				) a
-				GROUP BY regulation_id;
-				
-				IF exist_linkids IS NOT DISTINCT FROM rec.linkids THEN
-					exist_linkids_flag := true;
-					exit;
-				END IF;
-			END LOOP;
-			
-			IF exist_linkids_flag = true THEN
-				continue;
-			END IF;
-		END IF;
-		
 		-- current regulation id
     	cur_regulation_id := cur_regulation_id + 1;
 		

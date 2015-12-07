@@ -347,7 +347,7 @@ CREATE TABLE ni_temp_poi_category
 );
 
 ------------------------------------------------------------------------
-CREATE TABLE mid_temp_hwy_exit_name_ni
+CREATE TABLE temp_hwy_facil_name_ni
 (
   junction_id   bigint not null primary key,
   name          character varying
@@ -401,3 +401,47 @@ CREATE TABLE mid_hwy_del_path_for_cycle
   link_id       bigint,
   seq_nm        integer NOT NULL
 ); SELECT AddGeometryColumn('','mid_hwy_del_path_for_cycle','the_geom','4326','LINESTRING',2);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_org_hw_junction_merged_id
+(
+  id           bigint not null, -- reserve id
+  merged_id    bigint not null  -- id is merged
+);
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_org_hw_junction_mid_linkid_merged
+(
+  gid          serial NOT NULL primary key,
+  id           bigint NOT NULL,
+  nodeid       bigint NOT NULL,
+  inlinkid     bigint,
+  outlinkid    bigint,
+  accesstype   integer,
+  attr         integer,
+  seq_nm       integer,
+  hw_pid       integer,
+  estab_item   character varying(254)
+);
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_org_hw_jct_merged
+(
+  gid           serial NOT NULL PRIMARY KEY,
+  id            bigint not null,
+  s_junc_pid    bigint not null,
+  e_junc_pid    bigint not null,
+  dis_betw      bigint not null,
+  direction     integer not null,
+  passlid       character varying(1024)
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_urban_jct_bak
+(
+  road_code     integer not null,
+  road_seq      integer not null,
+  inout_c       integer not null,
+  updown_c      integer not null,
+  node_id       bigint not null,
+  node_lid      character varying,
+  ic_road_seq   integer
+);

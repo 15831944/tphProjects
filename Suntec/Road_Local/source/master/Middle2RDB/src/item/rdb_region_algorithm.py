@@ -9,6 +9,7 @@ import sys
 import time
 import copy
 import heapq
+import math
 import multiprocessing
 import common.rdb_common
 
@@ -605,6 +606,16 @@ class CGraph_Memory(CGraph):
         self.pg = common.rdb_database.rdb_pg()
         self.pg.connect2()
         
+        # mesh scope
+        tz = (self.meshid >> 32) & 127
+        tx = (self.meshid >> 16) & 65535
+        ty = self.meshid & 65535
+        self.tz = tz
+        self.tx_16_min = (tx << (16 - tz))
+        self.tx_16_max = (((tx + 1) << (16 - tz)) - 1)
+        self.ty_16_min = (ty << (16 - tz))
+        self.ty_16_max = (((ty + 1) << (16 - tz)) - 1)
+        
         # init links & nodes
         sqlcmd = """
                 select  a.link_id,
@@ -670,10 +681,11 @@ class CGraph_Memory(CGraph):
         else:
             overlap_t16 = self.use_mesh_overwrap
         
-        tx_16_min = (tx << (16 - tz)) - overlap_t16
-        tx_16_max = (((tx + 1) << (16 - tz)) - 1) + overlap_t16
-        ty_16_min = (ty << (16 - tz)) - overlap_t16
-        ty_16_max = (((ty + 1) << (16 - tz)) - 1) + overlap_t16
+        self.tz = tz
+        self.tx_16_min = (tx << (16 - tz)) - overlap_t16
+        self.tx_16_max = (((tx + 1) << (16 - tz)) - 1) + overlap_t16
+        self.ty_16_min = (ty << (16 - tz)) - overlap_t16
+        self.ty_16_max = (((ty + 1) << (16 - tz)) - 1) + overlap_t16
         
         # init links & nodes
         sqlcmd = """
@@ -709,10 +721,10 @@ class CGraph_Memory(CGraph):
                 """
         sqlcmd = sqlcmd.replace('[rdb_link]', self.rdb_link)
         sqlcmd = sqlcmd.replace('[meshid]', str(self.meshid))
-        sqlcmd = sqlcmd.replace('[tx_16_min]', str(tx_16_min))
-        sqlcmd = sqlcmd.replace('[tx_16_max]', str(tx_16_max))
-        sqlcmd = sqlcmd.replace('[ty_16_min]', str(ty_16_min))
-        sqlcmd = sqlcmd.replace('[ty_16_max]', str(ty_16_max))
+        sqlcmd = sqlcmd.replace('[tx_16_min]', str(self.tx_16_min))
+        sqlcmd = sqlcmd.replace('[tx_16_max]', str(self.tx_16_max))
+        sqlcmd = sqlcmd.replace('[ty_16_min]', str(self.ty_16_min))
+        sqlcmd = sqlcmd.replace('[ty_16_max]', str(self.ty_16_max))
         
         link_recs = self.pg.get_batch_data2(sqlcmd)
         for link_rec in link_recs:
@@ -734,16 +746,16 @@ class CGraph_Memory(CGraph):
             
             # boundary nodes
             if (
-                objLink.start_node_tx < tx_16_min or objLink.start_node_tx > tx_16_max
+                objLink.start_node_tx < self.tx_16_min or objLink.start_node_tx > self.tx_16_max
                 or
-                objLink.start_node_ty < ty_16_min or objLink.start_node_ty > ty_16_max
+                objLink.start_node_ty < self.ty_16_min or objLink.start_node_ty > self.ty_16_max
                 ):
                 self.boundary_nodes.add(objLink.start_node_id)
             
             if (
-                objLink.end_node_tx < tx_16_min or objLink.end_node_tx > tx_16_max
+                objLink.end_node_tx < self.tx_16_min or objLink.end_node_tx > self.tx_16_max
                 or
-                objLink.end_node_ty < ty_16_min or objLink.end_node_ty > ty_16_max
+                objLink.end_node_ty < self.ty_16_min or objLink.end_node_ty > self.ty_16_max
                 ):
                 self.boundary_nodes.add(objLink.end_node_id)
         
@@ -812,8 +824,17 @@ class CGraph_Memory(CGraph):
         
         return groups
     
-    def searchTrunkLinks(self, log=None):
+    def searchTrunkLinks(self, log=None, get_link_cost='CLinkCost.getCost'):
+        trunk_paths = self.searchTrunkPaths(log=log, get_link_cost=get_link_cost)
         trunk_links = set()
+        for from_node, all_shortest_paths in trunk_paths.items():
+            for to_node, paths in all_shortest_paths.items():
+                for (cost,path) in paths:
+                    trunk_links.update(path)
+        return trunk_links
+    
+    def searchTrunkPaths(self, log=None, get_link_cost='CLinkCost.getCost'):
+        trunk_paths = {}
         nCount = len(self.boundary_nodes)
         nIndex = 0
         boundary_nodes_group = self.group_nodes_by_weakly_connection(self.boundary_nodes)
@@ -827,12 +848,10 @@ class CGraph_Memory(CGraph):
                                                        is_legal_path=self._is_legal_path,
                                                        is_leaf=self._is_leaf_of_region_mesh,
                                                        max_buffer=len(self.nodes)*4,
-                                                       get_link_cost=CLinkCost.getCost,
+                                                       get_link_cost=get_link_cost,
                                                        log=log)
-                for paths in all_paths.values():
-                    for (cost,path) in paths:
-                        trunk_links.update(path)
-        return trunk_links
+                trunk_paths[from_node] = all_paths
+        return trunk_paths
     
     def simplify(self):
         #
@@ -848,6 +867,7 @@ class CGraph_Memory(CGraph):
             sublink = self.links[sublinkid]
             linkrow = CLink(sublink.link_rec)
             linkrow.sublinks = set([sublink.link_id])
+            #linkrow.sublinkarray = [sublink.link_id]
             
             # search linkrow
             search_nodes = []
@@ -937,11 +957,13 @@ class CGraph_Memory(CGraph):
                             linkrow.end_node_id = reach_node
                             linkrow.link_length += adjlink.link_length
                             linkrow.sublinks.add(adjlink.link_id)
+                            #linkrow.sublinkarray.append(adjlink.link_id)
                             linkrow.tazm = tazm
                         else:
                             linkrow.start_node_id = reach_node
                             linkrow.link_length += adjlink.link_length
                             linkrow.sublinks.add(adjlink.link_id)
+                            #linkrow.sublinkarray.insert(0, adjlink.link_id)
                             linkrow.fazm = fazm
                         break
                     #end of for loop, check all adjlink of current reach_node
@@ -953,6 +975,7 @@ class CGraph_Memory(CGraph):
             
             # add into mapping
             link_mapping[linkrow.link_id] = linkrow.sublinks
+            #link_mapping[linkrow.link_id] = linkrow.sublinkarray
             simple_graph.links[linkrow.link_id] = linkrow
             if not simple_graph.nodes.has_key(linkrow.start_node_id):
                 simple_graph.nodes[linkrow.start_node_id] = [linkrow]
@@ -970,10 +993,125 @@ class CGraph_Memory(CGraph):
     def searchTrunkLinksUsingSimplifing(self, log=None):
         trunk_links = set()
         link_mapping, simple_graph = self.simplify()
-        trunk_linkrows = simple_graph.searchTrunkLinks(log=log)
+        trunk_linkrows = simple_graph.searchTrunkLinks(log=log, get_link_cost=CLinkCost.getCost)
         for linkrow in trunk_linkrows:
             trunk_links.update(link_mapping[linkrow])
         return trunk_links
+    
+    def contract(self, log=None, max_link_num=1000):
+        proxy_graph = CGraph_Memory()
+        proxy_graph.boundary_nodes = set(self.boundary_nodes)
+        proxy_link_id = 0
+        proxy_link_mapping = {}
+        
+        all_sub_graph = self._divide_into_submesh(max_link_num=max_link_num)
+        #print 'all_sub_graph num =', len(all_sub_graph)
+        for sub_graph in all_sub_graph:
+            sub_link_mapping, simple_sub_graph = sub_graph.simplify()
+            sub_paths = simple_sub_graph.searchTrunkPaths(log=log, get_link_cost=CLinkCost.getCost)
+            for from_node, all_shortest_paths in sub_paths.items():
+                for to_node, paths in all_shortest_paths.items():
+                    for (cost,path) in paths:
+                        head_link = self.links[sub_link_mapping[path[0]][0]]
+                        tail_link = self.links[sub_link_mapping[path[-1]][-1]]
+                        
+                        objLink = CLink(head_link.link_rec)
+                        proxy_link_id += 1
+                        objLink.link_id = proxy_link_id
+                        objLink.start_node_id = from_node
+                        objLink.end_node_id = to_node
+                        objLink.one_way = 2
+                        objLink.link_length = cost
+                        if from_node == head_link.start_node_id:
+                            objLink.fazm = head_link.fazm
+                        else:
+                            objLink.fazm = head_link.tazm
+                        if to_node == tail_link.start_node_id:
+                            objLink.tazm = tail_link.fazm
+                        else:
+                            objLink.tazm = tail_link.tazm
+                        
+                        proxy_graph.links[proxy_link_id] = objLink
+                        if not proxy_graph.nodes.has_key(from_node):
+                            proxy_graph.nodes[from_node] = [objLink]
+                        else:
+                            proxy_graph.nodes[from_node].append(objLink)
+                        if not proxy_graph.nodes.has_key(to_node):
+                            proxy_graph.nodes[to_node] = [objLink]
+                        else:
+                            proxy_graph.nodes[to_node].append(objLink)
+                        
+                        sublinks = set()
+                        for link in path:
+                            sublinks.update(sub_link_mapping[link])
+                        proxy_link_mapping[proxy_link_id] = sublinks
+        #print 'proxy_graph.links =', len(proxy_graph.links)
+        return proxy_link_mapping, proxy_graph
+    
+    def _divide_into_submesh(self, max_link_num=1000):
+        #
+        all_sub_graph = {}
+        node_submesh_mapping = {}
+        dz = int(math.log(len(self.links) / max_link_num, 16))
+        tz = self.tz + dz
+        #print self.tz, len(self.links), tz
+        
+        # divide links into sub meshes
+        for objLink in self.links.values():
+            # find sub_mesh
+            tx = objLink.start_node_tx >> (16 - tz)
+            ty = objLink.start_node_ty >> (16 - tz)
+            meshid = (tx << 16) | ty
+            sub_graph = all_sub_graph.get(meshid)
+            if sub_graph is None:
+                sub_graph = CGraph_Memory()
+                all_sub_graph[meshid] = sub_graph
+            
+            # add link and node
+            sub_graph.links[objLink.link_id] = objLink
+            
+            if not sub_graph.nodes.has_key(objLink.start_node_id):
+                sub_graph.nodes[objLink.start_node_id] = [objLink]
+            else:
+                sub_graph.nodes[objLink.start_node_id].append(objLink)
+                
+            if not sub_graph.nodes.has_key(objLink.end_node_id):
+                sub_graph.nodes[objLink.end_node_id] = [objLink]
+            else:
+                sub_graph.nodes[objLink.end_node_id].append(objLink)
+            
+            #
+            if not node_submesh_mapping.has_key(objLink.start_node_id):
+                node_submesh_mapping[objLink.start_node_id] = set([meshid])
+            else:
+                node_submesh_mapping[objLink.start_node_id].add(meshid)
+                
+            if not node_submesh_mapping.has_key(objLink.end_node_id):
+                node_submesh_mapping[objLink.end_node_id] = set([meshid])
+            else:
+                node_submesh_mapping[objLink.end_node_id].add(meshid)
+        
+        # set boundary nodes
+        for meshid,sub_graph in all_sub_graph.items():
+            #print meshid, len(sub_graph.links)
+            for node in sub_graph.nodes.keys():
+                if node in self.boundary_nodes:
+                    sub_graph.boundary_nodes.add(node)
+                if len(node_submesh_mapping[node]) > 1:
+                    sub_graph.boundary_nodes.add(node)
+        
+        return all_sub_graph.values()
+    
+    def searchTrunkLinksUsingContract(self, max_link_num=1000, log=None):
+        if len(self.links) < max_link_num:
+            return self.searchTrunkLinksUsingSimplifing(log=None)
+        else:
+            trunk_links = set()
+            link_mapping, proxy_graph = self.contract(log=None,max_link_num=max_link_num)
+            trunk_linkrows = proxy_graph.searchTrunkLinks(log=log, get_link_cost=CLinkCost.getCost3)
+            for linkrow in trunk_linkrows:
+                trunk_links.update(link_mapping[linkrow])
+            return trunk_links
 
 class CHeap:
     def __init__(self):
@@ -997,25 +1135,27 @@ class CHeap:
 class CLink:
     def __init__(self, link_rec=[]):
         self.link_rec = link_rec
-        self.link_id = link_rec[0]
-        self.road_type = link_rec[1]
-        self.link_type = link_rec[2]
-        self.toll = link_rec[3]
-        self.link_length = link_rec[4]
-        self.one_way = link_rec[5]
-        self.start_node_id = link_rec[6]
-        self.end_node_id = link_rec[7]
-        self.fazm = link_rec[8]
-        self.tazm = link_rec[9]
-        self.ops_width = link_rec[10]
-        self.neg_width = link_rec[11]
         
-        if len(link_rec) == 17:
-            self.meshid = link_rec[12]
-            self.start_node_tx = link_rec[13]
-            self.start_node_ty = link_rec[14]
-            self.end_node_tx = link_rec[15]
-            self.end_node_ty = link_rec[16]
+        if self.link_rec:
+            self.link_id = link_rec[0]
+            self.road_type = link_rec[1]
+            self.link_type = link_rec[2]
+            self.toll = link_rec[3]
+            self.link_length = link_rec[4]
+            self.one_way = link_rec[5]
+            self.start_node_id = link_rec[6]
+            self.end_node_id = link_rec[7]
+            self.fazm = link_rec[8]
+            self.tazm = link_rec[9]
+            self.ops_width = link_rec[10]
+            self.neg_width = link_rec[11]
+        
+            if len(link_rec) == 17:
+                self.meshid = link_rec[12]
+                self.start_node_tx = link_rec[13]
+                self.start_node_ty = link_rec[14]
+                self.end_node_tx = link_rec[15]
+                self.end_node_ty = link_rec[16]
 
 class CLinkCost:
     
@@ -1091,6 +1231,20 @@ class CLinkCost:
     def getCost2(link_length, road_type, toll, one_way, width, in_angle, out_angle):
         return link_length
     
+    @staticmethod
+    def getCost3(link_cost, road_type, toll, one_way, width, in_angle, out_angle):
+        if in_angle is None:
+            angle = 360
+        else:
+            angle = int(out_angle - in_angle)
+            if angle <= 0:
+                angle += 360
+            if angle > 360:
+                angle -= 360
+        angle = int(angle / 5)
+        cost = link_cost + CLinkCost.cost_turn[angle]
+        return cost
+    
 class CHierarchy:
     def __init__(self):
         import common.log
@@ -1119,21 +1273,23 @@ class CHierarchy:
         
         self.log.info('making %s(base_level=%s,max_level=%s,overwrap=%s)...' 
                       % (target_link_table,str(base_level),str(max_level),str(overwrap)))
-        self._splitDataIntoMeshs(base_level, max_level, mesh_road_limit, tile_offset)
+        self._splitDataIntoMeshes(base_level, max_level, mesh_road_limit, tile_offset)
         if overwrap:
             #self._searchImportantNodes()
             self._multiSearchImportantNodes()
-        #self._searchTrunkInMeshs()
+        #self._searchTrunkInMeshes()
         self._multiSearchTrunkRoad()
         self._makeTargetTable()
         
-    def _splitDataIntoMeshs(self, base_level, max_level, mesh_road_limit, tile_offset):
-        self.log.info('split data into meshs...')
+    def _splitDataIntoMeshes(self, base_level, max_level, mesh_road_limit, tile_offset):
+        self.log.info('split data into meshes...')
         
         # split into mesh, and auto resize the scope of mesh
         self.pg.CreateFunction2('rdb_locate_to_tile')
         self.pg.CreateFunction2('rdb_get_meshid_by_zlevel')
         
+        #
+        self.log.info('split data into meshes: dispatch nodes into base_level...')
         sqlcmd = """
                 drop table if exists temp_hierarchy_mesh_nodes;
                 create table temp_hierarchy_mesh_nodes
@@ -1141,20 +1297,26 @@ class CHierarchy:
                 select  node_id,
                         tx as tx_16,
                         ty as ty_16,
+                        link_num,
                         [base_level] as meshlevel,
-                        rdb_get_meshid_by_zlevel(tx, ty, [base_level], [tile_offset]) as meshid,
-                        count(link_id) as link_num
+                        rdb_get_meshid_by_zlevel(tx, ty, [base_level], [tile_offset]) as meshid
                 from
                 (
-                    select link_id, start_node_id as node_id, (rdb_locate_to_tile(st_startpoint(the_geom), 16)).*
-                    from [org_link_table]
-                    where [org_link_filter]
-                    union
-                    select link_id, end_node_id, (rdb_locate_to_tile(st_endpoint(the_geom), 16)).*
-                    from [org_link_table]
-                    where [org_link_filter]
-                )as t
-                group by node_id, tx, ty;
+                    select  node_id,
+                            (rdb_locate_to_tile(the_geom, 16)).*,
+                            count(link_id) as link_num
+                    from
+                    (
+                        select link_id, start_node_id as node_id, st_startpoint(the_geom) as the_geom
+                        from [org_link_table]
+                        where [org_link_filter]
+                        union
+                        select link_id, end_node_id, st_endpoint(the_geom) as the_geom
+                        from [org_link_table]
+                        where [org_link_filter]
+                    )as t1
+                    group by node_id, the_geom
+                )as t2;
                 
                 create index temp_hierarchy_mesh_nodes_meshid_idx
                     on temp_hierarchy_mesh_nodes
@@ -1175,6 +1337,8 @@ class CHierarchy:
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        #
+        self.log.info('split data into meshes: dispatch nodes into max_level...')
         while 1:
             sqlcmd = """
                     drop table if exists temp_hierarchy_mesh_too_big;
@@ -1221,6 +1385,7 @@ class CHierarchy:
                 self.pg.commit2()
 
         # mesh links
+        self.log.info('split data into meshes: dispatch links into meshes...')
         sqlcmd = """
                 drop table if exists temp_hierarchy_mesh_links;
                 create table temp_hierarchy_mesh_links
@@ -1277,6 +1442,7 @@ class CHierarchy:
         self.pg.CreateIndex2('temp_hierarchy_mesh_links_end_node_id_idx')
         
         # find boundary nodes
+        self.log.info('split data into meshes: find boundary nodes...')
         sqlcmd = """
                 drop table if exists temp_hierarchy_mesh_boundary_nodes;
                 create table temp_hierarchy_mesh_boundary_nodes
@@ -1352,7 +1518,7 @@ class CHierarchy:
                     from temp_hierarchy_mesh_links;
                     """
             mesh_count = self.pg.getOnlyQueryResult(sqlcmd)
-            self.log.info('there are %s meshs...' % (str(mesh_count)))
+            self.log.info('there are %s meshes...' % (str(mesh_count)))
     
     def _searchImportantNodes(self):
         self.log.info('search important links in every mesh...')
@@ -1361,6 +1527,7 @@ class CHierarchy:
         mesh_list = self._getMeshList()
         while not mesh_list.empty():
             (meshid, nIndex, nCount) = mesh_list.get(timeout=1.0)
+            print (meshid, nIndex, nCount)
             self._searchTrunkRoadInMesh(meshid, nIndex, nCount, 
                                         rdb_link='temp_hierarchy_mesh_links',
                                         rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
@@ -1368,6 +1535,30 @@ class CHierarchy:
                                         target_table='temp_hierarchy_important_links')
         
         self.pg.CreateIndex2('temp_hierarchy_important_links_link_id_idx')
+        
+        # test view
+        if False:
+            sqlcmd = """
+                    drop table if exists temp_hierarchy_important_links_view;
+                    create table temp_hierarchy_important_links_view
+                    as
+                    select a.*, b.the_geom
+                    from temp_hierarchy_important_links as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id;
+                    
+                    alter table temp_hierarchy_important_links_view add column gid serial primary key;
+                    CREATE INDEX temp_hierarchy_important_links_view_meshid_idx
+                        on temp_hierarchy_important_links_view
+                        using btree
+                        (meshid);
+                    CREATE INDEX temp_hierarchy_important_links_view_the_geom_idx
+                        on temp_hierarchy_important_links_view
+                        using gist
+                        (the_geom);
+                    """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
         self._searchImportantMeshBoundaryNodes()
     
     def _multiSearchImportantNodes(self):
@@ -1396,7 +1587,7 @@ class CHierarchy:
             objThread.join()
         
         if exception_event.value:
-            raise Exception, 'error happened while processing meshs'
+            raise Exception, 'error happened while processing meshes'
         
         self.pg.CreateIndex2('temp_hierarchy_important_links_link_id_idx')
         self._searchImportantMeshBoundaryNodes()
@@ -1442,6 +1633,28 @@ class CHierarchy:
         # test view
         if False:
             sqlcmd = """
+                    drop table if exists temp_hierarchy_important_links_view;
+                    create table temp_hierarchy_important_links_view
+                    as
+                    select a.*, b.the_geom
+                    from temp_hierarchy_important_links as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id;
+                    
+                    alter table temp_hierarchy_important_links_view add column gid serial primary key;
+                    CREATE INDEX temp_hierarchy_important_links_view_meshid_idx
+                        on temp_hierarchy_important_links_view
+                        using btree
+                        (meshid);
+                    CREATE INDEX temp_hierarchy_important_links_view_the_geom_idx
+                        on temp_hierarchy_important_links_view
+                        using gist
+                        (the_geom);
+                    """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            
+            sqlcmd = """
                     drop table if exists temp_hierarchy_mesh_important_nodes_view;
                     create table temp_hierarchy_mesh_important_nodes_view
                     as
@@ -1473,7 +1686,7 @@ class CHierarchy:
             self._searchTrunkRoadInMesh(meshid, nIndex, nCount, 
                                         rdb_link='temp_hierarchy_mesh_links',
                                         rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                                        use_mesh_overwrap=False, 
+                                        use_mesh_overwrap=0, 
                                         target_table='temp_hierarchy_trunk_links')
         
         self.pg.CreateIndex2('temp_hierarchy_trunk_links_link_id_idx')
@@ -1491,7 +1704,7 @@ class CHierarchy:
                                                        exception_event,
                                                        rdb_link='temp_hierarchy_mesh_links',
                                                        rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                                                       use_mesh_overwrap=False,
+                                                       use_mesh_overwrap=0,
                                                        target_table='temp_hierarchy_trunk_links',
                                                        log=None)
             objThread.daemon = True
@@ -1504,7 +1717,7 @@ class CHierarchy:
             objThread.join()
         
         if exception_event.value:
-            raise Exception, 'error happened while processing meshs'
+            raise Exception, 'error happened while processing meshes'
         
         self.pg.CreateIndex2('temp_hierarchy_trunk_links_link_id_idx')
     
@@ -1539,11 +1752,12 @@ class CHierarchy:
         self.pg.commit2()
     
     def _getMeshList(self):
-        meshs = multiprocessing.Queue()
-#        import Queue
-#        meshs = Queue.Queue()
-#        meshs.put((-1871298258, 1, 1))
-#        return meshs
+        #import Queue
+        #meshes = Queue.Queue()
+        #meshes.put((51753322372, 1, 1))
+        #meshes.put((43002626504, 1, 1))
+        #return meshes
+        meshes = multiprocessing.Queue()
         sqlcmd = """
                 select distinct meshid
                 from temp_hierarchy_mesh_links
@@ -1554,15 +1768,15 @@ class CHierarchy:
         nCount = len(rows)
         for nIndex in xrange(nCount):
             meshid = rows[nIndex][0]
-            meshs.put((meshid, nIndex+1, nCount))
+            meshes.put((meshid, nIndex+1, nCount))
         
-        return meshs
+        return meshes
     
     def _searchTrunkRoadInMesh(self, 
                                meshid, nIndex, nCount, 
                                rdb_link='temp_hierarchy_mesh_links', 
                                rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                               use_mesh_overwrap=False,
+                               use_mesh_overwrap=0,
                                target_table='temp_hierarchy_trunk_links'):
         self.log.info('processing mesh %s (%s/%s)...' % (str(meshid), str(nIndex), str(nCount)))
         graph = CGraph_Memory()

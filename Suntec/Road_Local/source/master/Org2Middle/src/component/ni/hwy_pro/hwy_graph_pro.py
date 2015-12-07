@@ -9,6 +9,7 @@ import networkx as nx
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_URBAN_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
@@ -21,6 +22,9 @@ from component.rdf.hwy.hwy_def_rdf import ANGLE_360
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY0
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY1
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 HWY_FIRST_ICS_LINK = 'first_ics_link'  # 设施入/出第一条link
@@ -111,6 +115,30 @@ class HwyGraphNiPro(HwyGraphRDF):
             return True
         return False
 
+    def is_urban_jct(self, path, reverse):
+        '''高速和城市高速的交汇点。
+           reverse: False,顺车流；True,逆车流
+        '''
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(path[-1], True)
+        else:  # 顺
+            edges_iter = self.out_edges_iter(path[-1], True)
+        for temp_u, temp_v, data in edges_iter:
+            if reverse:  # 逆
+                temp_path = path + [temp_u]
+            else:  # 顺
+                temp_path = path + [temp_v]
+            # 规制
+            if not self.check_regulation(temp_path, reverse):
+                continue
+            road_type = data.get(HWY_ROAD_TYPE)
+#             link_type = data.get(HWY_LINK_TYPE)
+            path_id = data.get(HWY_PATH_ID)
+            # 城市高速且为本线
+            if(road_type == HWY_ROAD_TYPE_HWY1 and path_id):
+                return True
+        return False
+
     def is_hwy_inout(self, path, reverse=False):
         '''高速(Ramp)和一般道、高速双向路的交汇点。
            reverse: False,顺车流；True,逆车流
@@ -137,7 +165,7 @@ class HwyGraphNiPro(HwyGraphRDF):
             road_type = data.get(HWY_ROAD_TYPE)
             link_type = data.get(HWY_LINK_TYPE)
             # 非高速，非SAPA
-            if(road_type not in HWY_ROAD_TYPE_HWY and
+            if(road_type not in (HWY_ROAD_TYPE_HWY0, HWY_ROAD_TYPE_HWY1) and
                link_type != HWY_LINK_TYPE_SAPA):
                 return True
             # SAPA内部link_type=1,one_way=1的link, 所以不判断高速本线双向
@@ -162,7 +190,10 @@ class HwyGraphNiPro(HwyGraphRDF):
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
             link_type = data.get(HWY_LINK_TYPE)
-            if(road_type in HWY_ROAD_TYPE_HWY or  # 高速
+            if (data.get(HWY_PATH_ID) and
+                road_type == HWY_ROAD_TYPE_HWY1):  # 城市高速本线
+                continue
+            if(road_type in (HWY_ROAD_TYPE_HWY0, HWY_ROAD_TYPE_HWY1)or  # 高速
                link_type == HWY_LINK_TYPE_SAPA):  # SAPA Link
                 if reverse:  # 逆
                     nodes.append(u)
@@ -201,6 +232,8 @@ class HwyGraphNiPro(HwyGraphRDF):
             yield visited[1:], HWY_IC_TYPE_IC
         if self.is_jct(visited, road_code, code_field, reverse):  # 本线和本线直接相连
             yield visited[1:], HWY_IC_TYPE_JCT
+        if self.is_urban_jct(visited, reverse):
+            yield visited[1:], HWY_IC_TYPE_URBAN_JCT
         # visited = [source]
         # stack = [iter(self[source])]
         nodes = self._get_not_main_link(visited[-1], code_field, reverse)
@@ -268,10 +301,10 @@ class HwyGraphNiPro(HwyGraphRDF):
                                 yield temp_path[1:], HWY_IC_TYPE_UTURN
                             else:
                                 yield temp_path[1:], HWY_IC_TYPE_JCT
-#                             if self._is_sapa_path(temp_path, road_code,
-#                                                   code_field, reverse):
-#                                 yield temp_path[1:], HWY_IC_TYPE_PA
-#                                 exist_sapa_facil = True
+                            if self.is_sapa_path(temp_path, road_code,
+                                                  code_field, reverse):
+                                yield temp_path[1:], HWY_IC_TYPE_PA
+                                exist_sapa_facil = True
                     elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                                 code_field, reverse):
                         if self.is_sapa_path(temp_path, road_code,
@@ -283,10 +316,14 @@ class HwyGraphNiPro(HwyGraphRDF):
                             # 辅路、类辅路设施
                             yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
                             continue
+                    # 与城市高速交汇
+                    if self.is_urban_jct(temp_path, reverse):
+                        yield temp_path[1:], HWY_IC_TYPE_URBAN_JCT
                     # 和一般道交汇
                     if self.is_hwy_inout(temp_path, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_IC
                     curr_inout_flag = True
+
                     if self.is_virtual_jct(child, road_code,
                                            code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_VIRTUAl_JCT
@@ -358,7 +395,7 @@ class HwyGraphNiPro(HwyGraphRDF):
             edges_iter = self.out_edges_iter(v, True)
         for temp_u, temp_v, data in edges_iter:
             road_type = data.get(HWY_ROAD_TYPE)
-            if road_type not in HWY_ROAD_TYPE_HWY:
+            if road_type not in (HWY_ROAD_TYPE_HWY0, HWY_ROAD_TYPE_HWY1):
                 if reverse:  # 逆
                     nodes.append(temp_u)
                 else:  # 顺

@@ -472,6 +472,10 @@ class comp_factory_ta(comp_factory):
             from component.ta import guideinfo_lane_ta
             return guideinfo_lane_ta.comp_guideinfo_lane_ta()
             pass
+        if comp_name == 'Guideinfo_Lane_Pushlink':
+            from component.default import guideinfo_lane_pushlink
+            return guideinfo_lane_pushlink.guideinfo_lane_pushlink()
+            pass
         if comp_name == 'Guideinfo_Safety_Alert':
             from component.ta import guideinfo_safetyalert_ta
             return guideinfo_safetyalert_ta.comp_guideinfo_safety_alert_ta()
@@ -1038,9 +1042,17 @@ class comp_factory_zenrin(comp_factory):
             from component.zenrin import guideinfo_lane_zenrin
             return guideinfo_lane_zenrin.comp_guideinfo_lane_zenrin()
         
+        if comp_name == 'Guideinfo_Lane_Pushlink':
+            from component.default import guideinfo_lane_pushlink
+            return guideinfo_lane_pushlink.guideinfo_lane_pushlink()
+        
         if comp_name == 'Guideinfo_SpotGuide':
             from component.zenrin import guideinfo_spotguide_zenrin
             return guideinfo_spotguide_zenrin.comp_guideinfo_spotguide_zenrin()
+        
+        if comp_name == 'Guideinfo_SpotGuide_Pushlink':
+            from component.default import guideinfo_spotguide_pushlink
+            return guideinfo_spotguide_pushlink.guideinfo_spotguide_pushlink()
         
         if comp_name == 'guideinfo_signpost_uc':
             from component.zenrin import guideinfo_signpost_uc_zenrin

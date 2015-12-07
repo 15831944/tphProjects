@@ -21,17 +21,44 @@ class comp_update_link_type_sapa_jct(component.component_base.comp_base):
     
         
     def _Do(self):
-
+        self.__backup_link_tbl_before_linktype_adjust()
+        
         self.__get_ic_jct_link()
         self.__modify_jct_paths_both_end_all_the_same()
         self.__get_jct_link_revise()
         self.__get_ic_link_change_to_jct()
         self.__get_sapa_link()
         self.__get_ic_change_to_sapa()
+        
+        self.__backup_link_tbl_after_linktype_adjust()
 
         
        
+    def __backup_link_tbl_before_linktype_adjust(self):
+        self.log.info('backup link_tbl before link_type adjust...')
+        sqlcmd = '''
+            drop table if exists temp_link_tbl_bak_before_linktype_adjust;
+            create table temp_link_tbl_bak_before_linktype_adjust
+            as
+            select * from link_tbl
         
+        '''   
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+        
+    def __backup_link_tbl_after_linktype_adjust(self):
+        self.log.info('backup link_tbl after link_type adjust...')
+        sqlcmd = '''
+            drop table if exists temp_link_tbl_bak_after_linktype_adjust;
+            create table temp_link_tbl_bak_after_linktype_adjust
+            as
+            select * from link_tbl
+        
+        '''   
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+        
+                
     def __get_ic_jct_link(self):
         self.log.info('Updating link_type of ic/jct links...')
         sqlcmd = '''

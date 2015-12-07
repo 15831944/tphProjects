@@ -48,7 +48,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                fazm, tazm, tile_id, length,
                road_name, road_number, the_geom
           FROM link_tbl
-          where (road_type = 0 and link_type not in (1, 2)) -- not main link
+          where (road_type in (0, 1) and link_type not in (1, 2)) -- not main link
         );
         """
         self.pg.execute2(sqlcmd)
@@ -193,7 +193,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                      when accesstype::bigint = 2 then outlinkid::bigint
                      else 0
                    end as in_out_link
-            from mid_hwy_org_hw_junction_mid_linkid as a
+            from mid_hwy_org_hw_junction_mid_linkid_merged as a
             left join
             ( select featid::bigint,
                      array_to_string(array_agg(name),'|') as name
@@ -211,37 +211,36 @@ class HwyDataMngNiPro(HwyDataMngRDF):
              facilcls_cs, facil_names, facility_ids) = row
             facil_info_list = zip(road_codes, facilcls_cs, inout_cs,
                                   in_out_links, facil_names, facility_ids)
-#             facil_dict = dict()
-#             facil_name_dict = dict()
-#             for facil_info in facil_info_list:
-#                 (road_code, inout_c, inout_link, facilcls_c,
-#                  facil_name, facility_id) = facil_info
-#                 facil_key = (road_code, facilcls_c, inout_c, inout_link)
-#                 facil_name_key = (road_code, facilcls_c, inout_c)
-#                 f_name = facil_name
-#                 f_id = facility_id
-#                 if facil_key in facil_dict.keys():
-#                     self.log.error('more than one facil key.node=%s' % node)
-#                     continue
-#                 else:
-#                     if (facil_name_key in facil_name_dict.keys() and
-#                         facil_name_dict[facil_name_key] != f_name):
-#                         self.log.error('more than one facil name=%s' % node)
-#                         continue
-#                     else:
-#                         facil_name_dict[facil_name_key] = f_name
-#                     facil_dict[facil_key] = f_id
             data = {HWY_ORG_FACIL_ID: facil_info_list}
             if node in self._graph:
                 self._graph.add_node(node, data)
         self.log.info('End Loading ORG Facility ID.')
+
+    def get_path_by_pathid(self, path_id, updown):
+        '''中国专用数据road_code直接取path_id'''
+        sqlcmd = """
+        SELECT array_agg(node_id) as path
+          FROM (
+            SELECT road_code, node_id, seq_nm
+              FROM hwy_link_road_code_info
+              WHERE road_code = %s and updown = %s
+              ORDER BY seq_nm
+          ) AS a
+          group by road_code;
+        """
+        self.pg.execute1(sqlcmd, (path_id, updown))
+        row = self.pg.fetchone()
+        if row:
+            return row[0]
+        else:
+            return []
 
     def get_cycle_route_start_end(self):
         CYCLE_ROUTE_START_END = [(5788214, ),
                                  (5788233, ),
                                  (1297193, ),
                                  (1294109, ),
-                                 (1193895, ),
+                                 (1193896, ),
                                  (1255163, ),
                                  (1749234, ),
                                  (1749231, ),
@@ -258,25 +257,25 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                                  (4156978, ),
                                  (4156976, ),
                                  (2944216, ),
-                                 (2944272, ),
+                                 (2944212, ),
                                  (5484972, ),
                                  (5487995, ),
-                                 (4034529, ),
+                                 (4034530, ),
                                  (4034532, ),
-                                 (6737779, ),
-                                 (6737791, ),
+                                 (6737786, ),
+                                 (6737789, ),
                                  (1151242, ),
-                                 (1200166, ),
-                                 (72978560, ),
-                                 (72978576, ),
+                                 (13968055, ),
+                                 (72978578, ),
+                                 (72978566, ),
                                  (4161595, ),
                                  (4176068, ),
-                                 (289362, ),
-                                 (289357, ),
+                                 (289944, ),
+                                 (289946, ),
                                  (4724815, ),
                                  (4722492, ),
                                  (6744674, ),
-                                 (6744665, ),
+                                 (6744677, ),
                                  (6045741, ),
                                  (6045742, ),
                                  ]

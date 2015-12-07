@@ -738,7 +738,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 on b.link_id = a.linkid::bigint
                 left join node_tbl as c
                 on c.toll_flag = 1 and c.node_id in (b.s_node,b.e_node)
-                where b.link_type in (1,2) and b.road_type in (0,1) and a.kind in ('8401')
+                where b.link_type in (1,2) and b.road_type in (0,1) and a.kind in ('8401','F00E')
             )
         
         '''

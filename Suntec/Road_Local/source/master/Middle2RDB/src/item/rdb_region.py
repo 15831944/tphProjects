@@ -30,7 +30,7 @@ class rdb_region(ItemBase):
             ('rdf','sgp'):          rdb_region_rdf_ap(),
             ('rdf','me8'):          rdb_region_rdf_ap(),
 			('rdf','mea'):          rdb_region_rdf_ap(),
-            ('rdf','ase'):          rdb_region_rdf_ap(),
+            ('rdf','ase'):          rdb_region_rdf_sea(),
             ('rdf','na'):           rdb_region_rdf_north_america(),
             ('rdf','bra'):          rdb_region_rdf_brazil(),
             ('rdf','arg'):          rdb_region_rdf_argentina(),
@@ -1785,6 +1785,58 @@ class rdb_region_rdf_ap(rdb_region):
 #        self.pg.commit2()
 #        
 #        rdb_log.log('Region', 'Reset link function class end.', 'info')
+
+class rdb_region_rdf_sea(rdb_region):
+    def _hierarchy(self):
+        import rdb_region_algorithm
+        objHierarchy = rdb_region_algorithm.CHierarchy()
+        
+        objHierarchy.make(org_link_table='rdb_link', 
+                          org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
+                          target_link_table='temp_hierarchy_links_layer2', 
+                          base_level=12,
+                          max_level=14,
+                          mesh_road_limit=600)
+        
+        objHierarchy.make(org_link_table='temp_hierarchy_links_layer2',
+                          org_link_filter='true',
+                          target_link_table='temp_hierarchy_links_layer3',
+                          base_level=10,
+                          max_level=13,
+                          mesh_road_limit=800,
+                          overwrap=1)
+        
+        objHierarchy.make(org_link_table='temp_hierarchy_links_layer3',
+                          org_link_filter='true',
+                          target_link_table='temp_hierarchy_links_layer4',
+                          base_level=9,
+                          max_level=11,
+                          mesh_road_limit=800,
+                          overwrap=-1)
+        
+        objHierarchy.make(org_link_table='temp_hierarchy_links_layer4',
+                          org_link_filter='true',
+                          target_link_table='temp_hierarchy_links_layer6',
+                          base_level=6,
+                          max_level=8,
+                          mesh_road_limit=1000,
+                          overwrap=-1)
+    
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region._makeOriginalRegionOnLevelX(self, 
+                                               layer=4, 
+                                               level=10, 
+                                               rdb_link='rdb_link', 
+                                               attr_filter={'function_code':[1,2,3,4]},
+                                               additional_links='temp_hierarchy_links_layer6')
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region._makeOriginalRegionOnLevelX(self, 
+                                               layer=6, 
+                                               level=6, 
+                                               rdb_link='rdb_link', 
+                                               attr_filter={'function_code':[1,2,3]},
+                                               additional_links='temp_hierarchy_links_layer6')
 
 class rdb_region_taiwan(rdb_region_rdf_ap):
     def _makeOriginalRegionOnLevel4(self):

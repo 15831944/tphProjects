@@ -364,3 +364,14 @@ CREATE INDEX mid_hwy_org_hw_junction_mid_linkid_the_geom_idx
   ON mid_hwy_org_hw_junction_mid_linkid
   USING gist
   (the_geom);
+-----------------------------------------------------
+CREATE UNIQUE INDEX mid_hwy_org_hw_junction_mid_linkid_merged_id_idx
+  ON mid_hwy_org_hw_junction_mid_linkid
+  USING btree
+  (id);
+
+-----------------------------------------------------
+CREATE INDEX mid_hwy_org_hw_junction_mid_linkid_merged_the_geom_idx
+  ON mid_hwy_org_hw_junction_mid_linkid
+  USING gist
+  (the_geom);

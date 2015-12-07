@@ -39,7 +39,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
 #         self._make_hwy_store_name_11()
         # 14年
         self._make_poi_link()
-        self._make_ni_temp_poi_category()
+#         self._make_ni_temp_poi_category()
         # POI最近的link(由于切割，Entry link可能有多条)
         self._make_hwy_poi_closest_link()
         self._make_hwy_sapa_store_info()
@@ -207,8 +207,6 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
     def _make_hwy_store_name(self):
         '''Store or Chain Name'''
         self.CreateTable2('hwy_chain_name')
-        if not self._check_temp_poi_category():
-            self.log.error('table temp_poi_category error')
         sqlcmd = """
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
@@ -216,7 +214,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
         SELECT per_code as u_code, a.kind, '' as subcat,
                a.chaincode, b.name as chain_name, 'CHI' as language_code
           FROM org_poi as a
-          LEFT JOIN ni_temp_poi_category as b
+          LEFT JOIN temp_poi_category as b
           ON a.chaincode = b.chaincode and a.kind = b.org_code1
           where a.chaincode <> '' and a.chaincode is not null and
                 per_code is not null
@@ -225,7 +223,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
          SELECT distinct per_code as u_code, a.kind, '' as subcat,
                a.chaincode, b.name as chain_name, 'CHI' as language_code
           FROM org_poi as a
-          LEFT JOIN ni_temp_poi_category as b
+          LEFT JOIN temp_poi_category as b
           ON a.chaincode = b.chaincode and a.kind = b.org_code2
           where a.chaincode <> '' and a.chaincode is not null and
                 per_code is not null and is_brand = 'Y'

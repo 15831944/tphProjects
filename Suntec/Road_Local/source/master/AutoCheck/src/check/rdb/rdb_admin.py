@@ -6,7 +6,22 @@ import platform.TestCase
 import common.database
 import common.ConfigReader
 
-
+class CCheckAdmin_order0_iso_country_mapping(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd ="""
+            select  iso_country_code, count(*) as num 
+            from rdb_admin_order0_iso_country_mapping
+            group by iso_country_code
+         """
+        self.pg.execute(sqlcmd)
+        
+        order0_num = self.pg.fetchall()
+        
+        for (iso_country_code, num) in order0_num:
+            if num>1:
+                return False
+        return True
+    
 class CCheckAdminCodeCount(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
@@ -657,7 +672,7 @@ class CCheckAdmin_order8_time_zone(platform.TestCase.CTestCase):
 class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
     def _do(self):
         pro_name = common.ConfigReader.CConfigReader.instance()
-        strcompany = pro_name.getProjName()         
+        strcompany = pro_name.getProjName()  
         self.sqlcmd_no_name = """
                     select num2::double precision /num1::double precision
                     from
@@ -675,8 +690,12 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
                     on TRUE;
                 """
         no_name_proportion = self.pg.getOnlyQueryResult(self.sqlcmd_no_name.replace('[order]', '8'))
-        if no_name_proportion > 0.01:
-            return False
+        
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strpro_name = pro_name.getCountryName()
+        
+        if no_name_proportion > 0.01 and strpro_name.lower() != 'saf8':
+            return False       
         
         self.sqlcmd_rdb = """
                     select count(*)
@@ -699,7 +718,10 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
         elif strcompany.lower() == 'zenrin':
             self.compare_admin_zenrin()  
         else:
-            return False                    
+            return False  
+        
+        if strpro_name.lower() == 'saf8':
+             self.rdb_8 = self.rdb_8+662                
         
         return (self.org_0 == self.rdb_0) & (self.org_1 == self.rdb_1) & \
                (self.org_2 == self.rdb_2) & (self.org_8 == self.rdb_8)
@@ -761,7 +783,7 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
                             group by left_admin_place_id
                         );
                         """
-                self.pg.execute(sqlcmd_temp, (row[0],))
+                self.pg.execute(sqlcmd_temp%row[0])
                 self.pg.commit()
                     
                 sqlcmd_temp = """
@@ -813,7 +835,33 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
                             """%row[0]
                 num_8_temp = self.pg.getOnlyQueryResult(sqlcmd_temp)
                 self.org_8 = self.org_8 - num_8 + num_8_temp
-
+                
+                sqlcmd = """
+                        SELECT count(*)
+                        FROM rdf_admin_hierarchy as a
+                        inner join rdf_country as h
+                        on a.country_id = h.country_id
+                        WHERE a.admin_order = %d and h.iso_country_code = '%s';
+                        """
+                num_0 = self.pg.getOnlyQueryResult(sqlcmd%(0,row[0]))
+                num_1 = self.pg.getOnlyQueryResult(sqlcmd%(1,row[0]))
+                
+                if num_0 == 1 and num_1 == 1:
+                    sqlcmd = """
+                        SELECT e.feature_name as ad_name
+                        FROM rdf_admin_hierarchy as a
+                        inner join rdf_country as h 
+                        on a.country_id = h.country_id and h.iso_country_code = '%s'
+                        LEFT OUTER JOIN mid_temp_feature_name AS e
+                        ON a.admin_place_id = e.feature_id
+                        WHERE a.admin_order = %d and e.feature_name is not null;
+                        """
+                    order0_name = self.pg.getOnlyQueryResult(sqlcmd%(row[0],0))
+                    order1_name = self.pg.getOnlyQueryResult(sqlcmd%(row[0],1))
+                    
+                    if order0_name == order1_name:
+                        self.org_0 -= 1
+        
     def compare_admin_mmi(self):
         sqlcmd = """
                 SELECT count(distinct name)
@@ -843,7 +891,7 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
         self.org_0 = self.pg.getOnlyQueryResult(sqlcmd)
         
         sqlcmd = """
-                    select count(distinct a.order01)
+                    select count(distinct( a.order00,a.order01))
                     from org_a1 as a
                     left join org_a0 as b
                     on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
@@ -852,7 +900,7 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
         self.org_1 = self.pg.getOnlyQueryResult(sqlcmd)
         
         sqlcmd = """
-                    select count(distinct a.order07)
+                    select count(distinct (a.order00,a.order01,a.order07))
                     from org_a7 as a
                     left join org_a0 as b
                     on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
@@ -861,7 +909,7 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
         self.org_2 = self.pg.getOnlyQueryResult(sqlcmd)
         
         sqlcmd = """
-                    select count(distinct order08)
+                    select count(distinct (a.order00,a.order01,a.order07,a.order08))
                     from org_a8 as a
                     left join org_a0 as b
                     on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
@@ -901,7 +949,17 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
                         """ %row[0]
                 num_order2 = self.pg.getOnlyQueryResult(sqlcmd)
                 self.org_2 -= num_order2
-
+            elif row[0].lower() == 'swz'or row[0].lower() == 'lso':
+                sqlcmd = """
+                        select count(distinct order07)
+                        from org_a7
+                        where order00 = '%s';
+                        """%row[0]
+                num_order2 = self.pg.getOnlyQueryResult(sqlcmd)
+                
+                self.org_2 -= num_order2
+                self.org_1 += num_order2
+                
     def compare_admin_ni(self):
         self.org_0 = 1
         

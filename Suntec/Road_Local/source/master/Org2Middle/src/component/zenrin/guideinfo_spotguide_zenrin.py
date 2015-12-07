@@ -30,10 +30,13 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
     
     def _Do(self):
         
+        self.CreateTable2('temp_spotguide_tbl1')
+        self.CreateTable2('temp_spotguide_tbl2')
+        
         self.__make_temp_org_spjcty()
-        self.__make_temp_org_eci_jctv()
+        #self.__make_temp_org_eci_jctv()
         self.__make_temp_spotguide_tbl1()
-        self.__make_temp_spotguide_tbl2()
+        #self.__make_temp_spotguide_tbl2()
         self.__make_spotguide_tbl()
         
         tollIllustName = common.common_func.GetPath('toll_station_illust')
@@ -53,10 +56,10 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
         self.CreateFunction2('zenrin_get_meshcode')
         
         sqlcmd = """
-                    drop table if exists temp_org_spjcty;
+                    DROP TABLE if exists temp_org_spjcty;
                     CREATE TABLE temp_org_spjcty
                     as (
-                        select 
+                        SELECT 
                             b.node_id as atten_intersetion_no, 
                             c.node_id as from_intersetion_no, 
                             mng_no_bkg, 
@@ -66,8 +69,8 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
                             f.node_id as to_int_no21, 
                             g.node_id as to_int_no22, 
                             mng_no_arrow2
-                        from (
-                            select 
+                        FROM (
+                            SELECT 
                                 zenrin_get_meshcode(jct_number) as meshcode, 
                                 atten_intersetion_no, from_intersetion_no, mng_no_bkg,
                                 (case when to_int_no11 = '      ' then null else to_int_no11 end)::integer as to_int_no11,
@@ -76,20 +79,20 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
                                 (case when to_int_no21 = '      ' then null else to_int_no21 end)::integer as to_int_no21,
                                 (case when to_int_no22 = '      ' then null else to_int_no22 end)::integer as to_int_no22,
                                 mng_no_arrow2
-                            from org_spjcty
+                            FROM org_spjcty
                         ) a
-                        left join temp_node_mapping b
-                            on a.meshcode = b.meshcode and atten_intersetion_no = b.nodeno
-                        left join temp_node_mapping c
-                            on a.meshcode = c.meshcode and from_intersetion_no = c.nodeno
-                        left join temp_node_mapping d
-                            on a.meshcode = d.meshcode and to_int_no11 = d.nodeno
-                        left join temp_node_mapping e
-                            on a.meshcode = e.meshcode and to_int_no12 = e.nodeno
-                        left join temp_node_mapping f
-                            on a.meshcode = f.meshcode and to_int_no21 = f.nodeno
-                        left join temp_node_mapping g
-                            on a.meshcode = g.meshcode and to_int_no22 = g.nodeno
+                        LEFT JOIN temp_node_mapping b
+                            ON a.meshcode = b.meshcode and atten_intersetion_no = b.nodeno
+                        LEFT JOIN temp_node_mapping c
+                            ON a.meshcode = c.meshcode and from_intersetion_no = c.nodeno
+                        LEFT JOIN temp_node_mapping d
+                            ON a.meshcode = d.meshcode and to_int_no11 = d.nodeno
+                        LEFT JOIN temp_node_mapping e
+                            ON a.meshcode = e.meshcode and to_int_no12 = e.nodeno
+                        LEFT JOIN temp_node_mapping f
+                            ON a.meshcode = f.meshcode and to_int_no21 = f.nodeno
+                        LEFT JOIN temp_node_mapping g
+                            ON a.meshcode = g.meshcode and to_int_no22 = g.nodeno
                     );
                     
                     analyze temp_org_spjcty;
@@ -107,25 +110,25 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
         # 步骤1：根据mapping表获取唯一化id
             
         sqlcmd = """
-                    drop table if exists temp_org_eci_jctv;
+                    DROP TABLE if exists temp_org_eci_jctv;
                     CREATE TABLE temp_org_eci_jctv 
                     as (
-                        select a.eciid, a.seq, b.link_id as link1, c.link_id as link2,
+                        SELECT a.eciid, a.seq, b.link_id as link1, c.link_id as link2,
                             d.link_id as link3, e.link_id as link4, f.link_id as link5,
                             g.link_id as link6, a.imagename
-                        from org_eci_jctv a
-                        left join temp_link_mapping b
-                            on a.mesh1 = b.meshcode::integer and a.link1 = b.linkno
-                        left join temp_link_mapping c
-                            on a.mesh2 = c.meshcode::integer and a.link2 = c.linkno
-                        left join temp_link_mapping d
-                            on a.mesh3 = d.meshcode::integer and a.link3 = d.linkno
-                        left join temp_link_mapping e
-                            on a.mesh4 = e.meshcode::integer and a.link4 = e.linkno
-                        left join temp_link_mapping f
-                            on a.mesh5 = f.meshcode::integer and a.link5 = f.linkno
-                        left join temp_link_mapping g
-                            on a.mesh6 = g.meshcode::integer and a.link6 = g.linkno
+                        FROM org_eci_jctv a
+                        LEFT JOIN temp_link_mapping b
+                            ON a.mesh1 = b.meshcode::integer and a.link1 = b.linkno
+                        LEFT JOIN temp_link_mapping c
+                            ON a.mesh2 = c.meshcode::integer and a.link2 = c.linkno
+                        LEFT JOIN temp_link_mapping d
+                            ON a.mesh3 = d.meshcode::integer and a.link3 = d.linkno
+                        LEFT JOIN temp_link_mapping e
+                            ON a.mesh4 = e.meshcode::integer and a.link4 = e.linkno
+                        LEFT JOIN temp_link_mapping f
+                            ON a.mesh5 = f.meshcode::integer and a.link5 = f.linkno
+                        LEFT JOIN temp_link_mapping g
+                            ON a.mesh6 = g.meshcode::integer and a.link6 = g.linkno
                     );
                     
                     analyze temp_org_eci_jctv;
@@ -149,39 +152,30 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
         # 根据原始数据check，to_int_no12/to_int_no22为空，所得thirdLink为空，故脱出link为secondLink
             
         sqlcmd = """
-                    drop table if exists temp_spotguide_tbl1;
-                    CREATE TABLE temp_spotguide_tbl1
-                    as (
-                        select 
-                            b1.link_id as firstLink, 
-                            atten_intersetion_no as node, 
-                            c1.link_id as secondLink, 
-                            d1.link_id as thirdLink, 
-                            mng_no_bkg as patternno, mng_no_arrow1 as arrowno
-                        from temp_org_spjcty a1
-                        left join link_tbl b1
-                            on from_intersetion_no = b1.s_node and atten_intersetion_no = b1.e_node
-                        left join link_tbl c1
-                            on atten_intersetion_no = c1.s_node and to_int_no11 = c1.e_node
-                        left join link_tbl d1
-                            on to_int_no11 = d1.s_node and to_int_no12 = d1.e_node
+                    INSERT INTO temp_spotguide_tbl1 (
+                        firstlink, node, secondlink, thirdlink, patternno, arrowno
+                    )
+                    SELECT b1.link_id as firstLink, atten_intersetion_no as node, c1.link_id as secondLink, 
+                        d1.link_id as thirdLink, mng_no_bkg as patternno, mng_no_arrow1 as arrowno
+                    FROM temp_org_spjcty a1
+                    LEFT JOIN link_tbl b1
+                        ON from_intersetion_no = b1.s_node and atten_intersetion_no = b1.e_node
+                    LEFT JOIN link_tbl c1
+                        ON atten_intersetion_no = c1.s_node and to_int_no11 = c1.e_node
+                    LEFT JOIN link_tbl d1
+                        ON to_int_no11 = d1.s_node and to_int_no12 = d1.e_node
                         
-                        union
+                    UNION
                         
-                        select 
-                            b2.link_id as firstLink, 
-                            atten_intersetion_no as node, 
-                            c2.link_id as secondLink, 
-                            d2.link_id as thirdLink, 
-                            mng_no_bkg as patternno, mng_no_arrow2 as arrowno
-                        from temp_org_spjcty a2
-                        left join link_tbl b2
-                            on from_intersetion_no = b2.s_node and atten_intersetion_no = b2.e_node
-                        left join link_tbl c2
-                            on atten_intersetion_no = c2.s_node and to_int_no21 = c2.e_node
-                        left join link_tbl d2
-                            on to_int_no21 = d2.s_node and to_int_no22 = d2.e_node
-                    );
+                    SELECT b2.link_id as firstLink, atten_intersetion_no as node, c2.link_id as secondLink, 
+                        d2.link_id as thirdLink, mng_no_bkg as patternno, mng_no_arrow2 as arrowno
+                    FROM temp_org_spjcty a2
+                    LEFT JOIN link_tbl b2
+                        ON from_intersetion_no = b2.s_node and atten_intersetion_no = b2.e_node
+                    LEFT JOIN link_tbl c2
+                        ON atten_intersetion_no = c2.s_node and to_int_no21 = c2.e_node
+                    LEFT JOIN link_tbl d2
+                        ON to_int_no21 = d2.s_node and to_int_no22 = d2.e_node;
                     
                     analyze temp_spotguide_tbl1;
                 """
@@ -202,35 +196,34 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
         # link1到linkX之间的link序列作为经过link
             
         sqlcmd = """
-                    drop table if exists temp_spotguide_tbl2;
-                    CREATE TABLE temp_spotguide_tbl2 
-                    as (
-                        select inlink, 
-                            (case when b.s_node in (c.s_node, c.e_node) then b.s_node else b.e_node end) as nodeid,
-                            passlid, passlink_cnt, outlink, imagename
-                        from (
-                            select link1 as inlink, link2 as seclink, 
-                                (case seq when 2 then null
-                                    when 3 then array_to_string(array[link2], '|')
-                                    when 4 then array_to_string(array[link2, link3], '|')
-                                    when 5 then array_to_string(array[link2, link3, link4], '|')
-                                    else array_to_string(array[link2, link3, link4, link5], '|')
-                                end)::varchar as passlid,
-                                (seq-2)::smallint as passlink_cnt,
-                                (case when link6 is not null then link6
-                                    when link5 is not null then link5
-                                    when link4 is not null then link4
-                                    when link3 is not null then link3
-                                    else link2
-                                end) as outlink,
-                                imagename
-                            from temp_org_eci_jctv
-                        ) a
-                        left join link_tbl b
-                            on a.inlink = b.link_id
-                        left join link_tbl c
-                            on a.seclink = c.link_id
-                    );
+                    INSERT INTO temp_spotguide_tbl2 (
+                        inlink, nodeid, passlid, passlink_cnt, outlink, imagename
+                    )
+                    SELECT inlink, 
+                        (case when b.s_node in (c.s_node, c.e_node) then b.s_node else b.e_node end) as nodeid, 
+                        passlid, passlink_cnt, outlink, imagename
+                    FROM (
+                        SELECT link1 as inlink, link2 as seclink, 
+                            (case seq when 2 then null 
+                                when 3 then array_to_string(array[link2], '|')
+                                when 4 then array_to_string(array[link2, link3], '|')
+                                when 5 then array_to_string(array[link2, link3, link4], '|')
+                                else array_to_string(array[link2, link3, link4, link5], '|')
+                            end)::varchar as passlid,
+                            (seq-2)::smallint as passlink_cnt,
+                            (case when link6 is not null then link6
+                                when link5 is not null then link5
+                                when link4 is not null then link4
+                                when link3 is not null then link3
+                                else link2
+                            end) as outlink,
+                            imagename
+                        FROM temp_org_eci_jctv
+                    ) a
+                    LEFT JOIN link_tbl b
+                        ON a.inlink = b.link_id
+                    LEFT JOIN link_tbl c
+                        ON a.seclink = c.link_id;
                     
                     analyze temp_spotguide_tbl2;
                 """
@@ -247,43 +240,34 @@ class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
         # thirdLink为空，secondLink为最终脱出link，无经过link
         # 根据原始数据check，原始数据提供的spotguide不全是JCT分歧点，占比小于2%，故暂定所有spotguide全是JCT分歧点，type设定8
         sqlcmd = """
-                    insert into spotguide_tbl (
+                    INSERT INTO spotguide_tbl (
                         nodeid, inlinkid, outlinkid, passlid, 
                         passlink_cnt, direction, guideattr, namekind, guideclass,
                         patternno, arrowno, type, is_exist_sar
                         ) 
-                    select 
-                        node as nodeid, 
-                        firstLink as inlinkid, 
+                    SELECT node as nodeid, firstLink as inlinkid, 
                         (case when thirdLink is null then secondLink else thirdLink end) as outlinkid,
                         (case when thirdLink is null then null else secondLink end)::varchar as passlid,
                         (case when thirdLink is null then 0 else 1 end)::smallint as passlink_cnt,
-                        0::smallint as direction, 
-                        0::smallint as guideattr, 
-                        0::smallint as namekind,
-                        0::smallint as guideclass, 
-                        patternno, arrowno, 
-                        8::smallint as type,
-                        True as is_exist_sar
-                    from temp_spotguide_tbl1
+                        0::smallint as direction, 0::smallint as guideattr, 0::smallint as namekind, 0::smallint as guideclass, 
+                        patternno, arrowno, 8::smallint as type, True as is_exist_sar
+                    FROM temp_spotguide_tbl1
                 """
                 
         self.pg.do_big_insert2(sqlcmd)
         
         # Real JCT不需要arrowno
-        # 根据APL反馈，其使用时不区分实景图类别，统一设定type=2(高速出口实景图)
+        # 根据APL反馈，其使用时不区分实景图类别，统一设定type=5(普通路口实景图)
         sqlcmd = """
-                    insert into spotguide_tbl (
+                    INSERT INTO spotguide_tbl (
                         nodeid, inlinkid, outlinkid, passlid, 
                         passlink_cnt, direction, guideattr, namekind, guideclass,
                         patternno, type, is_exist_sar
                         ) 
-                    select nodeid as nodeid, inlink as inlinkid, outlink as outlinkid,
-                        passlid, passlink_cnt, 0::smallint as direction, 
-                        0::smallint as guideattr, 0::smallint as namekind,
-                        0::smallint as guideclass, imagename as patternno, 
-                        2::smallint as type, True as is_exist_sar
-                    from temp_spotguide_tbl2
+                    SELECT nodeid as nodeid, inlink as inlinkid, outlink as outlinkid, passlid, passlink_cnt, 
+                        0::smallint as direction, 0::smallint as guideattr, 0::smallint as namekind,
+                        0::smallint as guideclass, imagename as patternno, 5::smallint as type, True as is_exist_sar
+                    FROM temp_spotguide_tbl2
                 """
                 
         self.pg.do_big_insert2(sqlcmd)  

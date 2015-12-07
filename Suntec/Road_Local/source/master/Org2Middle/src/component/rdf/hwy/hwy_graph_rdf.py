@@ -939,7 +939,8 @@ class HwyGraphRDF(HwyGraph):
             return True
         return False
 
-    def is_sapa_path(self, path, road_code, code_field, reverse):
+    def is_sapa_path(self, path, road_code=HWY_ROAD_CODE,
+                     code_field=None, reverse=False):
         if not reverse:  # 正
             temp_path = path
         else:  # 逆

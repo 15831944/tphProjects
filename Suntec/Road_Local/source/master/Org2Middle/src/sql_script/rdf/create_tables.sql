@@ -1786,3 +1786,45 @@ as
 	on c.link_id = d.link_id
 	where c.node_id is null
 );
+
+CREATE TABLE temp_node_uturn_linkrow
+AS 
+(
+	select	a.linkid_array, a.linkid_array::varchar as linkids, a.node_id
+	from (
+		-- mainnode uturn
+		select (ARRAY[in_link::bigint] || string_to_array(inner_path, ',')::bigint[] || ARRAY[out_link::bigint]) as linkid_array, in_node as node_id 
+		from (
+			select 	*, unnest(mid_find_awr_inner_path(in_link, out_link, in_node, out_node)) as inner_path
+			from temp_awr_mainnode_uturn
+		)as t
+		where (inner_path is not null) and (inner_path != '')
+	    	
+		-- node uturn
+		union
+		select ARRAY[in_link, out_link] as linkid_array, node_id
+		from temp_awr_node_uturn
+	)as a
+	left join temp_awr_pdm_linkrow as b
+		on b.first_link = ANY(a.linkid_array) and rdb_contains(a.linkid_array, b.link_array) is true
+	where b.regulation_id is null
+);
+
+CREATE TABLE temp_forbid_entry_regulation_linkrow
+AS
+(
+	SELECT linkid_array, linkid_array::varchar as linkids
+	FROM regulation_relation_tbl a
+	LEFT JOIN (
+		SELECT regulation_id, array_agg(linkid) as linkid_array
+		FROM (
+			SELECT *
+			FROM regulation_item_tbl
+			WHERE seq_num != 2
+			ORDER BY regulation_id, seq_num
+		) c
+		GROUP BY regulation_id HAVING COUNT(*) > 1
+	) b
+		on a.regulation_id = b.regulation_id
+	WHERE a.condtype = 1 and a.cond_id is null
+);

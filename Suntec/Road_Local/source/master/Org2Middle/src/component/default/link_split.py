@@ -878,21 +878,25 @@ class comp_link_split(component.component_base.comp_base):
         sqlcmd = '''
                 insert into safety_zone_tbl(
                     safetyzone_id,linkid, speedlimit, speedunit_code, direction, safety_type)
-                select a.safetyzone_id, b.link_id, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
-                from safety_zone_tbl_bak_splitting as a
-                inner join temp_split_newlink as b
-                on a.linkid = b.old_link_id;
-        '''
-        self.pg.execute2(sqlcmd)
-        sqlcmd = '''
-                insert into safety_zone_tbl(
-                    safetyzone_id,linkid, speedlimit, speedunit_code, direction, safety_type)
-                select a.safetyzone_id, a.linkid, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
-                from safety_zone_tbl_bak_splitting as a
-                left join temp_split_newlink as b
-                on a.linkid = b.old_link_id
-                where b.link_id is null;
-        '''
+                select safetyzone_id,link_id,speedlimit,speedunit_code,direction,safety_type 
+                from (
+                    select a.safetyzone_id, a.linkid, a.gid, b.link_id, b.sub_count,
+                        b.sub_index, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
+                    from safety_zone_tbl_bak_splitting as a
+                    inner join temp_split_newlink as b
+                    on a.linkid = b.old_link_id
+                    
+                    union all
+                    
+                    select a.safetyzone_id, a.linkid, a.gid, a.linkid as link_id, 1 as sub_count,
+                        1 as sub_index, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
+                    from safety_zone_tbl_bak_splitting as a
+                    left join temp_split_newlink as b
+                    on a.linkid = b.old_link_id
+                    where b.link_id is null
+                ) m
+                order by safetyzone_id, gid, sub_count, sub_index
+        ''' 
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.log.info('updating safety_zone_tbl link end.')

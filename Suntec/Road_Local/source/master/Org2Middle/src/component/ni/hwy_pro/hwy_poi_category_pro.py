@@ -7,10 +7,10 @@ Created on 2015-9-7
 from component.rdf.hwy.hwy_poi_category_rdf import HwyPoiCategory
 
 
-class HwyPoiCategoryNi(HwyPoiCategory):
+class HwyPoiCategoryPro(HwyPoiCategory):
 
     def __init__(self):
-        HwyPoiCategory.__init__(self, ItemName='HwyPoiCategoryNi')
+        HwyPoiCategory.__init__(self, ItemName='HwyPoiCategoryPro')
 
     def _get_category_id(self, service_name, genre):
         if genre == '1st genre':

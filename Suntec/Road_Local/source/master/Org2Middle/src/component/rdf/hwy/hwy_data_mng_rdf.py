@@ -108,6 +108,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.__toll_facil_dict = {}
         self._sapa_postion_dict = {}
         self._add_link_dict = {}
+        self._side_road_dict = {}
 
     def initialize(self):
         self._graph = HwyGraphRDF()  # 高速link图
@@ -713,7 +714,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
 
     def get_path_distance(self, max_dist, min_dist=0):
         sqlcmd = """
-        SELECT a.path_id, length, path
+        SELECT a.path_id, length, path, side_path_flg
           FROM mid_temp_hwy_main_path_attr as a
           LEFT JOIN (
             SELECT path_id, array_agg(node_id) as path
@@ -732,7 +733,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
 
     def get_path(self):
         sqlcmd = """
-        SELECT a.path_id, path
+        SELECT a.path_id, path, side_path_flg
           FROM mid_temp_hwy_main_path_attr as a
           LEFT JOIN (
             SELECT path_id, array_agg(node_id) as path
@@ -744,7 +745,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
               group by path_id
           ) as b
           ON a.path_id = b.path_id
-          where delete_flag = 0;  -- not delete path
+          where delete_flag = 0  -- not delete path
+          ORDER BY a.path_id;
         """
         return self.get_batch_data(sqlcmd)
 
@@ -1392,6 +1394,31 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                       no_toll_flag)
             add_info_list.append(add_info)
         return add_info_list
+
+    def get_side_road(self, main_roadcode, main_updown):
+        '''侧道/辅路'''
+        if not self._side_road_dict:
+            self._load_side_road()
+        key = main_roadcode, main_updown
+        return self._side_road_dict.get(key)
+
+    def _load_side_road(self):
+        sqlcmd = """
+        SELECT main_road_code, main_updown,
+               side_road_code, side_updown, dummy_road
+          FROM hwy_main_side_road_relation
+          order by main_road_code, main_updown,
+                   side_road_code, side_updown
+        """
+        for rel_info in self.get_batch_data(sqlcmd):
+            main_road_code, main_updown = rel_info[0:2]
+            side_road_code, side_updown, dummy_road = rel_info[2:5]
+            key = (main_road_code, main_updown)
+            val = (side_road_code, side_updown, dummy_road)
+            if key in self._side_road_dict:
+                self._side_road_dict[key].append(val)
+            else:
+                self._side_road_dict[key] = [val]
 
 
 # =============================================================================

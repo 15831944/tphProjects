@@ -201,6 +201,7 @@ class HwyMappingRDF(HwyMapping):
         # 同个点的设施归在一起
         for ic_no, node_id in zip(ic_nos, node_ids):
             if node_id and ic_no:
+                # road_code = self._get_road_code(ic_no)
                 if node_id in node_ic_dict:
                     node_ic_dict[node_id].append(ic_no)
                 else:
@@ -254,8 +255,10 @@ class HwyMappingRDF(HwyMapping):
                         if parent:
                             max_facil = parent
                         else:
-                            self.log.warning('No Parent. link=%s,node=%s'
-                                             % (self.link_id, node_id))
+                            max_facil = self._get_small_facil(max_facil,
+                                                              facil)
+                            # self.log.warning('No Parent. link=%s,node=%s'
+                            #                  % (self.link_id, node_id))
             elif facil.facilcls in (HWY_IC_TYPE_RAMP, HWY_IC_TYPE_IC):
                 if (max_facil.facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA,
                                            HWY_IC_TYPE_JCT)):
@@ -385,10 +388,46 @@ class HwyMappingRDF(HwyMapping):
             return None
 
     def _get_small_facil(self, facil_1, facil_2):
-        if facil_1.road_point < facil_2.road_point:
-            return facil_1
+        if facil_1.road_code == facil_2.road_code:
+            if facil_1.road_point < facil_2.road_point:
+                return facil_1
+            else:
+                return facil_2
         else:
-            facil_2
+            # 取主路
+            main_roadcode, main_updown = self._get_main_road(facil_1, facil_2)
+            if main_roadcode:
+                if(facil_2.road_code == main_roadcode and
+                   facil_2.updown == main_updown):
+                    return facil_2
+                else:
+                    return facil_1
+            else:
+                self.log.error('No Main Road. node_id=%s'
+                               % facil_1.node_id)
+                return facil_1
+
+    def _get_main_road(self, facil_1, facil_2):
+        '''取得主路'''
+        roadcode1 = facil_1.road_code
+        updown1 = facil_1.updown
+        roadcode2 = facil_2.road_code
+        updown2 = facil_2.updown
+        side_infos = self.data_mng.get_side_road(roadcode1, updown1)
+        if side_infos:
+            for side in side_infos:
+                side_road_code, side_updown = side[0:2]
+                if(roadcode2 == side_road_code and
+                   updown2 == side_updown):
+                    return roadcode1, updown1
+        side_infos = self.data_mng.get_side_road(roadcode2, updown2)
+        if side_infos:
+            for side in side_infos:
+                side_road_code, side_updown = side[0:2]
+                if(roadcode1 == side_road_code and
+                   updown1 == side_updown):
+                    return roadcode2, updown2
+        return None, None
 
     def _get_ic_link_fb_ic(self, bwd_ic_nos, fwd_ic_nos):
         '''取得前后设施'''
@@ -489,75 +528,44 @@ class HwyMappingRDF(HwyMapping):
         self.CreateTable2('mid_temp_hwy_ic_link_mapping')
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_link_mapping(
-                    bwd_node_id, bwd_ic_no, bwd_facility_id,
-                    fwd_node_id, fwd_ic_no, fwd_facility_id,
+                    bwd_node_id, bwd_ic_no,
+                    fwd_node_id, fwd_ic_no,
+                    bwd_facility_id, fwd_facility_id,
                     link_id, path_type)
         (
-        SELECT distinct bwd_node_id, bwd_ic_no, bwd_facility_id,
-               fwd_node_id, fwd_ic_no, fwd_facility_id,
-               unnest(regexp_split_to_array(link_lid, E'\\,+')
-                     )::bigint as link_id,
-               path_type
-          FROM (
-            -- SAPA OUT/JCT OUT/ALL Uturn
-            SELECT a.node_id as bwd_node_id, bwd.ic_no as bwd_ic_no,
-                   to_node_id as fwd_node_id, fwd.ic_no as fwd_ic_no,
-                   bwd.facility_id as bwd_facility_id,
-                   fwd.facility_id as fwd_facility_id,
-                   link_lid, path_type
-              FROM mid_temp_hwy_ic_path as a
-              LEFT JOIN mid_hwy_ic_no as bwd  -- Get Backward IC NO
-              ON a.road_code = bwd.road_code and
-                 a.road_seq = bwd.road_seq and
-                 a.facilcls_c = bwd.facilclass_c and
-                 a.inout_c = bwd.inout_c and
-                 a.node_id = bwd.node_id
-              LEFT JOIN mid_hwy_ic_no as fwd  -- Get Forward IC NO
-              ON a.facilcls_c = fwd.facilclass_c and
-                 fwd.inout_c = 1 and  -- IN
-                 a.to_node_id = fwd.node_id
-              WHERE (a.facilcls_c in (1, 2, 3) or
-                     a.facilcls_c <> 10 and path_type = 'UTURN')
-                    and a.inout_c = 2 -- SAPA/JCT OUT
-                    and link_lid <> '' and link_lid is not null
-            UNION
             ---------------------------------------------------------------
-            -- IC/Ramp OUT
+            -- OUT
             SELECT a.node_id as bwd_node_id, bwd.ic_no as bwd_ic_no,
                    NULL::bigint as fwd_node_id, NULL::bigint as fwd_ic_no,
                    bwd.facility_id as bwd_facility_id,
                    NULL::bigint as fwd_facility_id,
-                   link_lid, path_type
-              FROM mid_temp_hwy_ic_path as a
+                   pass_link_id, path_type
+              FROM mid_temp_hwy_ic_path_expand_link as a
               LEFT JOIN mid_hwy_ic_no as bwd  -- Get Backward IC NO
               ON a.road_code = bwd.road_code and
                  a.road_seq = bwd.road_seq and
                  a.facilcls_c = bwd.facilclass_c and
                  a.inout_c = bwd.inout_c and
                  a.node_id = bwd.node_id
-              WHERE a.facilcls_c in (5, 7) and a.inout_c = 2  -- IC/Ramp OUT
-                    and path_type <> 'UTURN'
-                    and link_lid <> '' and link_lid is not null
+              WHERE a.inout_c = 2  -- OUT
+
             UNION
             ---------------------------------------------------------------
-            -- IC/Ramp IN, (IN's Path is reverse.)
+            -- IN, (IN's Path is reverse.)
             SELECT NULL::bigint as bwd_node_id, NULL::bigint as bwd_ic_no,
                    a.node_id as fwd_node_id, fwd.ic_no as fwd_ic_no,
                    NULL::bigint bwd_facility_id,
                    fwd.facility_id as fwd_facility_id,
-                   link_lid, path_type
-              FROM mid_temp_hwy_ic_path as a
+                   pass_link_id, path_type
+              FROM mid_temp_hwy_ic_path_expand_link as a
               LEFT JOIN mid_hwy_ic_no as fwd  -- Get Backward IC NO
               ON a.road_code = fwd.road_code and
                  a.road_seq = fwd.road_seq and
                  a.facilcls_c = fwd.facilclass_c and
                  a.inout_c = fwd.inout_c and
                  a.node_id = fwd.node_id
-              WHERE a.facilcls_c in (5, 7) and a.inout_c = 1  -- IC/Ramp IN
-                    and path_type <> 'UTURN'
-                    and link_lid <> '' and link_lid is not null
-          ) as c
-          ORDER BY link_id
+              WHERE a.inout_c = 1  -- IN
+         ORDER BY pass_link_id
         );
         """
         self.pg.execute2(sqlcmd)
@@ -754,6 +762,25 @@ class HwyMappingRDF(HwyMapping):
                                % link_id)
             else:
                 return fwd_ic
+        return None
+
+    def _get_road_no(self, ic_no):
+        ic_info = self.data_mng.get_ic(ic_no)
+        # ic_info = (ic_no, facility_id, facil_list)
+        facil_list = ic_info[2]
+        if facil_list:
+            road_code = facil_list[0].road_code
+            road_no = self.data_mng.get_road_no(road_code)
+            return road_no
+        return None
+
+    def _get_road_code(self, ic_no):
+        ic_info = self.data_mng.get_ic(ic_no)
+        # ic_info = (ic_no, facility_id, facil_list)
+        facil_list = ic_info[2]
+        if facil_list:
+            road_code = facil_list[0].road_code
+            return road_code
         return None
 
     def _store_service_road_mapping(self, bwd_node_id, bwd_ic_no,

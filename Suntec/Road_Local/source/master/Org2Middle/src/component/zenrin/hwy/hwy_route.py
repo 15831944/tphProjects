@@ -8,6 +8,7 @@ from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF
 from component.jdb.hwy.hwy_graph import HwyGraph
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 
+
 class HwyRouteZenrin(HwyRouteRDF):
     ''' '''
 
@@ -17,15 +18,15 @@ class HwyRouteZenrin(HwyRouteRDF):
 
     def _Do(self):
         ''' '''
-        #鍒朵綔楂橀�熸湰绾縨id_temp_hwy_main_path
+        # 高速本线
         self._make_main_path()
-        #娣诲姞鍦扮悊淇℃伅
+        # 添加Geometry
         self._temp_update_geom()
-        #鍒朵綔road_code_info琛�
+        # 制作road_code_info
         self._make_road_code()
-        #鐢熸垚link瀵瑰簲鐨剅oad_code(hwy_link_road_code_info)
         self._make_link_road_code_info()
-        #妫�鏌rg_highwaypath涓璴ink鏄惁閮藉湪鍋氭垚main path 涓�
+        # ## 主路/辅路关系
+        self._make_main_side_road_relation()
         self.check_org_in_main_path()
         return 0
 

@@ -18,14 +18,15 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
     
     def _Do(self):
         self.log.info("start make signpost_tbl ")
-        self._make_temp_signpost()
-        self._make_sp_name()
-        self._make_signpost_uc()
+        self.__make_temp_signpost()
+        self.__make_sp_name()
+        self.__update_temp_signpost_after_delete_dummy_link()
+        self.__make_signpost_uc()
         self.log.info("end make signpost_tbl ")
         return 0
   
     
-    def _make_temp_signpost(self):
+    def __make_temp_signpost(self):
         
         self.CreateFunction2('zenrin_join')
         self.log.info("make temp_signpost... ")
@@ -68,9 +69,10 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('temp_signpost_id_idx')
+        self.CreateIndex2('temp_signpost_inlink_idx')
         
         
-    def _make_sp_name(self):
+    def __make_sp_name(self):
         self.log.info("make temp_sp_name... ")
         self.CreateTable2('temp_sp_name')
         
@@ -116,39 +118,78 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
         self.pg.copy_from2(temp_file_obj, 'temp_sp_name')
         self.pg.commit2()
         common.cache_file.close(temp_file_obj,True)
-        self.CreateIndex2('temp_sp_name_id_idx')         
-        
+        self.CreateIndex2('temp_sp_name_id_idx') 
     
-    def _make_signpost_uc(self):
+    
+    def __update_temp_signpost_after_delete_dummy_link(self):
+        self.log.info("update temp_signpost  after deal with dummy link and inner link... ")
+        self.CreateFunction2('zenrin_update_inlink_to_no_dummy_link')
+        self.CreateTable2('temp_signpost_uc_deal_with_dummy_link')
+        sqlcmd = '''
+            drop table if exists temp_signpost_uc_path_after_deal_with_dummy_link;
+            create table temp_signpost_uc_path_after_deal_with_dummy_link
+            as
+            (
+                select a.id, a.inlink, a.outlink, a.tnode
+                from temp_signpost as a
+                left join link_tbl as b
+                on a.inlink = b.link_id
+                where a.inlink not in (select link_id from temp_dummy_todelete) and  b.link_type <> 4
+                
+                union
+                
+                select c.id ,unnest(zenrin_update_inlink_to_no_dummy_link(c.tnode) ) as inlink, c.outlink, c.tnode
+                from
+                (
+                    select a.*
+                    from temp_signpost as a
+                    left join link_tbl as b
+                    on a.inlink = b.link_id
+                    where a.inlink in (select link_id from temp_dummy_todelete) or b.link_type = 4
+                ) as c
+            )
+            
+        ''' 
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_signpost_uc_path_after_deal_with_dummy_link_id_idx') 
+        
+        sqlcmd = '''
+            insert into temp_signpost_uc_deal_with_dummy_link(nodeid, inlinkid, 
+                                                            outlinkid, passlid, passlink_cnt, sp_name)
+            select distinct a.tnode as nodeid, a.inlink as inlinkid, a.outlink as outlinkid,
+                    '' as passlid, 0 as passlink_cnt, b.sp_name as sp_name
+            from temp_signpost_uc_path_after_deal_with_dummy_link as a
+            left join temp_sp_name as b
+            on b.id = a.id 
+        ''' 
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()          
+    
+    def __make_signpost_uc(self):
         self.log.info("make signpost_uc... ")
-        self.CreateFunction2('mid_findpasslinkbybothnodes')
-        self.CreateFunction2('zenrin_findpasslink_count')
+        #self.CreateFunction2('mid_findpasslinkbybothnodes')
+        #self.CreateFunction2('zenrin_findpasslink_count')
         self.CreateTable2('signpost_uc_tbl')
         
         sqlcmd = '''
             insert into signpost_uc_tbl(id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, sp_name )
-            select a.id,
-                   tnode as nodeid,
-                   inlink as inlinkid,
-                   outlink as outlinkid,
-                   --mid_findpasslinkbybothnodes(tnode,enode) as passlid,
-                   --zenrin_findpasslink_count(mid_findpasslinkbybothnodes(tnode,enode)) as passlink_cnt,
-                   '' as passlid,
-                   0 as passlink_cnt,
-                   b.sp_name as sp_name
-                   --null as route_no1,
-                   --null as route_no2,
-                   --null as route_no3,
-                   --null as route_no4,
-                   --null as exit_no
-            from temp_signpost as a
-            left join temp_sp_name as b
-            on b.id = a.id 
-            order by a.id       
-               
+            select a.gid,
+                   a.nodeid,
+                   a.inlinkid,
+                   a.outlinkid,
+                   a.passlid,
+                   a.passlink_cnt,
+                   a.sp_name
+            from temp_signpost_uc_deal_with_dummy_link as a
+                     
           '''
         self.pg.execute2(sqlcmd)
-        self.pg.commit2()        
+        self.pg.commit2()
+        self.CreateIndex2('signpost_uc_tbl_node_id_idx')
+        self.CreateIndex2('signpost_uc_tbl_inlinkid_nodeid_outlinkid_idx')
+
+            
         
         
         

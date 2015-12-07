@@ -1,333 +1,353 @@
-# -*- coding: UTF8 -*-
+#encoding=utf-8
 '''
 Created on 2015-11-24
-
 @author: tangpinghui
 '''
+from component.component_base import comp_base
+from common.guideinfo_pushlink_common import link_object
 
-import math
-import component.component_base
-
-# -*- coding: cp936 -*-
-import math
-import psycopg2
-# link_tbl表每个行集构成的对象。     
-
-A_WGS84 = 6378137.0
-E2_WGS84 = 6.69437999013e-3
-# 功能类，此类用于换算两点的经纬度与方位、距离
-class LatLonPoint(object):
-    def __init__(self, latitude, longitude):
-        self.latitude = latitude*256*3600;    
-        self.longitude = longitude*256*3600;
-        
-    def getPointByAngleDistance(self, angle, distance):
-        
-        return
-     
-    def getAngleByLatLon(self, latitude, longitude):
-        delta_lat = latitude - self.latitude
-        delta_lon = longitude - self.longitude
-        ref_lat = (self.latitude + delta_lat / 2.0) / 256.0
-        ref_lat_radian = ref_lat / 3600.0 * math.pi / 180.0
-        sinlat = math.sin(ref_lat_radian)
-        c = 1.0 - (E2_WGS84 * sinlat * sinlat)
-        M2SecLon = 3600 / ((math.pi/180.0) * A_WGS84 * math.cos(ref_lat_radian)/math.sqrt(c))
-        M2SecLat = 1.0 / ((math.pi/648000.0) * A_WGS84 * (1-E2_WGS84)) * math.sqrt(c*c*c)
-        real_delta_lat = delta_lat / M2SecLat / 256.0
-        real_delta_lon = delta_lon / M2SecLon / 256.0
-        real_dir = math.atan2(real_delta_lat, real_delta_lon) * 180.0 / math.pi
-        return real_dir
-    
-    def getAngleByPoint(self, latLonPoint2):
-        return self.getAngleByLatLon(latLonPoint2.latitude, latLonPoint2.longitude)
-    
-    def getDistanceByLatLon(self, latitude, longitude):
-        radLat1 = latitude * math.pi / 180
-        radLat2 = self.latitude * math.pi / 180
-        a = radLat1 - radLat2
-        b = longitude * math.pi / 180 - self.longitude * math.pi / 180
-        
-        s = 2 * math.asin(math.sqrt(math.pow(math.sin(a/2),2) +\
-                                    math.cos(radLat1)*math.cos(radLat2)*math.pow(math.sin(b/2),2)))
-        s = s * A_WGS84;
-        s = round(s * 10000) / 10000;
-        return s
-    
-    def getDistanceByPoint(self, latLonPoint2):
-        return self.getDistanceByLatLon(latLonPoint2.latitude, latLonPoint2.longitude)
-
-class link_object(object):
-    def __init__(self, linkid, sNodeid, eNodeid, the_geom_text, name):
-        self.id = linkid
-        self.sNodeid = sNodeid
-        self.eNodeid = eNodeid
-        self.the_geom_text = the_geom_text
-        self.pointlist = self.geomText2Pointlist(the_geom_text)
-        self.name = name
-        
-    def toString(self):
-        return """id: %.0f, sNodeid: %.0f, eNodeid: %.0f, name: %s""" % \
-               (self.id, self.sNodeid, self.eNodeid, self.name)
-    
-    def geomText2Pointlist(self, the_geom_text):
-        pointlist = []
-        the_geom_text = the_geom_text.replace("""MULTILINESTRING((""", "")
-        the_geom_text = the_geom_text.replace("""))""", "")
-        the_geom_text = the_geom_text.replace("""LINESTRING(""", "")
-        the_geom_text = the_geom_text.replace(""")""", "")
-        geomTextSplit = the_geom_text.split(',')
-        for oneGeomText in geomTextSplit:
-            lat = float(oneGeomText.split(' ')[1])
-            lon = float(oneGeomText.split(' ')[0])
-            pointlist.append(LatLonPoint(lat, lon))
-        return pointlist
-    
-    # 获取本link与linkObj2之间的相连node。
-    # 若linkObj2与本link并无相连点，则返回空，并置errMsg。
-    def getConnectedNodeidWith(self, errMsg, linkObj2):
-        if self.sNodeid == linkObj2.sNodeid or self.sNodeid == linkObj2.eNodeid:
-            return self.sNodeid
-        elif self.eNodeid == linkObj2.sNodeid or self.eNodeid == linkObj2.eNodeid:
-            return self.eNodeid
-        else:
-            errMsg[0] = """input in/out links are not connected.\n""" + \
-                        """inlink: %s\noutlink: %s""" % \
-                        (self.toString(), linkObj2.toString())
-            return None
-    
-    # 获取与linkObj2的连接node以外的另一个node。
-    # 若linkObj2与本link并无相连点，则返回空，并置errMsg。
-    def getNonConnectedNodeid(self, errMsg, linkObj2):
-        if self.sNodeid == linkObj2.sNodeid or self.sNodeid == linkObj2.eNodeid:
-            return self.eNodeid
-        elif self.eNodeid == linkObj2.sNodeid or self.eNodeid == linkObj2.eNodeid:
-            return self.sNodeid
-        else:
-            errMsg[0] = """input in/out links are not connected.\n""" + \
-                        """inlink: %s\noutlink: %s""" % \
-                        (self.toString(), linkObj2.toString())
-            return None
-    
-    # 求沿此link的交通流向与正东方向的夹角。
-    # nodeid: 本link的某个端点
-    # trafficDir: 沿当前link流向此点/沿当前link从此点流出，必须等于'to_this_node'或'from_this_node'。
-    def getTrafficDirAngleToEast(self, errMsg, nodeid, trafficDir='to_this_node'):
-        if trafficDir <> 'to_this_node' and trafficDir <> 'from_this_node':
-            errMsg[0] = """invalid argument trafficDir: %s""" % trafficDir
-            return None
-        
-        if nodeid == self.sNodeid:
-            point1 = self.pointlist[0]
-            point2 = None
-            for i in range(1, len(self.pointlist)):
-                if point1.getDistanceByPoint(self.pointlist[i]) > 5:
-                    point2 = self.pointlist[i]
-                    break
-            # 没有任何一个形状点与sNodeid的距离大于5米，则使用eNodeid为point2
-            if point2 == None:
-                point2 = self.pointlist[-1]
-            
-            if trafficDir == 'to_this_node':
-                return point2.getAngleByPoint(point1)
-            else:  # trafficDir == 'from_this_node'
-                return point1.getAngleByPoint(point2)
-            
-        elif nodeid == self.eNodeid:
-            point1 = self.pointlist[-1]
-            point2 = None
-            for i in range(len(self.pointlist) - 2, -1, -1):
-                if point1.getDistanceByPoint(self.pointlist[i]) > 5:
-                    point2 = self.pointlist[i]
-                    break
-            # 没有任何一个形状点与eNodeid的距离大于5米，则使用sNodeid为point2
-            if point2 == None:
-                point2 = self.pointlist[0]
-            
-            if trafficDir == 'to_this_node':
-                return point2.getAngleByPoint(point1)
-            else:  # trafficDir == 'from_this_node'
-                return point1.getAngleByPoint(point2)
-        
-        else:
-            errMsg[0] = """nodeid is not the link's endpoint.\n""" + \
-                        """link: %s, nodeid: %s""" % (self.toString(), nodeid)
-            return None
-
-# 此类用于对lane_tbl中的记录进行推link操作。
-# step1: 挑选出lane_tbl中单进单出的记录
-# step2: 若这些记录的箭头是复合箭头，认为沿着这条单进单出的路线向前不远处必定可以找到一个分歧点
-# step3: 将复合箭头分解，并匹配至分歧点的各个outlink，生成新的车线记录
-class comp_guideinfo_lane_pushlink(component.component_base.comp_base):
+# 当决策点为非分歧点时，apl不会播报此条诱导数据，此条数据成为冗余数据。
+# 本类将对这样的数据进行处理。
+class guideinfo_lane_pushlink(comp_base):
     def __init__(self):
-        component.component_base.comp_base.__init__(self, 'Guideinfo_Lane_Pushlink')
-        
+        comp_base.__init__(self, 'Guideinfo_Lane_Pushlink')
+    
     def _DoCreateTable(self):
         return 0
     
     def _DoCreateIndex(self):
         return 0
     
+    def _DoCreateFunction(self):
+        return 0
+    
     def _Do(self):
-        self.log.info("""spotguide push link begin...""")
-        self.findOneInOneOutLinks()
-        self.log.info("""spotguide push link end.""")
+        self.backupLaneTable()
+        self.pushLinkOneInOneOut()
         return
     
-    # spotguide机能要求决策点必须是分歧点。
-    # 当inlink后的第一个节点不是分歧点的时候应该推点，推至分歧点上。
-    # 此函数过滤spotguide_tbl表，将决策点非分歧点的spotguide记录过滤出来。
-    def findOneInOneOutLinks_spotguide(self):
+    # 备份lane_tbl表至lane_tbl_bak_pushlink
+    def backupLaneTable(self):
         sqlcmd = """
-select id, array_agg(link_id), array_agg(seqnr), array_agg(s_node), array_agg(e_node), 
-    array_agg(st_astext(the_geom)) as the_geom_text_list,
-    array_agg(road_name) as name_list
+drop table if exists lane_tbl_bak_pushlink;
+select * 
+into lane_tbl_bak_pushlink 
+from lane_tbl;
+"""
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        return
+    
+    # 冗余数据将被删除。
+    # 删除这些数据前根据具体情况判断是否需要生成新的车线诱导记录。
+    def pushLinkOneInOneOut(self):
+        sqlcmd = """
+--****************************************************************************************
+-- step1: 分拆link序列。
+drop table if exists lane_tbl_link_seqnr;
+select id, 
+       unnest(array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text])::bigint as link_id, 
+       generate_series(1, array_upper((string_to_array(passlid, '|')), 1)+2) as seqnr
+into lane_tbl_link_seqnr
+from lane_tbl;
+
+create index lane_tbl_link_seqnr_link_id_idx
+on lane_tbl_link_seqnr
+using btree
+(link_id);
+
+--****************************************************************************************
+-- step2: 算出link序列的中间node。
+create or replace function get_connected_node(s_node1 bigint, e_node1 bigint, s_node2 bigint, e_node2 bigint)
+returns bigint
+language plpgsql
+as
+$$
+begin
+    if s_node1=s_node2 or s_node1=e_node2 then
+        return s_node1;
+    elseif e_node1=s_node2 or e_node1=e_node2 then
+        return e_node1;
+    else
+        return -1;
+    end if;
+end;
+$$;
+
+create or replace function generate_node_array(s_node_list bigint[], e_node_list bigint[])
+returns bigint[]
+language plpgsql
+as
+$$
+declare
+    resultArray bigint[];
+begin
+    for i in 1..array_upper(s_node_list, 1)-1 loop
+        resultArray := resultArray || get_connected_node(s_node_list[i], e_node_list[i], s_node_list[i+1], e_node_list[i+1]);
+    end loop;
+    return resultArray;
+end;
+$$;
+
+drop table if exists lane_tbl_connection_node;
+select id, unnest(generate_node_array(array_agg(s_node), array_agg(e_node))) as connection_node
+into lane_tbl_connection_node
 from
 (
-    select a.id, a.patternno, a.arrowno, a.link_id, a.seqnr, 
-           b.s_node, b.e_node, b.the_geom, b.road_name
+    select a.id, a.seqnr, b.link_id, b.s_node, b.e_node
     from
-    (
-        select t.id, t.patternno, t.arrowno, unnest(t.link_list)::bigint as link_id, 
-               generate_series(1, array_upper(link_list, 1)) as seqnr
-        from
-        (
-            select distinct id, patternno, arrowno
-                   array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text] as link_list
-            from spotguide_tbl
-            where type<>12
-        )as t
-    ) as a
+    lane_tbl_link_seqnr as a
     left join link_tbl as b
     on a.link_id=b.link_id
     order by a.id, a.seqnr
 ) as t
-group by id
+group by id;
+
+create index lane_tbl_connection_node_id_idx
+on lane_tbl_connection_node
+using btree
+(id);
+
+create index lane_tbl_connection_node_connection_node_idx
+on lane_tbl_connection_node
+using btree
+(connection_node);
+
+--****************************************************************************************
+-- step3: 求出每个中间node的连接link数
+drop table if exists lane_tbl_connection_node_linkcount;
+select a.id, a.connection_node, count(b.link_id) as link_count
+into lane_tbl_connection_node_linkcount
+from
+lane_tbl_connection_node as a
+left join link_tbl as b
+on a.connection_node = b.s_node or a.connection_node=b.e_node
+group by a.id, a.connection_node;
+
+create index lane_tbl_connection_node_linkcount_id_idx
+on lane_tbl_connection_node_linkcount
+using btree
+(id);
+--****************************************************************************************
+-- step4: 仅取中间node的连接link数都小于等于2的项
+select t1.*, t2.lanenum, t2.laneinfo, t2.arrowinfo, t2.lanenuml,
+       t2.lanenumr, t2.buslaneinfo, t2.exclusive
+from
+(
+    select id, array_agg(seqnr) as seqnr_list, array_agg(link_id) as link_id_list, 
+           array_agg(s_node) as s_node_list, array_agg(e_node) as e_node_list,
+           array_agg(link_type) as link_type_list, array_agg(astext(the_geom)) as the_geom_text_list
+    from
+    (
+        select a.id, b.seqnr, b.link_id, c.s_node, c.e_node, c.the_geom, c.link_type
+        from
+        (
+            select distinct id
+            from lane_tbl_connection_node_linkcount 
+            group by id
+            having (max(link_count)<=2)
+        ) as a
+        left join lane_tbl_link_seqnr as b
+        on a.id=b.id
+        left join link_tbl as c
+        on b.link_id=c.link_id
+        order by a.id, b.seqnr
+    ) as t
+    group by id
+) as t1
+left join lane_tbl as t2
+on t1.id=t2.id;
 """
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
-        oneInOneOutList = []
         for row in rows:
-            id = row[0]
-            link_list = row[1]
-            seqnr_list = row[2]
+            _id = row[0]
+            seqnr_list = row[1]
+            link_list = row[2]
             s_node_list = row[3]
             e_node_list = row[4]
-            the_geom_text_list = row[5]
-            name_list = row[6]
+            link_type_list = row[5]
+            the_geom_text_list = row[6]
+            lanenum = row[7]
+            laneinfo = row[8]
+            arrowinfo = row[9]
+            lanenuml = row[10]
+            lanenumr = row[11]
+            buslaneinfo = row[12]
+            exclusive = row[13]
 
-            inlinkObj = link_object(link_list[0], s_node_list[0], e_node_list[0], 
-                                               the_geom_text_list[0], name_list[0])
-            outlinkObj = link_object(link_list[1], s_node_list[1], e_node_list[1], 
-                                               the_geom_text_list[1], name_list[1])
             errMsg = ['']
-            nodeid = inlinkObj.getConnectedNodeidWith(errMsg, outlinkObj)
+            linkObjList = []
+            for i in range(0, len(link_list)):
+                linkObjList.append(link_object(errMsg, link_list[i], s_node_list[i], e_node_list[i],
+                                                     link_type_list[i], the_geom_text_list[i]))
+            # 将整条link序列向前推进直至第一个分歧路口
+            self.pushLinkUntilFork(errMsg, linkObjList)
             if errMsg[0] <> '':
-                self.log.error(errMsg[0])
+                self.log.info(errMsg[0])
                 continue
             
-            outlinkList = self.getOutlinkList(errMsg, nodeid, inlinkObj)
+            # 推到分歧路口后，使用分歧路口的前一条link为新的inlink
+            newInlink = linkObjList[-1]
+            nodeid = newInlink.getNonConnectedNodeid(errMsg, linkObjList[-2])
             if errMsg[0] <> '':
-                self.log.error(errMsg[0])
+                self.log.info(errMsg[0])
                 continue
+            
+            # 基于新的inlink，尝试在分歧路口生成所有可能的行车路线
+            possibleLinkLists = []
+            link_object.findOutRoute(errMsg, self.pg, possibleLinkLists, newInlink, nodeid)
+            if errMsg[0] <> '':
+                self.log.info(errMsg[0])
+                continue
+            
+            # 过滤可能的行车路线，只有符合箭头信息且原表中不存在相同诱导记录的信息才收录。
+            for onePossibleLinkList in possibleLinkLists:
+                bLinkListFitsArrowInfo = self.isLinklistFitsArrowInfo(errMsg, onePossibleLinkList, arrowinfo)
+                if errMsg[0] <> '':
+                    self.log.info("""(%s: %s)""" % (_id, errMsg[0]))
+                    continue
+                    
+                if bLinkListFitsArrowInfo == False:
+                    continue
                 
-            # 以inlinkObj为流入link，nodeid为目标节点求出流出link的数目小于2，此点为非分歧点。
-            if len(outlinkList) < 2:
-                linkObjList = []
-                for i in range(0, len(link_list)):
-                    linkObjList.append(link_object(link_list[i], s_node_list[i], e_node_list[i], 
-                                                   the_geom_text_list[i], name_list[i]))
-                #self.pushForwardLink(errMsg, linkObjList, laneInfoList, maxDeep)
+                bExists = self.isGuideinfoLaneExists(errMsg, onePossibleLinkList, laneinfo)
+                if errMsg[0] <> '':
+                    self.log.info("""(%s: %s)""" % (_id, errMsg[0]))
+                    continue
+                
+                if bExists == True:
+                    continue
+                    
+                # 当所有条件均允许时，生成新的车线诱导记录。
+                self.addLaneInfo(errMsg, onePossibleLinkList, lanenum, laneinfo,
+                                 arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive)
+                self.log.info("""generate new lane guideinfo for id: %s, link list: %s""" % \
+                              (_id, link_object.getLinkListString(onePossibleLinkList)))
+            # 删除此条单进单出的记录
+            sqlcmd = """delete from lane_tbl where id=%s""" % _id
+            self.pg.execute(sqlcmd)
+        self.conn.commit()
         return
     
-    # 根据link序列进行推link操作，直至推导到第一个分歧点。
-    # linkList: link序列
-    # maxDeep: 当推进的link数超过此值仍未遇到分歧时，返回错误。
-    def pushForwardLink(self, errMsg, linkObjList, laneInfoList, maxDeep=10):
-        if len(linkObjList<2):
-            errMsg[0] = 'link strand count must be at least 2, but now it\'s %s' %len(linkObjList)
-            return
-        
-        if len(linkObjList>=10):
-            errMsg[0] = 'link count exceed %s, but did not reach a junction.' % maxDeep
-            return
-            
-        linkObj1 = linkObjList[-2]
-        linkObj2 = linkObjList[-1]
-        connNode = linkObj1.getConnectedNodeidWith(errMsg, linkObj2)
+    # 沿着当前交通流，向前推link，直至遇到第一个分歧路口，确定inlink。
+    # linkObjList: 此list会被不断更新，添加新的link直至分叉路口。
+    # 递归结束后，linkObjList[-1]则为新的inlink。
+    def pushLinkUntilFork(self, errMsg, linkObjList):
+        nodeid = linkObjList[-1].getNonConnectedNodeid(errMsg, linkObjList[-2])
         if errMsg[0] <> '':
             return
-        
-        restNodeid = None
-        if linkObj2.sNode == connNode:
-            restNodeid = linkObj2.eNode
-        else:
-            restNodeid = linkObj2.sNode
-            
-        outlinkList = self.getOutlinkList(errMsg, restNodeid, linkObj2)
+
+        outlinkList = link_object.getOutlinkList(errMsg, self.pg, nodeid, linkObjList[-1])
+        connectedLinkList = link_object.getConnectedLinkList(errMsg, self.pg, nodeid)
         if errMsg[0] <> '':
+            errMsg[0] = """Failed when push link step1: """ + errMsg[0]
             return
         
-        if len(outlinkList) == 1:
-            linkObjList.append(outlinkList)
-            return self.pushForwardLink(errMsg, linkObjList, laneInfoList, maxDeep)
-        else:
-            bestOutlink = None
-            for oneOutlink in outlinkList:
-                
-                bestOutlink = oneOutlink
-                
-            linkObjList.append(bestOutlink)
+        if len(outlinkList) == 0:  # 断头路，报错。
+            errMsg[0] = """Failed when push link step1: cannot find a valid outlink.\n"""
+            errMsg[0] += """inlink: %s and node: %s""" % (linkObjList[-1].link_id, nodeid)
             return
+        elif len(outlinkList) == 1 and len(connectedLinkList) == 2:  # outlink数仍是1，继续向前推。
+            linkObjList.append(outlinkList[0])
+            self.pushLinkUntilFork(errMsg, linkObjList)
+            return
+        else:  # 找到分岔路。
+            return
+        return
     
-    
-    # 求此以inlinkid为流入link，nodeid点的outlink数量。
-    def getOutlinkList(self, errMsg, nodeid, linkObj):
+    # 新增一条车线诱导信息。
+    def addLaneInfo(self, errMsg, linkList, lanenum, laneinfo, 
+                    arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive):
+        inlinkObj = linkList[0]
+        outlinkObj = linkList[-1]
+        passlid = "|".join(str(x) for x in linkList[1:-1])
+        nodeid = inlinkObj.getConnectedNodeidWith(errMsg, linkList[1])
         sqlcmd = """
-        select link_id, s_node, e_node, st_astext(the_geom) as the_geom_text_list, road_name
-        from link_tbl 
-        where s_node=%s and one_way_code in (1,2) and link_id<>%s
-        union
-        select link_id, s_node, e_node, st_astext(the_geom) as the_geom_text_list, road_name
-        from link_tbl 
-        where e_node=%s and one_way_code in (1,3) and link_id<>%s;
-        """
-        self.pg.execute2(sqlcmd, [nodeid, linkObj.id, nodeid, linkObj.id])
-        rows = self.pg.fetchall2()
-        linkList = []
-        for row in rows:
-            linkid = row[0]
-            sNodeid = row[1]
-            eNodeid = row[2]
-            the_geom_text = row[3]
-            name = row[4]
-            linkList.append(link_object(linkid, sNodeid, eNodeid, the_geom_text, name))
+insert into 
+lane_tbl(id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+        lanenum, laneinfo, arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive)
+values
+(max(id)+1, %s, %s, %s, %s, %s, 
+ %s, %s, %s, %s, %s, %s, %s)
+""" % (nodeid, inlinkObj.link_id, outlinkObj.link_id, passlid, len(linkList)-2, 
+       lanenum, laneinfo, arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive)
+        self.pg.execute(sqlcmd)
+        self.conn.commit()
+        return
+
+    # 根据交通流变化的角度，判断箭头信息是否符合。
+    def isLinklistFitsArrowInfo(self, errMsg, linkList, arrowInfo):
+        bestArrowInfo = -1
+        position, angle = link_object.getTrafficAngleByLinkList(errMsg, linkList)
+        angle = angle % 360
+        if position == link_object.DIR_RIGHT_SIDE:
+            if angle <= 30:
+                bestArrowInfo = 1  # 1-straight
+            elif 30 < angle and angle <= 60:
+                bestArrowInfo = 2  # 2-slight right
+            elif 60 < angle and angle <= 120:
+                bestArrowInfo = 4  # 4-right
+            elif 120 < angle and angle <= 150:
+                bestArrowInfo = 8  # 8-hard right
+            else:
+                bestArrowInfo = 8  # 8-hard right
+        else:  # position==DIR_LEFT_SIDE:
+            if angle <= 30:
+                bestArrowInfo = 1  # 1-straight
+            elif 30 < angle and angle <= 60:
+                bestArrowInfo = 128  # 128-slight left
+            elif 60 < angle and angle <= 120:
+                bestArrowInfo = 64  # 64-left
+            elif 120 < angle and angle <= 150:
+                bestArrowInfo = 32  # 8-hard left
+            else:
+                bestArrowInfo = 32  # 8-hard left
+        
+        if bestArrowInfo & arrowInfo <> 0:
+            return True
+        else:
+            return False
             
-        if len(linkList) <= 0:
-            errMsg[0] = 'can\'t find outlink.\n link: %s.\n nodeid: %s' % (linkObj.toString(), nodeid)
-            return None
-        return linkList
+    # 查询lane_tbl表，查询此条link序列在lane_tbl表中是否已存在车线诱导信息。
+    # 必须要inlink的此条车线信息已存在，才符合要求。
+    # 若只存在inlink的其他车线信息，不影响最终判断。
+    def isGuideinfoLaneExists(self, errMsg, linkObjList, whichLane):
+        inlinkObj = linkObjList[0]
+        outlinkObj = linkObjList[-1]
+        nodeid = inlinkObj.getConnectedNodeidWith(errMsg, linkObjList[1])
+        if errMsg[0] <> '':
+            return
+        sqlcmd = """
+select count(*) 
+from lane_tbl where 
+inlinkid=%s and 
+outlinkid=%s and 
+nodeid=%s and 
+passlink_cnt=%s and  
+is_lane_info_grouped(laneinfo, '%s')=false;
+""" % (inlinkObj.link_id, outlinkObj.link_id, nodeid, len(linkObjList) - 2, whichLane)
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        return len(rows) > 0
+            
+            
+
+    
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

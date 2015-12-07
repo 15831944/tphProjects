@@ -37,6 +37,8 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_def_rdf import ANGLE_135
+from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
+from msilib import AMD64
 
 
 class HwyRouteRDF(component.component_base.comp_base):
@@ -75,6 +77,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         # 加载Ramp/JCT/SAPA link
         self.data_mng.load_hwy_ic_link()
         self.data_mng.load_hwy_inout_link()
+        self.data_mng.load_tollgate()
         # 处理侧道
         self._make_side_path()
         # 合并or删除较短的路径
@@ -83,7 +86,6 @@ class HwyRouteRDF(component.component_base.comp_base):
         # ## 裁剪路径
         self.data_mng.load_exit_poi_name()
         self.data_mng.load_exit_name()
-        self.data_mng.load_tollgate()
         self.data_mng.load_hwy_path_id()
         self.data_mng.load_hwy_regulation()
         self._cut_path()
@@ -91,6 +93,8 @@ class HwyRouteRDF(component.component_base.comp_base):
         self._make_road_code()
         # ## 生成link对应的road_code
         self._make_link_road_code_info()
+        # ## 主路/辅路关系
+        self._make_main_side_road_relation()
 
     def _make_main_path(self):
         '''按相似度把所以本线link串起来'''
@@ -357,7 +361,8 @@ class HwyRouteRDF(component.component_base.comp_base):
                 continue
             # 首尾点在另一条线路里，且不是另一条线路的首尾
             if path[0] != other_path[0] or path[-1] != other_path[-1]:
-                if self._is_short_path(path):
+                if(self._is_short_path(path) and
+                   not self._exist_tollgate(path)):
                     delete_flag = HWY_TRUE
                 side_dict[(path_id, other_path_id)] = (path_id,
                                                        delete_flag)
@@ -387,14 +392,16 @@ class HwyRouteRDF(component.component_base.comp_base):
                 self.log.warning('Same Hwy Node Number. path_id=%s, '
                                  'other_path_id=%s' % (path_id, other_path_id))
             if del_path1:
-                if self._is_short_path(path):
+                if(self._is_short_path(path) and
+                   not self._exist_tollgate(path)):
                     delete_flag = HWY_TRUE
                 side_dict[(path_id, other_path_id)] = (path_id,
                                                        delete_flag)
                 main_path[other_path_id] = other_path
                 path_node_list.append(path)
             else:
-                if self._is_short_path(other_path):
+                if(self._is_short_path(other_path) and
+                   not self._exist_tollgate(path)):
                     delete_flag = HWY_TRUE
                 side_dict[(path_id, other_path_id)] = (other_path_id,
                                                        delete_flag)
@@ -403,6 +410,13 @@ class HwyRouteRDF(component.component_base.comp_base):
         side_path = [(path_id, delete_flag)
                      for (path_id, delete_flag) in side_dict.itervalues()]
         return side_path, main_path, path_node_list
+
+    def _exist_tollgate(self, path):
+        '''路径上存在收费上'''
+        for node in path[1:-1]:
+            if self.G.is_tollgate(node):
+                return True
+        return False
 
     def _is_same_direction(self, path1, path2):
         '''首尾相交的两条路径是同向的'''
@@ -443,6 +457,13 @@ class HwyRouteRDF(component.component_base.comp_base):
         for path_info in self.data_mng.get_path_distance(ROUTE_DISTANCE_2500M):
             path = path_info[2]
             u, v = path[0], path[-1]
+            side_path_flg = path_info[3]
+            if side_path_flg:  # 侧道/辅路，且有收费站
+                toll_flg = self._exist_tollgate(path)
+                if toll_flg:
+                    self.log.info('Side Path and Exist Toll. path_id=%s'
+                                  % path_info[0])
+                    continue
             if not path_G.has_edge(u, v):  # 路径已经被合并
                 continue
             temp_path, temp_path_ids = self._merge_short_path(u, v,
@@ -554,7 +575,11 @@ class HwyRouteRDF(component.component_base.comp_base):
         '''裁剪两头'''
         self.log.info('Start Cut Path.')
         self.CreateTable2('mid_temp_hwy_main_cut_path_attr')
-        for path_id, path in self.data_mng.get_path():
+        for path_id, path, side_path_flg in self.data_mng.get_path():
+            if side_path_flg:  # 侧道、辅路
+                self._store_cut_path(self.G, path_id, path,
+                                     0, len(path) - 1)
+                continue
             if is_cycle_path(path):
                 # 保存路径
                 self._store_cut_path(self.G, path_id, path,
@@ -689,7 +714,7 @@ class HwyRouteRDF(component.component_base.comp_base):
             return True
         node_idx, length, types = types_list[0]
         if node_idx != 0:
-            return False
+            return True
         # if self._is_jct_in(types) or self._is_ic_in(types):
         #    return True
         return False
@@ -701,7 +726,7 @@ class HwyRouteRDF(component.component_base.comp_base):
             return True
         node_idx, length, types = types_list[0]
         if node_idx != len(path) - 1:
-            return False
+            return True
         # if self._is_jct_out(types) or self._is_ic_out(types):
         #    return True
         return False
@@ -1257,10 +1282,13 @@ class HwyRouteRDF(component.component_base.comp_base):
         INSERT INTO road_code_info(road_name, road_number, path_id,
                                    sort_name, sort_number)
         (
-        SELECT road_name, road_number, path_id,
-               sort_name, sort_number
-          FROM mid_temp_hwy_main_cut_path_attr
-          order by length(sort_number), sort_number, sort_name, path_id
+        SELECT a.road_name, a.road_number, a.path_id,
+               a.sort_name, a.sort_number
+          FROM mid_temp_hwy_main_cut_path_attr AS a
+          LEFT JOIN mid_temp_hwy_main_path_attr as b
+          ON a.path_id = b.path_id
+          order by side_path_flg, length(a.sort_number),
+                   a.sort_number, a.sort_name, a.path_id
         );
         """
         self.pg.execute2(sqlcmd)
@@ -1316,6 +1344,80 @@ class HwyRouteRDF(component.component_base.comp_base):
         self.CreateIndex2('hwy_link_road_code_info_link_id_idx')
         self.CreateIndex2('hwy_link_road_code_info_the_geom_idx')
 
+    def _make_main_side_road_relation(self):
+        '''主/辅路关系表。'''
+        sqlcmd = """
+        SELECT road_code, updown, path,
+               other_road_code, other_updown, other_path
+           FROM (-- Get path
+             SELECT road_code, updown, array_agg(node_id) as path
+               FROM (
+                 select road_code, updown, node_id, seq_nm
+                   FROM hwy_link_road_code_info
+                   ORDER BY road_code, seq_nm
+               ) as b
+               group by road_code, updown
+           ) as curr
+           INNER JOIN (
+             SELECT road_code as other_road_code, updown as other_updown,
+                    array_agg(node_id) as other_path
+               FROM (
+                 select road_code, updown, node_id, seq_nm
+                   FROM hwy_link_road_code_info
+                   ORDER BY road_code, updown, seq_nm
+               ) as b
+               group by road_code, updown
+           ) as other
+           ON curr.road_code <> other.other_road_code and
+              path[1] = any(other_path) and
+              path[array_upper(path, 1)] = any(other_path)
+           order by other_road_code, road_code;
+        """
+        self.CreateTable2('hwy_main_side_road_relation')
+        for side_path_info in self.get_batch_data(sqlcmd):
+            side_road_code, side_updown, path = side_path_info[0:3]
+            main_road_code, main_updown, main_path = side_path_info[3:6]
+            if not self._is_same_direction(path, main_path):
+                continue
+            # 首尾相连
+            # if path[0] == main_path[0] or path[-1] == main_path[-1]:
+            #     continue
+            dummy_road = HWY_FALSE
+            length = self._get_path_length(path)
+            if length <= self.min_distance:
+                dummy_road = HWY_TRUE  # 很多短的侧道是虚拟抽象出来的
+            self._store_main_side_road_code_relation(main_road_code,
+                                                     main_updown,
+                                                     side_road_code,
+                                                     side_updown,
+                                                     length,
+                                                     dummy_road)
+        self.pg.commit2()
+        self.CreateIndex2('hwy_main_side_road_relation_'
+                          'side_road_code_side_updown_idx')
+        if not self._check_main_side_road():
+            self.log.error('Bad Main/Side Road.')
+
+    def _check_main_side_road(self):
+        '''两条线路互为本线'''
+        sqlcmd = """
+        SELECT COUNT(*)
+          FROM (
+            SELECT a.main_road_code, a.main_updown,
+                   a.side_road_code, a.side_updown
+              FROM hwy_main_side_road_relation as a
+              INNER JOIN hwy_main_side_road_relation as b
+              ON a.main_road_code = b.side_road_code and
+                 a.main_updown = b.side_updown
+          ) AS c
+        """
+        self.pg.execute2(sqlcmd)
+        row = self.pg.fetchone2()
+        if row:
+            if row[0]:
+                return False
+        return True
+
     # ========================================================================
     # 保存数据,更新数据库
     # ========================================================================
@@ -1370,6 +1472,22 @@ class HwyRouteRDF(component.component_base.comp_base):
         length, path_name, path_number, sort_name, sort_num = path_attr
         self.pg.execute2(sqlcmd, (path_id, length, path_name, path_number,
                                   sort_name, sort_num, start_idx, end_idx))
+
+    def _store_main_side_road_code_relation(self, main_road_code, main_updown,
+                                            side_road_code, side_updown,
+                                            length, dummy_road):
+        '''保存临时的辅路与主路的关系'''
+        sqlcmd = """
+        INSERT INTO hwy_main_side_road_relation(
+                            main_road_code, main_updown,
+                            side_road_code, side_updown,
+                            length, dummy_road)
+            VALUES(%s, %s, %s,
+                   %s, %s, %s);
+        """
+        self.pg.execute2(sqlcmd, (main_road_code, main_updown,
+                                  side_road_code, side_updown,
+                                  length, dummy_road))
 
     def _temp_update_geom(self):
         sqlcmd = """

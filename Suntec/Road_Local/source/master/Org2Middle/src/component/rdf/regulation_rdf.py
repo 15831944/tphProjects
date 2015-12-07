@@ -35,6 +35,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.__convert_regulation_linkrow()
         self.__convert_regulation_nation_boundary()
         self.__convert_regulation_pdm()
+        self.__prepare_admin_link_node()
         self.__convert_regulation_awr()
         self.__make_linklist_for_awr()
         
@@ -172,12 +173,9 @@ class comp_regulation_rdf(component.component_base.comp_base):
         
         self.log.info('End convert regulation for pdm.')
     
-    def __convert_regulation_awr(self):
+    def __prepare_admin_link_node(self):
         
-        self.log.info('Begin convert regulation for awr...')
-        
-        # find links related to admin-wide-regulation
-        self.log.info('find links related to admin-wide-regulation...')
+        self.log.info('Begin prepare admin link&node for make awr...')
         self.CreateIndex2('rdf_admin_hierarchy_admin_place_id_idx')
         self.CreateIndex2('rdf_admin_hierarchy_country_id_idx')
         self.CreateIndex2('rdf_admin_hierarchy_order1_id_idx')
@@ -205,6 +203,12 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.CreateIndex2('temp_regulation_admin_node_node_id_idx')
         self.pg.commit2()
         
+        self.log.info('End prepare admin link&node for make awr.')
+        
+    def __convert_regulation_awr(self):
+        
+        self.log.info('Begin convert regulation for awr...')
+        
         # find mainnode related to admin-wide-regulation
         # 一个复杂路口（典型的“井”字路口）或者一个简单路口（必须包含inner link，典型的“工”字路口）作成一个main node \
         # main node是一个逻辑上的概念，代表一个路口。实际应用为描述复杂路口，如“井”字路口，本身就是一个main node，为容易 \ 
@@ -214,7 +218,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         # 创建表单temp_awr_mainnode_subnode记录一个main node内的sub node（可以有多个）信息
         # 创建表单temp_awr_mainnode记录main node与其关联的sub node的对照关系
         
-        self.log.info('find mainnode related to admin-wide-regulation...')
+        self.log.info('Begin find mainnode related to admin-wide-regulation...')
         self.CreateTable2('temp_awr_mainnode_sublink')
         self.CreateTable2('temp_awr_mainnode_subnode')
         self.CreateIndex2('temp_awr_mainnode_sublink_sublink_idx')
@@ -240,19 +244,23 @@ class comp_regulation_rdf(component.component_base.comp_base):
         # 对于普通路口：
         # （1）    进入路口的Link和退出路口的Link都是双向化道路，道路名称相同，且夹角小于85度；
         # （2）    进入路口的Link和退出路口的Link道路都是双向化道路，都没有道路名称，且夹角小于60度
-        
-        # 创建表单temp_awr_pdm_linkrow记录Permitted Driving Manoeuvre (CONDITION_TYPE = 39)对应的规制信息（包含规制id、link序列）
-        
         self.CreateFunction2('rdb_get_angle_diff')
         self.CreateTable2('temp_awr_mainnode_uturn')
         self.CreateIndex2('temp_awr_mainnode_uturn_mainnode_id_idx')
         self.CreateTable2('temp_awr_node_uturn')
         self.CreateIndex2('temp_awr_node_uturn_node_id_idx')
+        self.log.info('End find mainnode related to admin-wide-regulation.')
+        
+        # 创建表单temp_awr_pdm_linkrow记录Permitted Driving Manoeuvre (CONDITION_TYPE = 39)对应的规制信息（包含规制id、link序列）
         self.CreateTable2('temp_awr_pdm_linkrow')
         self.CreateIndex2('temp_awr_pdm_linkrow_regulation_id_idx')
         self.CreateIndex2('temp_awr_pdm_linkrow_first_link_idx')
         self.CreateFunction2('rdb_contains')
         self.CreateFunction2('mid_find_awr_inner_path')
+        self.CreateTable2('temp_node_uturn_linkrow')
+        self.CreateIndex2('temp_node_uturn_linkrow_linkids_idx')
+        self.CreateTable2('temp_forbid_entry_regulation_linkrow')
+        self.CreateIndex2('temp_forbid_entry_regulation_linkrow_linkids_idx')
         self.CreateFunction2('mid_convert_regulation_awr')
         self.pg.callproc('mid_convert_regulation_awr')
         self.pg.commit2()
@@ -262,32 +270,13 @@ class comp_regulation_rdf(component.component_base.comp_base):
     def __make_linklist_for_awr(self):
         
         self.log.info('Begin make linklist for admin wide regulation...')
-        
-        self.CreateIndex2('rdf_admin_hierarchy_admin_place_id_idx')
-        self.CreateIndex2('rdf_admin_hierarchy_country_id_idx')
-        self.CreateIndex2('rdf_admin_hierarchy_order1_id_idx')
-        self.CreateIndex2('rdf_admin_hierarchy_order2_id_idx')
-        self.CreateIndex2('rdf_admin_hierarchy_order8_id_idx')
-        self.CreateIndex2('rdf_admin_hierarchy_builtup_id_idx')
-        
-        self.CreateTable2('temp_regulation_admin')
-        self.CreateIndex2('temp_regulation_admin_admin_place_id_idx')
-        self.pg.commit2()
-        
-        self.CreateIndex2('temp_rdf_nav_link_left_admin_place_id_idx')
-        self.CreateIndex2('temp_rdf_nav_link_right_admin_place_id_idx')
-        self.CreateTable2('temp_regulation_admin_link')
-        self.CreateIndex2('temp_regulation_admin_link_link_id_idx')
-        self.pg.commit2()
-        
         # 创建表单temp_link_regulation_pdm_flag记录存在Admin Wide Regulation的link
         # 后续该信息会补充到link_tbl的字段extend_flag中
-        
         self.CreateIndex2('regulation_relation_tbl_inlinkid_idx')
+        self.CreateIndex2('regulation_relation_tbl_outlinkid_idx')
         self.CreateTable2('temp_link_regulation_pdm_flag')
         self.CreateIndex2('temp_link_regulation_pdm_flag_link_id_idx')
         self.pg.commit2()
-        
         self.log.info('End make linklist for admin wide regulation.')
     
     def __make_linklist_for_linkdir(self):

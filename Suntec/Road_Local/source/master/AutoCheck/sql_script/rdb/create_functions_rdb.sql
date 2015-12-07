@@ -1637,3 +1637,46 @@ BEGIN
 	return 1;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION update_config_node_list_tbl( )
+	RETURNS boolean
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	idx bigint;
+	deata double precision;
+	temp_node bigint;
+	distance double precision;
+BEGIN
+	FOR rec IN 
+		SELECT gid, str_geom::geometry as the_geom
+		FROM temp_config_shape_point_list_tbl
+	LOOP
+		deata := 0.03;
+
+		WHILE True LOOP
+			SELECT node_id, ST_Distance_Sphere(the_geom, rec.the_geom) as node_dis INTO temp_node, distance
+			FROM rdb_node
+			WHERE ST_DWithin(the_geom, rec.the_geom, deata, True)
+			ORDER BY node_dis
+			LIMIT 1;
+
+			IF temp_node is null THEN
+				deata := deata + 0.2;
+
+				IF deata >= 10.0 THEN
+					raise EXCEPTION 'the_geom: %s z_level: %s can not bound to node', (rec.the_geom_list)[idx], (rec.z_level_list)[idx];
+				END IF;
+			ELSE
+				exit;
+			END IF;
+		END LOOP;
+		
+		INSERT INTO temp_config_node_list_tbl(gid, node_id, distance)
+			VALUES(rec.gid, temp_node, distance);
+	END LOOP;
+
+	return true;
+END;
+$$;

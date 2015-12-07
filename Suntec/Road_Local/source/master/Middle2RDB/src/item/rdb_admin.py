@@ -13,7 +13,6 @@ class rdb_admin(ItemBase):
         ItemBase.__init__(self, 'Admin')
     
     def Do(self):
-        # 
         self.__makeAdminZone()
         
         # simplify admin zone
@@ -69,6 +68,9 @@ class rdb_admin(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('rdb_admin_summer_time_summer_time_id_idx')
+        
+        #delete order0 for SGP
+        self.__alter_admin_for_SGP_specially()
 
         self.log.info('converting rdb_admin_zone end.')
 
@@ -1048,6 +1050,63 @@ class rdb_admin(ItemBase):
         self.CreateIndex2('rdb_tile_out_of_admin_zone_tile_x_tile_y_idx')
 
         self.log.info('converting rdb_tile_admin_zone end.')
+        
+    def __alter_admin_for_SGP_specially(self):
+
+        sqlcmd = """
+                    select  count(*) as sgp_order0_num 
+                    from rdb_admin_order0_iso_country_mapping
+                    where iso_country_code = 'SGP'
+                 """
+        self.pg.execute2(sqlcmd)
+        
+        (sgp_order0_num,) = self.pg.fetchone2()
+        
+        if sgp_order0_num == 1:
+            sqlcmd = """
+                    select  order0_id from rdb_admin_order0_iso_country_mapping
+                    where iso_country_code = 'SGP'
+                 """
+            self.pg.execute2(sqlcmd)
+            (sgp_order0_id,) = self.pg.fetchone2()
+            
+            sqlcmd = """
+                    select count(*) as sgp_order1_num
+                    from rdb_admin_zone
+                    where ad_order = 1 and order0_id = %d
+                    """
+            self.pg.execute2(sqlcmd%sgp_order0_id)
+            (sgp_order1_num,)= self.pg.fetchone2()
+            
+            if sgp_order1_num == 1:
+                sqlcmd = """
+                        select a.ad_name as order1_name,b.ad_name as order0_name
+                        from rdb_admin_zone as a 
+                        left join rdb_admin_zone as b 
+                        on a.ad_order = 1 and b.ad_order = 0 and b.ad_code = a.order0_id
+                        where a.order0_id = %d and a.ad_name is not null and b.ad_name is not null
+                        """
+                self.pg.execute2(sqlcmd%sgp_order0_id)
+                (sgp_order1_name,sgp_order0_name) = self.pg.fetchone2()
+                
+                if sgp_order1_name == sgp_order0_name:
+                    self.log.info('alter rdb_admin_zone for sgp begin.')
+                    sqlcmd = """
+                    delete from rdb_admin_zone
+                    where ad_order = 0 and ad_code = %d
+                    """
+                    self.pg.execute2(sqlcmd%sgp_order0_id)
+                    self.pg.commit2()
+                    
+                    sqlcmd = """
+                                update rdb_admin_zone as a
+                                set order0_id = null 
+                                where order0_id = %d and ad_order in (1,2,8)
+                                
+                             """
+                    self.pg.execute2(sqlcmd%sgp_order0_id)
+                    self.pg.commit2()
+                    self.log.info('alter rdb_admin_zone for sgp end..')
 
 class rdb_admin_backup(ItemBase):
     '''
@@ -2176,3 +2235,6 @@ class rdb_admin_backup(ItemBase):
 
         rdb_log.log('Admin', 'Check admin end.', 'info')
         return 0
+    
+    
+        

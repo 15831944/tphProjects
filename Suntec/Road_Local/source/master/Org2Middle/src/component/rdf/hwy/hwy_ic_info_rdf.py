@@ -37,6 +37,7 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
+from Tix import Tree
 
 
 # ==============================================================================
@@ -64,26 +65,64 @@ class HwyICInfoRDF(HwyICInfo):
     def _set_jct_dummy_flg(self):
         '''17Cy专用'''
         # 点JCT和类点JCT
+        if(not self.first_facil.facilcls == HWY_IC_TYPE_JCT or
+           not self.first_facil.inout == HWY_INOUT_TYPE_OUT):
+            return
         node_jct_flg = self._get_node_jct_dummy_flg()
         if node_jct_flg:
             self.dummy = HWY_TRUE
         else:
-            # 辅路 和主路的汇合
-            side_flg = self._get_side_jct_dummy_flg()
-            if side_flg:
+            # 辅路 和 主路的 JCT
+            side_dummy_flg = self._get_side_jct_dummy_flg()
+            if side_dummy_flg:
                 self.dummy = HWY_TRUE
 
     def _get_side_jct_dummy_flg(self):
-        '''辅路 和主路的汇合'''
+        '''辅路 和主路的JCT'''
+        # 接续道路多条
+        conn_roads = self.get_conn_road()
+        if not conn_roads or len(conn_roads) > 1:
+            return False
+        roadcode = self.first_facil.road_code
+        updown = self.first_facil.updown
+        conn_roadcode, conn_updown = conn_roads.pop()
+        relation_info = self.get_main_side_road_relation(roadcode,
+                                                         updown,
+                                                         conn_roadcode,
+                                                         conn_updown)
+        main_side_flg, side_flg, dummy_road = relation_info
+        if main_side_flg:  # 主辅关系
+            if side_flg:  # 当前路是侧道/辅路, 即辅路到主路
+                return True
+            else:  # 主路到辅路
+                if dummy_road:  # 虚拟辅路(路长很短，通常距离<=2Km)
+                    # 主路到虚拟辅路，也做成Dummy JCT
+                    return True
         return False
+
+    def get_main_side_road_relation(self, roadcode1, updown1,
+                                    roadcode2, updown2):
+        main_side_flg = True
+        side_flg = True  # roadcode1是侧道/辅路
+        side_road_infos = self.data_mng.get_side_road(roadcode2, updown2)
+        if side_road_infos:
+            for side_roadcode, side_updown, dummy_road in side_road_infos:
+                if(side_roadcode == roadcode1 and
+                   side_updown == updown1):
+                    return main_side_flg, side_flg, dummy_road
+        side_flg = False  # roadcode1是主路
+        side_road_infos = self.data_mng.get_side_road(roadcode1, updown1)
+        if side_road_infos:
+            for side_roadcode, side_updown, dummy_road in side_road_infos:
+                if(side_roadcode == roadcode2 and
+                   side_updown == updown2):
+                    return main_side_flg, side_flg, dummy_road
+        return False, False, None
 
     def _get_node_jct_dummy_flg(self):
         '''点JCT和类点JCT'''
         # 一条高速的末端与另一条头端直接或间接相连，
         # 且该末端没有其他方向的分歧，那么末端JCT做成Dummy JCT
-        if(not self.first_facil.facilcls == HWY_IC_TYPE_JCT or
-           not self.first_facil.inout == HWY_INOUT_TYPE_OUT):
-            return False
         node_id = self.first_facil.node_id
         road_code = self.first_facil.road_code
         updown = self.first_facil.updown
@@ -91,8 +130,8 @@ class HwyICInfoRDF(HwyICInfo):
         if not self.data_mng.is_road_end_node(road_code, updown, node_id):
             return False
         # 接续道路多条
-        road_codes = self._get_conn_road()
-        if len(road_codes) > 1:
+        conn_roads = self.get_conn_road()
+        if not conn_roads or len(conn_roads) > 1:
             return False
         # 接续node是接续道路的起点
         for conn_info in self.conn_infos:
@@ -120,11 +159,13 @@ class HwyICInfoRDF(HwyICInfo):
                         self.log.info('Diff name. node=%s' % node_id)
         return False
 
-    def _get_conn_road(self):
-        road_codes = set()
+    def get_conn_road(self):
+        roads = set()
         for conn_info in self.conn_infos:
-            road_codes.add(conn_info.t_facil.road_code)
-        return road_codes
+            road_code = conn_info.t_facil.road_code
+            updown = conn_info.t_facil.updown
+            roads.add((road_code, updown))
+        return roads
 
     def _conn_link_is_main_link(self, t_node):
         '''接续link都是本线link'''
@@ -1470,6 +1511,18 @@ class HwyConnInfoRDF(HwyConnInfo):
         # 2. 环形的起末，注：环形的起是JCT In, 末是JCT Out
         if (self.s_facil.road_code == self.t_facil.road_code):
             # print self.s_facil.road_code
+            self.same_road_flag = HWY_TRUE
+            return
+        roadcode = self.s_facil.road_code
+        updown = self.s_facil.updown
+        t_roadcode = self.t_facil.road_code
+        t_updown = self.t_facil.updown
+        rel_info = self.ic_info.get_main_side_road_relation(roadcode,
+                                                            updown,
+                                                            t_roadcode,
+                                                            t_updown)
+        main_side_flg = rel_info[0]
+        if main_side_flg:  # 主/辅路关系
             self.same_road_flag = HWY_TRUE
             return
 

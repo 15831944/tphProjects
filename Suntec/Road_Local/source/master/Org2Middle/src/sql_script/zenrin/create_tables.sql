@@ -398,3 +398,41 @@ create table org_notin_gid
 (
 	gid integer
 );
+
+CREATE TABLE temp_signpost_uc_deal_with_dummy_link
+(
+  gid          serial,
+  nodeid       bigint not null,
+  inlinkid     bigint not null,
+  outlinkid    bigint not null,
+  passlid      character varying(1024),
+  passlink_cnt smallint not null,
+  sp_name      character varying(8192),
+  route_no1    character varying(1024),
+  route_no2    character varying(1024), 
+  route_no3    character varying(1024), 
+  route_no4    character varying(1024), 
+  exit_no      character varying(1024)
+);
+
+CREATE TABLE temp_spotguide_tbl1
+(
+  gid serial primary key,
+  firstlink bigint,
+  node bigint,
+  secondlink bigint,
+  thirdlink bigint,
+  patternno varchar,
+  arrowno varchar
+);
+
+CREATE TABLE temp_spotguide_tbl2
+(
+  gid serial primary key,
+  inlink bigint,
+  nodeid bigint,
+  passlid character varying,
+  passlink_cnt smallint,
+  outlink bigint,
+  imagename varchar
+);

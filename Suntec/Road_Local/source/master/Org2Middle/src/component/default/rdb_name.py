@@ -117,6 +117,22 @@ class rdb_name_language_order(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        #judge gid
+        sqlcmd = '''
+                select *
+                from   information_schema.columns
+                where table_name = '%s' and column_name = 'gid';
+                '''%table_name
+        self.pg.execute2(sqlcmd)
+        row = self.pg.fetchone2()
+        if not row:
+            #gid not in table
+            sqlcmd = '''
+                    ALTER TABLE %s ADD COLUMN gid serial;
+                    '''% table_name
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            
         (min_gid, max_gid) = self.pg.getMinMaxValue(table_name, 'gid')
         
         temp_file_obj = common.cache_file.open(update_table_name)

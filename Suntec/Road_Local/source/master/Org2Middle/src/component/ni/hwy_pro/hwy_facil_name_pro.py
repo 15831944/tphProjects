@@ -20,7 +20,7 @@ class HwyFacilNameNiPro(HwyExitNameRDF):
         HwyExitNameRDF.__init__(self, item_name='HwyFacilNameNiPro')
 
     def _DoCreateTable(self):
-        self.CreateTable2('mid_temp_hwy_exit_name_ni')
+        self.CreateTable2('temp_hwy_facil_name_ni')
         return 0
 
     def _DoCreateFunction(self):
@@ -33,11 +33,11 @@ class HwyFacilNameNiPro(HwyExitNameRDF):
         self._make_hwy_facil_name()
 
     def _make_hwy_facil_name(self):
-        self.log.info('start make hwy exit name')
-        temp_file_obj = cache_file.open('link_name')
+        self.log.info('start make hwy facil name')
+        temp_file_obj = cache_file.open('facil_name')
         multi_name_obj = None
         alter_name_obj = None
-        for one_junction_name in self._get_exit_name():
+        for one_junction_name in self._get_facil_name():
             # one_junction_name = ('3001', [1, 2, 3],
             #                       [1|3,1|3,1|3],
             #                       [经公桥|Jinggong Brg,Ｇ２０６|G206,东亚|Dongya])
@@ -103,7 +103,7 @@ class HwyFacilNameNiPro(HwyExitNameRDF):
                                               json_name)
         # ## 把名称导入数据库
         temp_file_obj.seek(0)
-        self.pg.copy_from2(temp_file_obj, 'mid_temp_hwy_exit_name_ni')
+        self.pg.copy_from2(temp_file_obj, 'temp_hwy_facil_name_ni')
         self.pg.commit2()
 
         cache_file.close(temp_file_obj, True)
@@ -115,7 +115,7 @@ class HwyFacilNameNiPro(HwyExitNameRDF):
             file_obj.write('%s\t%s\n' % (featid, json_name))
         return 0
 
-    def _get_exit_name(self):
+    def _get_facil_name(self):
         '''get junction id and junction name'''
         sqlcmd = '''
         select featid,

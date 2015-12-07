@@ -103,7 +103,7 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                     from org_r_phon where phontype in ('1','3')
                 ) c
                 on b.route_id = c.route_id and b.language = c.phon_flag and b.folder = c.folder
-                order by id,name_kind,seq_nm,language,phon_language
+                order by id,name_kind,seq_nm,a.route_id,language,phon_language
             ) m group by link_id;
         """
         
@@ -297,8 +297,8 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                 
                 union
                 
-                select '100000' as admin_id, array['中国'] as name_array, array['1'] as language_array,
-                    array['1'] as nameflag_array, array['1'] as name_ids, array[''], array[''];
+                select '100000' as admin_id, array['中国','China'] as name_array, array['1','3'] as language_array,
+                    array['1','1'] as nameflag_array, array['1','1'] as name_ids, array['',''], array['',''];
                 '''
             
         rows = self.pg.get_batch_data2(sqlcmd)
@@ -386,26 +386,7 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                          '6': '5105',
                          '7': '5106'
                          }
-        return shieldid_dict.get(shield_type)
-    
-    def _add_all_tts(self, phoneme_list, language_list, match_code=None):
-                    
-        for phoneme, lang_code in zip(phoneme_list, language_list):
-            if phoneme and lang_code:
-                # match_code为空，就不比较语种
-                if not match_code or lang_code == match_code:
-                    tts_obj = MultiLangNameTa(self.n_id,
-                                              lang_code,
-                                              phoneme,
-                                              self._name_type,
-                                              TTS_TYPE_PHONEME,
-                                              self._left_right
-                                              )
-                    self.add_tts(tts_obj)
-                    if match_code:  # 如果指定了code，只收一个
-                        break
-            else:
-                print 'phoneme or lang_code is none. id=%d' % self.n_id    
+        return shieldid_dict.get(shield_type)  
     
     def _make_signpost_uc_name(self):
         self.log.info('Begin get signpost_uc name')

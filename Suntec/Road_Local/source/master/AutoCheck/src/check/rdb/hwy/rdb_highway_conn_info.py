@@ -130,9 +130,26 @@ class CCheckSimilarRoad(platform.TestCase.CTestCase):
             else:
                 similar_flg = True
             if not similar_flg:
-                print row[0], row[1]
-                return False
+                if(is_extended_road(name1) or
+                   is_extended_road(name2)):
+                    pass
+                else:
+                    print row[0], row[1]
+                    return False
         return True
+
+
+def is_extended_road(json_name):
+    '''东南亚：侧道、辅路是主路的扩展道路，名称就叫扩展路'''
+    extended_road_name = 'Lebuhraya Skim Penyuraian Trafik KL-Barat'
+    extended_road_name = extended_road_name.upper()
+    name_list = json.loads(json_name)
+    for one_name_list in name_list:
+        for one_name in one_name_list:
+            name = one_name.get('val')
+            if name.upper() == extended_road_name:
+                return True
+    return False
 
 
 def is_similar_name(name_str1, name_str2):

@@ -1637,7 +1637,7 @@ CREATE TABLE highway_node_add_info
   normal_toll      smallint not null DEFAULT 0,
   etc_toll         smallint not null DEFAULT 0,
   etc_section      smallint not null DEFAULT 0,
-  name             CHARACTER VARYING(1024),
+  name             CHARACTER VARYING(4096),
   tile_id          INTEGER not null,
   no_toll_flag     smallint not null  -- 1: no toll, 0: toll
 );
@@ -1778,6 +1778,7 @@ CREATE TABLE mid_hwy_node_add_info
   add_link_id    bigint not null,
   dir_s_node     bigint not null,
   dir_e_node     bigint not null,
+  from_linkid    bigint,  -- Current Facility In Link.
   name_kanji     character varying(4096),
   name_yomi      character varying(4096),
   pos_type       integer not null,
@@ -2327,6 +2328,18 @@ CREATE TABLE mid_temp_hwy_inout_link
   road_name     character varying(16384),
   road_number   character varying(2048)
 ); SELECT AddGeometryColumn('','mid_temp_hwy_inout_link','the_geom','4326','LINESTRING',2);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE hwy_main_side_road_relation
+(
+  main_road_code     integer NOT NULL,
+  main_updown        integer NOT NULL,
+  side_road_code     integer NOT NULL,
+  side_updown        integer NOT NULL,
+  length             float,
+  dummy_road         integer   -- side road length <= 2Km
+);
 
 ------------------------------------------------------------------------
 --

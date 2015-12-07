@@ -55,16 +55,16 @@ class HighwayNiPro(HighwayRDF):
         from component.default.dictionary import comp_dictionary
         dictionary = comp_dictionary()
         dictionary.set_language_code()
-        # ## 原link id ==> Middle link id
-        if self.link_id_mapping:
-            self.link_id_mapping.Make()  # ORG Link_id ==> Middle Link_id
-            del self.link_id_mapping
-            self.link_id_mapping = None
         # ## 设施名称
         if self.hwy_facil_name:
             self.hwy_facil_name.Make()
             del self.hwy_facil_name
             self.hwy_facil_name = None
+        # ## 原link id ==> Middle link id
+        if self.link_id_mapping:
+            self.link_id_mapping.Make()  # ORG Link_id ==> Middle Link_id
+            del self.link_id_mapping
+            self.link_id_mapping = None
         # ## 高速线路名称
         if self.hwy_line_name:
             self.hwy_line_name.Make()
@@ -85,9 +85,14 @@ class HighwayNiPro(HighwayRDF):
         if self.data_mng:
             # 加载高速road_code
             self.data_mng.load_hwy_road_code()
-            self.data_mng.load_hwy_inout_link()
+#             self.data_mng.load_hwy_inout_link()
             self.data_mng.load_hwy_regulation()
             self.data_mng.load_tollgate()
+            self.data_mng.load_hwy_ic_link()
+            self.data_mng.load_hwy_inout_link()
+            self.data_mng.load_hwy_path_id()
+            # 加载专用数据设施番号
+            self.data_mng.load_org_facil_id()
         # 制作高速线路及设施(原始设施情报)
         self._make_hwy_facil()
         # 收费站情报

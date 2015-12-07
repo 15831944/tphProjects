@@ -868,3 +868,53 @@ BEGIN
 	return rstPathArray;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION zenrin_update_inlink_to_no_dummy_link(node bigint)
+    RETURNS bigint[]
+    LANGUAGE plpgsql
+AS $$
+DECLARE 
+	rec 			          record;
+	node_array 		      bigint[];
+	result_link_array 	bigint[];
+	i 			            integer;
+   
+BEGIN
+	node_array = array_append(node_array,node);
+	
+	i := 1;
+	while i <= array_length(node_array,1) loop
+        raise info 'node = %',node_array[i];
+
+        for rec in
+            select link_id,link_type,
+                    (case when a.s_node = node_array[1] then a.e_node
+                          else a.s_node end ) as node_id
+            from link_tbl as a
+            where (  a.s_node = node_array[i] and a.one_way_code in (1,3)
+                    or 
+                      a.e_node = node_array[i] and a.one_way_code in (1,2)
+                    )
+                    and a.link_id not in (select link_id from temp_dummy_todelete )
+            
+        loop
+              if rec.link_id is not null then
+                    if rec.link_type <> 4  then
+                          result_link_array = array_append(result_link_array,rec.link_id);
+                     else 
+                          if not rec.node_id = any(node_array) then
+                            node_array = array_append(node_array,rec.node_id);
+                          end if;
+                    end if;	
+
+              end if;
+
+        end loop;
+        i = i+ 1;
+			
+	end loop;
+
+	return result_link_array;
+		
+END;
+$$;

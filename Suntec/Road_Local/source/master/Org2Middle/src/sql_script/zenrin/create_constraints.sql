@@ -119,6 +119,16 @@ CREATE INDEX temp_signpost_id_idx
   USING btree
   (id);
   
+CREATE INDEX temp_signpost_inlink_idx
+  ON temp_signpost
+  USING btree
+  (inlink); 
+   
+CREATE INDEX temp_signpost_uc_path_after_deal_with_dummy_link_id_idx
+  ON temp_signpost_uc_path_after_deal_with_dummy_link
+  USING btree
+  (id);  
+  
 CREATE INDEX temp_sp_name_id_idx
   ON temp_sp_name
   USING btree

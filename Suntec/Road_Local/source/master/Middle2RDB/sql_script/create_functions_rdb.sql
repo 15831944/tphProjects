@@ -2862,7 +2862,7 @@ BEGIN
 			and	not (rec.bypass_flag is distinct from rec2.bypass_flag)
 			and	not (rec.highcost_flag is distinct from rec2.highcost_flag)
 			and	not (rec.road_type is distinct from rec2.road_type)
-			and	not (rec.pdm_flag is distinct from rec2.pdm_flag)
+--			and	not (rec.pdm_flag is distinct from rec2.pdm_flag)
 			and	not (rec.path_extra_info is distinct from rec2.path_extra_info)
 --			and not (rec.road_name is distinct from rec2.road_name)
 --			and not (rec.road_number is distinct from rec2.road_number)

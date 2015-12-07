@@ -35,6 +35,8 @@ class HwyRouteNiPro(HwyRouteRDF_HKG):
         self._connect_cycle()
         self._update_hwy_link_geom()
         self._make_road_code()
+        # ## 主/辅路关系表
+        self._make_main_side_road_relation()
         if not self._check_overlap_node():
             self.log.error('Exist Overlap node.')
         if not self._check_leak_node():

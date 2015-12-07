@@ -1147,3 +1147,9 @@ CREATE INDEX mid_temp_hwy_ic_path_expand_link_pass_link_id_idx
   ON mid_temp_hwy_ic_path_expand_link
   USING btree
   (pass_link_id);
+
+------------------------------------------------------------------------
+CREATE UNIQUE INDEX hwy_main_side_road_relation_side_road_code_side_updown_idx
+  ON hwy_main_side_road_relation
+  USING btree
+  (side_road_code, side_updown);

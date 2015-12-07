@@ -477,10 +477,10 @@ class comp_dictionary_mmi(component.default.dictionary.comp_dictionary):
                 # 没有做成到TTS
                 if phoneme_nuances and not ml_name.has_tts():
                     self.log.warning("Can't find phoneme text. LinkId=%s"
-                                     % link_id)
+                                     % id)
                 if regional_names and not ml_name.has_trans():
                     self.log.warning("Can't find Regional Name. LinkId=%s"
-                                     % link_id)
+                                     % id)
                     key = ('MN', official_name.lower())
                     self._set_regional_name_fuzzy(ml_name,
                                                   reg_name_dict,
@@ -504,7 +504,7 @@ class comp_dictionary_mmi(component.default.dictionary.comp_dictionary):
                         
             json_name = ml_name.json_format_dump()
             if not json_name:
-                self.log.error('Json Name is none. admin id=%d' % link_id)
+                self.log.error('Json Name is none. admin id=%d' % id)
             # 存到本地的临时文件
             self._store_name_to_temp_file(temp_file_obj,
                                           id,
