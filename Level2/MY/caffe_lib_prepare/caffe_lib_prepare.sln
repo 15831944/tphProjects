@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BoostTest", "BoostTest\BoostTest.vcxproj", "{576948F9-9F3C-4664-AB7C-202CB72948CC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lmdb", "lmdb\lmdb.vcxproj", "{22703A89-709F-4756-86DD-233EFD4C29DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{576948F9-9F3C-4664-AB7C-202CB72948CC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{576948F9-9F3C-4664-AB7C-202CB72948CC}.Debug|Win32.Build.0 = Debug|Win32
+		{576948F9-9F3C-4664-AB7C-202CB72948CC}.Release|Win32.ActiveCfg = Release|Win32
+		{576948F9-9F3C-4664-AB7C-202CB72948CC}.Release|Win32.Build.0 = Release|Win32
+		{22703A89-709F-4756-86DD-233EFD4C29DE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{22703A89-709F-4756-86DD-233EFD4C29DE}.Debug|Win32.Build.0 = Debug|Win32
+		{22703A89-709F-4756-86DD-233EFD4C29DE}.Release|Win32.ActiveCfg = Release|Win32
+		{22703A89-709F-4756-86DD-233EFD4C29DE}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

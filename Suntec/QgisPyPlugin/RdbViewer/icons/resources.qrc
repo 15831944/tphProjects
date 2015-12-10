@@ -3,13 +3,7 @@
      <file>NewLayerIcon.png</file>
   </qresource>
   <qresource prefix="/icons">
-     <file>SpotguideIcon.png</file>
-  </qresource>
-  <qresource prefix="/icons">
-     <file>LaneIcon.png</file>
-  </qresource>
-  <qresource prefix="/icons">
-     <file>NostraIcon.png</file>
+     <file>GuideIcon.png</file>
   </qresource>
   <qresource prefix="/icons">
      <file>1.png</file>

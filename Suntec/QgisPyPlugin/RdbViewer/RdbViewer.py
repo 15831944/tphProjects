@@ -3,14 +3,12 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 import resources
 from GenerateNewLayerDlg import GenerateNewLayerDlg
-from SpotguideMapTool import SpotguideMapTool
-from LaneMapTool import LaneMapTool
-from NostraIllustMapTool import NostraIllustMapTool
+from GuideMapTool import GuideMapTool
 
 class RdbViewer:
     def __init__(self, iface):
         self.iface = iface
-        self.dlg = GenerateNewLayerDlg()
+        self.generateLayerDlg = GenerateNewLayerDlg()
         self.actions = []
         self.menu = u'&Rdb Viewer'
         self.toolbar = self.iface.addToolBar(u'RdbViewerToolbar')
@@ -27,45 +25,18 @@ class RdbViewer:
         actionGenerateLayer.setEnabled(True)
         self.actions.append(actionGenerateLayer)
 
-
-        icon_path = ':/icons/SpotguideIcon.png' 
-        actionShowSpotguide = QAction(QIcon(icon_path), u"Show Spotguide", None)
-        actionShowSpotguide.triggered.connect(self.showSpotguide)
-        actionShowSpotguide.setStatusTip(None)
-        actionShowSpotguide.setWhatsThis(None)
-        self.toolbar.addAction(actionShowSpotguide)
-        self.iface.addPluginToMenu(self.menu, actionShowSpotguide)
-        actionShowSpotguide.setEnabled(True)
-        actionShowSpotguide.setCheckable(True)
-        self.actions.append(actionShowSpotguide)
-        self.spotguideMapTool = SpotguideMapTool(self.iface.mapCanvas())
-        self.spotguideMapTool.setAction(actionShowSpotguide)
-
-        icon_path = ':/icons/LaneIcon.png' 
-        actionShowLane = QAction(QIcon(icon_path), u"Show Lane", None)
-        actionShowLane.triggered.connect(self.showLane)
-        actionShowLane.setStatusTip(None)
-        actionShowLane.setWhatsThis(None)
-        self.toolbar.addAction(actionShowLane)
-        self.iface.addPluginToMenu(self.menu, actionShowLane)
-        actionShowLane.setEnabled(True)
-        actionShowLane.setCheckable(True)
-        self.actions.append(actionShowLane)
-        self.laneMapTool = LaneMapTool(self.iface.mapCanvas())
-        self.laneMapTool.setAction(actionShowLane)
-
-        icon_path = ':/icons/NostraIcon.png' 
-        actionShowNostraIllust = QAction(QIcon(icon_path), u"Nostra Illust", None)
-        actionShowNostraIllust.triggered.connect(self.showNostraIllust)
-        actionShowNostraIllust.setStatusTip(None)
-        actionShowNostraIllust.setWhatsThis(None)
-        self.toolbar.addAction(actionShowNostraIllust)
-        self.iface.addPluginToMenu(self.menu, actionShowNostraIllust)
-        actionShowNostraIllust.setEnabled(True)
-        actionShowNostraIllust.setCheckable(True)
-        self.actions.append(actionShowNostraIllust)
-        self.nostraIllustMapTool = NostraIllustMapTool(self.iface.mapCanvas())
-        self.nostraIllustMapTool.setAction(actionShowLane)
+        icon_path = ':/icons/GuideIcon.png' 
+        actionShowGuideInfo = QAction(QIcon(icon_path), u"Show GuideInfo", None)
+        actionShowGuideInfo.triggered.connect(self.showGuideInfo)
+        actionShowGuideInfo.setStatusTip(None)
+        actionShowGuideInfo.setWhatsThis(None)
+        self.toolbar.addAction(actionShowGuideInfo)
+        self.iface.addPluginToMenu(self.menu, actionShowGuideInfo)
+        actionShowGuideInfo.setEnabled(True)
+        actionShowGuideInfo.setCheckable(True)
+        self.actions.append(actionShowGuideInfo)
+        self.guideInfoMapTool = GuideMapTool(self.iface.mapCanvas())
+        self.guideInfoMapTool.setAction(actionShowGuideInfo)
         return
 
     def unload(self):
@@ -74,60 +45,14 @@ class RdbViewer:
             self.iface.removeToolBarIcon(action)
         
         # Unset the map tool in case it's set
-        self.iface.mapCanvas().unsetMapTool(self.spotguideMapTool)
-        self.iface.mapCanvas().unsetMapTool(self.laneMapTool)
+        self.iface.mapCanvas().unsetMapTool(self.guideInfoMapTool)
         return
     
     def generateLayer(self):
-        result = self.dlg.exec_()
+        result = self.generateLayerDlg.exec_()
         return
 
-    def showSpotguide(self):
+    def showGuideInfo(self):
         # activate our spotguide tool
-        self.iface.mapCanvas().setMapTool(self.spotguideMapTool)
+        self.iface.mapCanvas().setMapTool(self.guideInfoMapTool)
         return
-
-    def showLane(self):
-        # activate our lane tool
-        self.iface.mapCanvas().setMapTool(self.laneMapTool)
-        return
-
-    def showNostraIllust(self):
-        self.iface.mapCanvas().setMapTool(self.nostraIllustMapTool)
-        return
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

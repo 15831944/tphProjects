@@ -37,6 +37,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             14 : self.graphicView_14,
             15 : self.graphicView_15
             }
+        self.initAllGraphicViews()
 
         # 
         self.arrowImagesMap_highlight = {
@@ -106,10 +107,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             self.comboBoxSelectLink.removeItem(0)
         selectedFeatures = self.mTheLayer.selectedFeatures()
         for oneFeature in selectedFeatures:
-            if self.isMyFeature(oneFeature):
-                out_link_id = oneFeature.attribute('out_link_id')
-                strTemp = str(out_link_id)
-                self.comboBoxSelectLink.addItem(strTemp)
+            if LaneShowImageDlg.isMyFeature(oneFeature):
+                self.comboBoxSelectLink.addItem(str(oneFeature.attribute('out_link_id')))
 
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
@@ -165,7 +164,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mTheCanvas.refresh()
         return
 
-    def isMyFeature(self, theFeature):
+    @staticmethod
+    def isMyFeature(theFeature):
         # check if this feature is a rdb_guideinfo_lane's instance.
         try:
             in_link_id = theFeature.attribute('in_link_id')
@@ -191,10 +191,12 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
         self.textEditFeatureInfo.setText(strFeatureInfo)
-        if self.isMyFeature(theFeature) == False:
+        if LaneShowImageDlg.isMyFeature(theFeature) == False:
             return
-        
+
         try:
+            self.hideAllGraphicViews()
+            self.clearAllGraphicViewsContent()
             uri = QgsDataSourceURI(self.mTheLayer.source())
             conn = psycopg2.connect("""host='%s' dbname='%s' user='%s' password='%s'""" %\
                 (uri.host(), uri.database(), uri.username(), uri.password()))
@@ -214,8 +216,6 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 errMsg[0] = '''get no lane record.'''
                 return
             totalLaneCount = rows[0][0] # lane count of inlink.
-            self.clearAllGraphicViews() # clear all obsolete content in GraphicViews
-            self.hideAllGraphicViews()
             self.showNeededGraphicViews(totalLaneCount)
 
             for row in rows:
@@ -271,7 +271,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         return
 
     def drawLane(self, errMsg, totalLaneCount, whichLane, arrowInfo, arrowImagesMap):
-        if whichLane >= 2**(totalLaneCount+1): # specified lane not exist.
+        if whichLane > 2**totalLaneCount-1: # specified lane not exist.
             errMsg[0] = """lane_info is incorrect, total lane count is %s""" % totalLaneCount
             return
 
@@ -287,11 +287,10 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         for oneKey, oneGraphicView in self.graphicViewsMap.items():
             if oneKey >= totalLaneCount:
                 continue
-            if whichLane & 2**(totalLaneCount-oneKey-1):
-                scene = QGraphicsScene()
+            if 2**(totalLaneCount-oneKey-1) & whichLane:
+                scene = oneGraphicView.scene()
                 for onePixmap in pixmapList:
-                    scene.addPixmap(onePixmap)
-                oneGraphicView.setScene(scene)
+                    scene.addPixmap(QPixmap(onePixmap))
         return
 
     # hide all graphic views.
@@ -307,9 +306,17 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 oneGraphicView.setVisible(True)
         return
 
-    # remove all content drawn in the graphic views.
-    def clearAllGraphicViews(self):
+    # generate scene for every arrow image graphicview.
+    def initAllGraphicViews(self):
         for oneKey, oneGraphicView in self.graphicViewsMap.items():
-            #oneGraphicView.clear()
-            continue
+            scene = QGraphicsScene()
+            oneGraphicView.setScene(scene)
+        return
+
+    # remove all content drawn in the graphic views.
+    def clearAllGraphicViewsContent(self):
+        for oneKey, oneGraphicView in self.graphicViewsMap.items():
+            scene = oneGraphicView.scene()
+            for oneItem in scene.items():
+                scene.removeItem(oneItem)
         return

@@ -2,7 +2,6 @@
 import os
 import psycopg2
 from MyDatParser import MyDatParser
-
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
@@ -31,35 +30,34 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initComboBoxSelectLink()
+        self.initcomboBoxOutlink()
 
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
-        self.comboBoxSelectLink.setFocus()
+        self.comboBoxOutlink.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
-        self.connect(self.comboBoxSelectLink, QtCore.SIGNAL('activated(QString)'), self.comboBoxSelectLinkChanged)
+        self.connect(self.comboBoxOutlink, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkChanged)
 
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
         self.pushButtonPrev.setEnabled(False)
-        self.comboBoxSelectLink.setEnabled(False)
+        self.comboBoxOutlink.setEnabled(False)
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initComboBoxSelectLink(self):
-        while(self.comboBoxSelectLink.count() > 0):
-            self.comboBoxSelectLink.removeItem(0)
+    def initcomboBoxOutlink(self):
+        while(self.comboBoxOutlink.count() > 0):
+            self.comboBoxOutlink.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():
-            if self.isMyFeature(oneFeature):
-                self.comboBoxSelectLink.addItem("%.0f" % oneFeature.attribute('out_link_id'))
-
+            if self.mIsMyFeature(oneFeature):
+                self.comboBoxOutlink.addItem(str(oneFeature.attribute('out_link_id')))
 
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
         self.textEditFeatureInfo.setText(strFeatureInfo)
-        if self.isMyFeature(theFeature) == False:
+        if self.mIsMyFeature(theFeature) == False:
             return
 
         errMsg = ['']
@@ -74,7 +72,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             datParser.initFromMemory(errMsg, pattern_dat) # pattern picture
             pixmap1 = QPixmap()
             pixmap1.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
-            scene.addItem(QGraphicsPixmapItem(pixmap1))
+            scene.addPixmap(self.autoFitSize(pixmap1))
 
         if arrow_dat is not None:
             datParser = MyDatParser()
@@ -106,9 +104,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strTemp += """\n\npointlist:\n"""
                 strTemp += strPointList
                 self.textEditFeatureInfo.setText(strTemp)
-
-            
-            scene.addItem(QGraphicsPixmapItem(pixmap2))
+            scene.addPixmap(self.autoFitSize(pixmap2))
         self.graphicsViewShowImage.setScene(scene)
         return
     
@@ -122,13 +118,6 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             else:
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
-
-    # make sure errMsg is a 'string array' which has at least one element.
-    def removeAllLayersWithSpecName(self, errMsg, specLayerName):
-        layerList = QgsMapLayerRegistry.instance().mapLayersByName(specLayerName)
-        for oneLayer in layerList:
-            QgsMapLayerRegistry.instance().removeMapLayer(oneLayer.id())
-        return
 
     # result[0] is pattern dat
     # result[1] is arrow dat
@@ -169,9 +158,9 @@ where %s
             errMsg[0] = ex.message
             return None, None
 
-    def comboBoxSelectLinkChanged(self, txt):
+    def comboBoxOutlinkChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxSelectLink.currentIndex()
+        inti = self.comboBoxOutlink.currentIndex()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
@@ -183,14 +172,14 @@ where %s
         prevFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(prevFeatureId)
-        self.initComboBoxSelectLink()
+        self.initcomboBoxOutlink()
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
             return
-        self.comboBoxSelectLink.setFocus()
+        self.comboBoxOutlink.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
         return
@@ -200,19 +189,43 @@ where %s
         nextFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(nextFeatureId)
-        self.initComboBoxSelectLink()
+        self.initcomboBoxOutlink()
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
             return
-        self.comboBoxSelectLink.setFocus()
+        self.comboBoxOutlink.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
         return
 
-    def isMyFeature(self, theFeature):
+    def autoFitSize(self, pixmap):
+        pixmapWidth = pixmap.width()
+        pixmapHeight = pixmap.height()
+        gpViewWidth = self.graphicsViewShowImage.width()
+        gpViewHeight = self.graphicsViewShowImage.height()
+
+        destWidth = 0
+        destHeight = 0
+        if pixmapWidth > gpViewWidth-5:
+            destWidth = gpViewWidth-5
+        else:
+            destWidth = pixmapWidth
+
+        if pixmapHeight > gpViewHeight-5:
+            destHeight = gpViewHeight-5
+        else:
+            destHeight = pixmapHeight
+
+        return pixmap.scaled(destWidth, destHeight)
+
+    def mIsMyFeature(self, theFeature):
+        return SpotguideShowImageDlg.isMyFeature(theFeature)
+
+    @staticmethod
+    def isMyFeature(theFeature):
         try:
             gid = theFeature.attribute('gid')
             in_link_id = theFeature.attribute('in_link_id')
@@ -234,10 +247,6 @@ where %s
         except Exception, ex:
             return False
         return True
-
-
-
-
 
 
 

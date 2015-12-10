@@ -8,7 +8,8 @@ FeatureTypeList = \
 [
     """spotguide""",
     """signpost""",
-    """lane"""
+    """lane""",
+    """regulation"""
 ]
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -28,7 +29,7 @@ class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
         self.connect(self.comboBoxSelectFeature, 
                      QtCore.SIGNAL('activated(QString)'), 
                      self.comboBoxSelectFeatureChanged);
-        self.lineEditNewLayerName.setText("""temp_spotguide_nodes""")
+        self.lineEditNewLayerName.setText("""temp_spotguide_geom""")
         self.pushButtonGenerateLayer.clicked.connect(self.generateLayer)
         self.pushButtonTestConnect.clicked.connect(self.testConnect)
 
@@ -72,15 +73,13 @@ as
 (
     select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
            c.image_id as arrow_name, c.data as arrow_dat, 
-           st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
+           st_union(array[e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_spotguidepoint as a
     left join rdb_guideinfo_pic_blob_bytea as b
     on a.pattern_id=b.gid
     left join rdb_guideinfo_pic_blob_bytea as c
     on a.arrow_id=c.gid
-    left join rdb_node as d
-    on a.node_id=d.node_id
     left join rdb_link as e
     on a.in_link_id=e.link_id
     left join rdb_link as f
@@ -94,15 +93,13 @@ as
 (
     select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
            c.image_id as arrow_name, c.data as arrow_dat, 
-           st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
+           st_union(array[e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_signpost as a
     left join rdb_guideinfo_pic_blob_bytea as b
     on a.pattern_id=b.gid
     left join rdb_guideinfo_pic_blob_bytea as c
     on a.arrow_id=c.gid
-    left join rdb_node as d
-    on a.node_id=d.node_id
     left join rdb_link as e
     on a.in_link_id=e.link_id
     left join rdb_link as f
@@ -114,15 +111,55 @@ drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, st_union(array[b.the_geom, c.the_geom, d.the_geom]) as the_geom
+    select a.*, st_union(array[c.the_geom, d.the_geom]) as the_geom
     from
     rdb_guideinfo_lane as a
-    left join rdb_node as b
-    on a.node_id=b.node_id
     left join rdb_link as c
     on a.in_link_id=c.link_id
     left join rdb_link as d
     on a.out_link_id=d.link_id);""" % (newLayerName, newLayerName)
+        elif featureType == FeatureTypeList[3]:  # regulation
+            sqlcmd = \
+"""
+drop table if exists temp_regulation_link_seqnr;
+select record_no, 
+       unnest(string_to_array(key_string, ',')::bigint[]) as link_id, 
+       generate_series(1, array_upper(string_to_array(key_string, ','), 1)) as seqnr
+into temp_regulation_link_seqnr
+from rdb_link_regulation;
+
+create index temp_regulation_link_seqnr_record_no_idx
+on temp_regulation_link_seqnr
+using btree
+(record_no);
+create index temp_regulation_link_seqnr_link_id_idx
+on temp_regulation_link_seqnr
+using btree
+(link_id);
+
+drop table if exists temp_regulation_the_geom_seqnr;
+select a.record_no, st_union(array_agg(b.the_geom)) as the_geom
+into temp_regulation_the_geom_seqnr
+from
+temp_regulation_link_seqnr as a
+left join rdb_link as b
+on a.link_id=b.link_id
+group by record_no;
+
+create index temp_regulation_the_geom_seqnr_record_no_idx
+on temp_regulation_the_geom_seqnr
+using btree
+(record_no);
+
+drop table if exists %s;
+select a.record_no, a.regulation_id, a.regulation_type, a.is_seasonal, a.first_link_id, 
+       a.first_link_id_t, a.last_link_id, a.last_link_dir, a.last_link_id_t, a.link_num, 
+       a.key_string, a.order_id, b.the_geom
+into %s
+from 
+rdb_link_regulation as a
+left join temp_regulation_the_geom_seqnr as b
+on a.record_no=b.record_no;""" % (newLayerName, newLayerName)
         else:
             QMessageBox.information(self, "Generate New Layer", "error:\nnot spotguide or lane.")
             return
@@ -150,7 +187,7 @@ as
         layer.name = newLayerName
         if not layer.isValid():
             errMsg[0] = """error:\nCreate new layer failed. """+\
-                        """host: %s, dbName: %s, user: %s, password: %s""" % \
+                        """host: %s, port: %s, dbName: %s, user: %s, password: %s""" % \
                         (host, port, dbname, user, password)
             return 
         # Add layer to the registry
@@ -166,11 +203,13 @@ as
     def comboBoxSelectFeatureChanged(self):
         featureType = self.comboBoxSelectFeature.currentText()
         if featureType == FeatureTypeList[0]:
-            self.lineEditNewLayerName.setText("""temp_spotguide_nodes""")
+            self.lineEditNewLayerName.setText("""temp_spotguide_geom""")
         elif featureType == FeatureTypeList[1]:
-            self.lineEditNewLayerName.setText("""temp_signpost_nodes""")
+            self.lineEditNewLayerName.setText("""temp_signpost_geom""")
         elif featureType == FeatureTypeList[2]:
-            self.lineEditNewLayerName.setText("""temp_lane_nodes""")
+            self.lineEditNewLayerName.setText("""temp_lane_geom""")
+        elif featureType == FeatureTypeList[3]:
+            self.lineEditNewLayerName.setText("""temp_link_regulation_geom""")
         return
 
     def testConnect(self):

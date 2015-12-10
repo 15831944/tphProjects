@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "RdbViewerProj", "RdbViewerProj.pyproj", "{EA134A26-9760-49D7-9D4F-CEE3AF23BBC9}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "QtGraphicViewTest", "..\QtGraphicViewTest\QtGraphicViewTest.pyproj", "{58FDC484-9684-4DA9-82B7-4ECCAB1D689B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -11,6 +13,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{EA134A26-9760-49D7-9D4F-CEE3AF23BBC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EA134A26-9760-49D7-9D4F-CEE3AF23BBC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58FDC484-9684-4DA9-82B7-4ECCAB1D689B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58FDC484-9684-4DA9-82B7-4ECCAB1D689B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

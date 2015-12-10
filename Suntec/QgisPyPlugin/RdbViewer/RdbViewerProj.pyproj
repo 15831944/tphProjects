@@ -26,6 +26,7 @@
     <Content Include="metadata.txt" />
     <Content Include="LaneShowImageDlgDesign.ui" />
     <Content Include="NostraIllustShowImageDlgDesign.ui" />
+    <Content Include="RegulationShowInfoDlgDesign.ui" />
     <Content Include="SpotguideShowImageDlgDesign.ui" />
     <Content Include="GenerateNewLayerDlgDesign.ui" />
   </ItemGroup>
@@ -48,6 +49,8 @@
     <Compile Include="RdbViewer.py" />
     <Compile Include="resources.py" />
     <Compile Include="NostraIllustShowImageDlg.py" />
+    <Compile Include="RegulationMapTool.py" />
+    <Compile Include="RegulationShowInfoDlg.py" />
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
     <Compile Include="SpotguideMapTool.py" />
