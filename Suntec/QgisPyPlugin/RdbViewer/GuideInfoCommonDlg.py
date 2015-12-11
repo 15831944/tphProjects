@@ -114,6 +114,17 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         return
 
     def mIsMyFeature(self, theFeature):
+        try:
+            in_link_id = theFeature.attribute('in_link_id')
+            in_link_id_t = theFeature.attribute('in_link_id_t')
+            node_id = theFeature.attribute('node_id')
+            node_id_t = theFeature.attribute('node_id_t')
+            out_link_id = theFeature.attribute('out_link_id')
+            out_link_id_t = theFeature.attribute('out_link_id_t')
+        except KeyError, kErr:
+            return False
+        except Exception, ex:
+            return False
         return True
 
 

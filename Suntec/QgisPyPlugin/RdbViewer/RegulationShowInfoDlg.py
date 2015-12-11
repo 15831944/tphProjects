@@ -5,7 +5,8 @@ class RegulationShowInfoDlg(GuideInfoCommonDlg):
     def __init__(self, theCanvas, theLayer, parent=None):
         super(RegulationShowInfoDlg, self).__init__(theCanvas, theLayer, "Regulation", parent)
 
-    def initcomboBoxRecordNo(self):
+    def initComboBoxOutlinkid(self):
+        self.labelOutlinkid.setText("Record No.:")
         while(self.comboBoxOutlinkid.count() > 0):
             self.comboBoxOutlinkid.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():

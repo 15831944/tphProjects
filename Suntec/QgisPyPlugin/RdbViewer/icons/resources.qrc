@@ -6,6 +6,12 @@
      <file>GuideIcon.png</file>
   </qresource>
   <qresource prefix="/icons">
+     <file>0.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>0_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
      <file>1.png</file>
   </qresource>
   <qresource prefix="/icons">

@@ -40,13 +40,14 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RdbViewer.py" />
+    <Compile Include="BuildingStructureShowInfoDlg.py" />
     <Compile Include="RegulationShowInfoDlg.py" />
     <Compile Include="resources.py" />
     <Compile Include="GuideInfoCommonDlg.py" />
     <Compile Include="SignpostShowImageDlg.py" />
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
-    <Compile Include="GuideInfoMapTool.py" />
+    <Compile Include="GuideInfoCommonMapTool.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />

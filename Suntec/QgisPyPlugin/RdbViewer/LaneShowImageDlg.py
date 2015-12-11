@@ -41,6 +41,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         # 
         self.arrowImagesMap_highlight = {
+            0: ":/icons/0.png",
             2**0 : ":/icons/1.png",
             2**1 : ":/icons/2.png",
             2**2 : ":/icons/4.png",
@@ -59,6 +60,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         #
         self.arrowImagesMap_gray = {
+            0: ":/icons/0_gray.png",
             2**0 : ":/icons/1_gray.png",
             2**1 : ":/icons/2_gray.png",
             2**2 : ":/icons/4_gray.png",
@@ -276,9 +278,12 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             return
 
         pixmapList = []
-        for oneKey, oneImagePath in arrowImagesMap.items():
-            if arrowInfo & oneKey:
-                pixmapList.append(QPixmap(oneImagePath))
+        if arrowInfo == 0:
+            pixmapList.append(QPixmap(arrowImagesMap[0]))
+        else:
+            for oneKey, oneImagePath in arrowImagesMap.items():
+                if arrowInfo & oneKey:
+                    pixmapList.append(QPixmap(oneImagePath))
 
         if len(pixmapList) <= 0:
             errMsg[0] = "arrow_info is incorrect, cannot find arrow's picture."
