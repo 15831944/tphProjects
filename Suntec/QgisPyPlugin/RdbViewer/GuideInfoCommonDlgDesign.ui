@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SpotguideShowImageDlgDesign</class>
- <widget class="QDialog" name="SpotguideShowImageDlgDesign">
+ <class>GuideInfoDlgDesign</class>
+ <widget class="QDialog" name="GuideInfoDlgDesign">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>667</width>
+    <width>272</width>
     <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Signpost</string>
+   <string>Guide Information</string>
   </property>
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>100</x>
      <y>470</y>
      <width>161</width>
      <height>31</height>
@@ -34,22 +34,12 @@
     </property>
    </widget>
   </widget>
-  <widget class="QGraphicsView" name="graphicsViewShowImage">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>411</width>
-     <height>491</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QTextEdit" name="textEditFeatureInfo">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>10</x>
      <y>40</y>
-     <width>221</width>
+     <width>251</width>
      <height>391</height>
     </rect>
    </property>
@@ -60,9 +50,28 @@
   <widget class="QSplitter" name="splitter_2">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>20</x>
+     <y>10</y>
+     <width>231</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QLabel" name="label">
+    <property name="text">
+     <string>Record No: </string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBoxRecordNo"/>
+  </widget>
+  <widget class="QSplitter" name="splitter_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
      <y>440</y>
-     <width>221</width>
+     <width>251</width>
      <height>23</height>
     </rect>
    </property>
@@ -81,35 +90,13 @@
     </property>
    </widget>
   </widget>
-  <widget class="QSplitter" name="splitter_3">
-   <property name="geometry">
-    <rect>
-     <x>430</x>
-     <y>10</y>
-     <width>221</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <widget class="QLabel" name="label">
-    <property name="text">
-     <string>Outlink</string>
-    </property>
-    <property name="indent">
-     <number>-1</number>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBoxOutlink"/>
-  </widget>
  </widget>
  <resources/>
  <connections>
   <connection>
    <sender>button_box</sender>
    <signal>accepted()</signal>
-   <receiver>SpotguideShowImageDlgDesign</receiver>
+   <receiver>GuideInfoDlgDesign</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -125,7 +112,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>rejected()</signal>
-   <receiver>SpotguideShowImageDlgDesign</receiver>
+   <receiver>GuideInfoDlgDesign</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

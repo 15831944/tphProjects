@@ -25,15 +25,11 @@
   <ItemGroup>
     <Content Include="metadata.txt" />
     <Content Include="LaneShowImageDlgDesign.ui" />
-    <Content Include="NostraIllustShowImageDlgDesign.ui" />
-    <Content Include="RegulationShowInfoDlgDesign.ui" />
+    <Content Include="GuideInfoCommonDlgDesign.ui" />
     <Content Include="SpotguideShowImageDlgDesign.ui" />
     <Content Include="GenerateNewLayerDlgDesign.ui" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LaneMapTool.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LaneShowImageDlg.py">
       <SubType>Code</SubType>
     </Compile>
@@ -43,17 +39,14 @@
     <Compile Include="MyGetBinType.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NostraIllustMapTool.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RdbViewer.py" />
-    <Compile Include="resources.py" />
-    <Compile Include="NostraIllustShowImageDlg.py" />
-    <Compile Include="RegulationMapTool.py" />
     <Compile Include="RegulationShowInfoDlg.py" />
+    <Compile Include="resources.py" />
+    <Compile Include="GuideInfoCommonDlg.py" />
+    <Compile Include="SignpostShowImageDlg.py" />
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
-    <Compile Include="SpotguideMapTool.py" />
+    <Compile Include="GuideInfoMapTool.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />

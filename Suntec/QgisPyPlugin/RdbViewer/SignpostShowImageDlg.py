@@ -1,11 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 import os
-from PyQt4 import uic
 from SpotguideShowImageDlg import SpotguideShowImageDlg
-
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                               'SignpostShowImageDlgDesign.ui'))
-
 class SignpostShowImageDlg(SpotguideShowImageDlg):
 
     def __init__(self, theCanvas, theLayer, parent=None):

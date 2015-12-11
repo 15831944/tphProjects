@@ -4,20 +4,20 @@ from qgis.core import QgsMapLayer, QgsFeature
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QCursor, QMessageBox
 
+from GuideInfoCommonDlg import GuideInfoCommonDlg
 from LaneShowImageDlg import LaneShowImageDlg
 from SignpostShowImageDlg import SignpostShowImageDlg
 from SpotguideShowImageDlg import SpotguideShowImageDlg
 from RegulationShowInfoDlg import RegulationShowInfoDlg
+from BuildingStructureShowInfoDlg import BuildingStructureShowInfoDlg
 
-class GuideMapTool(QgsMapTool):
-    
+class GuideInfoCommonMapTool(QgsMapTool):
     def __init__(self, canvas):
-        
         super(QgsMapTool, self).__init__(canvas)
         self.mCanvas = canvas
         self.mCursor = QCursor(Qt.ArrowCursor)
         self.mDragging = False
-        
+
     def activate(self):
         self.mCanvas.setCursor(self.mCursor)
 
@@ -83,7 +83,10 @@ class GuideMapTool(QgsMapTool):
         if SignpostShowImageDlg.isMyFeature(theFeature) == True:
             return SignpostShowImageDlg(self.mCanvas, theLayer)
 
-        return SpotguideShowImageDlg(self.mCanvas, theLayer)
+        if BuildingStructureShowInfoDlg.isMyFeature(theFeature) == True:
+            return BuildingStructureShowInfoDlg(self.mCanvas, theLayer)
+
+        return GuideInfoCommonDlg(self.mCanvas, theLayer)
 
     def removeAllSelection(self):
         layerList = self.mCanvas.layers()

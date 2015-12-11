@@ -3,7 +3,7 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 import resources
 from GenerateNewLayerDlg import GenerateNewLayerDlg
-from GuideMapTool import GuideMapTool
+from GuideInfoCommonMapTool import GuideInfoCommonMapTool
 
 class RdbViewer:
     def __init__(self, iface):
@@ -35,7 +35,7 @@ class RdbViewer:
         actionShowGuideInfo.setEnabled(True)
         actionShowGuideInfo.setCheckable(True)
         self.actions.append(actionShowGuideInfo)
-        self.guideInfoMapTool = GuideMapTool(self.iface.mapCanvas())
+        self.guideInfoMapTool = GuideInfoCommonMapTool(self.iface.mapCanvas())
         self.guideInfoMapTool.setAction(actionShowGuideInfo)
         return
 
