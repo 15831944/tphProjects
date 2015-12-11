@@ -73,7 +73,7 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
             as
             (
                 select meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno,passlink,
-                       zenrin_findpasslink_count(passlink) as passlink_cnt
+                       zenrin_findpasslink_count(passlink,'|') as passlink_cnt
                 from 
                 (
                     select  bb.*,

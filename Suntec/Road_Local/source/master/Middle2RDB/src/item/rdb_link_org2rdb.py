@@ -1184,6 +1184,8 @@ class rdb_link_org2rdb_zenrin(rdb_link_org2rdb):
                 FROM org_road as a
                 left join temp_link_mapping a1
                 on a.meshcode = a1.meshcode and a.linkno = a1.linkno
+                left join temp_dummy_link_todelete a2
+                on a1.link_id = a2.link_id
                 left join temp_split_newlink as c
                 on a1.link_id = c.old_link_id
                 left join link_tbl_bak_merge f
@@ -1194,6 +1196,7 @@ class rdb_link_org2rdb_zenrin(rdb_link_org2rdb):
                 on (d.link_id = e.old_link_id) or (c.link_id = e.old_link_id) or (a1.link_id = e.old_link_id)
                 left join rdb_link g
                 on e.tile_link_id = g.link_id
+                where a2.link_id is null
             );
             
             CREATE INDEX temp_link_org2rdb_mid_link_id_idx

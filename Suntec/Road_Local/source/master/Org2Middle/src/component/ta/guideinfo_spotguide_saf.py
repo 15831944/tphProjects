@@ -67,7 +67,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         self._GenerateNaviLinkFromBifurcation()
         self._GenerateSpotguide()
         tollIllustName = common.common_func.GetPath('toll_station_illust')
-        #comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
     
     # 从org_sp表获取高速相关signpost的link序列。

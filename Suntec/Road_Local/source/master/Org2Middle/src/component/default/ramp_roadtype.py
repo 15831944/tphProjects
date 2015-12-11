@@ -34,8 +34,6 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return -1
         if self.CreateTable2('temp_single_roundabout') == -1:
             return -1
-        if self.CreateTable2('temp_roundabout') == -1:
-            return -1
         if self.CreateTable2('temp_roundabout_for_searchramp') == -1:
             return -1
         if self.CreateTable2('temp_roundabout_road_type') == -1:
@@ -87,6 +85,10 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return 0
         
         self.log.info('Finding proper roundabout.')
+
+        if self.CreateTable2('temp_roundabout') == -1:
+            return -1
+
         sqlcmd = """
                 SELECT mid_find_roundabout();
             """

@@ -17,8 +17,7 @@ import copy
 import common.cache_file
 
 distance_limit = {
-                  #('rdf', 'hkg') : {'4' : 10000.0, '6' : 50000.0},
-                  ('rdf', 'hkg') : {'4' : 0.0, '6' : 0.0},
+                  ('rdf', 'hkg') : {'4' : 10000.0, '6' : 10000.0},
                   ('zenrin', 'twn') : {'4' : 10000.0, '6' : 100000.0},
                   ('ni', 'chn') : {'4' : 2000000.0, '6' : 3000000.0},
                   ('default') : {'4' : 10000.0, '6' : 50000.0}
@@ -624,15 +623,15 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                     file_handle = open(file_path, 'r')
                     recIdx = 0
                     for line in file_handle.readlines():
-                        if line[0] == '#':
+                        if line[0] == '#' or len(line) == 0:
                             pass
                         else:
                             recIdx += 1
-                            temp_geom = line
-                            rec_string = '%d\t%s' % (recIdx, temp_geom)
+                            temp_geom = line[:-1]
+                            rec_string = '%d\t%s\n' % (recIdx, temp_geom)
                             file_obj.write(rec_string)
                             file_obj.flush()
-                            pass
+                            
                     file_obj.seek(0)
                     pg.copy_from(file_obj, 'temp_config_shape_point_list_tbl')
                     pg.commit()

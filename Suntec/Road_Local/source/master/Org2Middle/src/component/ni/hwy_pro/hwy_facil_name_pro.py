@@ -130,9 +130,13 @@ class HwyFacilNameNiPro(HwyExitNameRDF):
             (
                    select featid::bigint, seq_nm::bigint,
                           language::bigint, name
-                   from org_hw_fname
+                   from org_hw_fname as a
+                   where not exists(select * from org_hw_junction
+                                    where attr = '4' and
+                                    accesstype = '1' and
+                                    id = a.featid)--过滤后条目数201280
                    order by featid::bigint, seq_nm::bigint,
-                            language::bigint
+                            language::bigint--过滤前条目数221500
             )as org_hw_fname
             group by featid, seq_nm
             order by featid, seq_nm

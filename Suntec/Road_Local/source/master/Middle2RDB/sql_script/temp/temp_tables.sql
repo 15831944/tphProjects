@@ -1811,4 +1811,23 @@ CREATE TABLE temp_hierarchy_trunk_links
 	link_id	bigint
 );
 
+--------------------------------------------
+create table rdb_guideinfo_safety_zone_bak_delete_dummy
+as
+(
+	select * from rdb_guideinfo_safety_zone
+);
 
+create table temp_guideinfo_safetyalert 
+as
+(
+	select lon,lat,b.tile_link_id as link_id,type,angle,dir,s_dis,e_dis
+	from 
+	(       
+		select distinct lon, lat, link_id, orglink_id, type, angle, dir, 
+			   s_dis, e_dis, speed, speed_unit
+		from safety_alert_tbl
+	) a
+	left join rdb_tile_link b
+	on a.link_id = b.old_link_id
+);

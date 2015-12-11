@@ -133,6 +133,12 @@ class HwyICInfoRDF(HwyICInfo):
         conn_roads = self.get_conn_road()
         if not conn_roads or len(conn_roads) > 1:
             return False
+        # 一点上可能做成多个JCT(中国)
+        facilcls = self.first_facil.facilcls
+        facils = self.data_mng.get_hwy_facils_by_nodeid(node_id, road_code,
+                                                        facilcls)
+        if len(facils) > 1:
+            return False
         # 接续node是接续道路的起点
         for conn_info in self.conn_infos:
             t_road_code = conn_info.t_facil.road_code
@@ -156,7 +162,8 @@ class HwyICInfoRDF(HwyICInfo):
                             self.log.warning('No name of Conn Link . node=%s'
                                              % node_id)
                     else:
-                        self.log.info('Diff name. node=%s' % node_id)
+                        pass
+                        # self.log.info('Diff name. node=%s' % node_id)
         return False
 
     def get_conn_road(self):
@@ -450,37 +457,45 @@ class HwyICInfoRDF(HwyICInfo):
                 else:
                     path_dict[t_node] = [path_info]
         for t_node, path_infos in path_dict.iteritems():
-            conn_facils = self._get_conn_facil(node, t_node, t_inout)
-            if conn_facils:
-                if len(conn_facils) > 1 and path_type != HWY_PATH_TYPE_UTURN:
-                    self.log.warning('Conn_Facil > 1.node=%s' % t_node)
-                    return
-                for facil in conn_facils:
+            pathes = []
+            path_types = set()
+            for path_info in path_infos:
+                node_lid = path_info[0]
+                path_type = path_info[2]
+                path_types.add(path_type)
+                pathes.append(node_lid)
+            if len(path_types) > 1:
+                self.log.warning('path_type > 1. path_types' % path_types)
+            path_type = path_types.pop()
+            conn_infos = self._get_conn_facil(node, t_node, t_inout, pathes)
+            if conn_infos:
+                if len(conn_infos) > 1 and path_type != HWY_PATH_TYPE_UTURN:
+                    self.log.warning('Conn_Facil > 1. node=%s, t_node=%s,'
+                                     'path_type=%s' %
+                                     (node, t_node, path_type))
+                for conn_facils, t_pathes in conn_infos:
                     for path_info in path_infos:
                         path = path_info[0]
                         path_type = path_info[2]
-                        yield facil, path, path_type
+                        path_reserve = path[::-1]
+                        if path_reserve in t_pathes:
+                            yield conn_facils, path, path_type
             else:
                 # 没有接续设施
                 self.log.error('No Conn_Facility. s_node=%s, t_node=%s'
                                % (node_lid[0], node_lid[-1]))
 
-    def _get_conn_facil(self, s_node, t_node, inout):
+    def _get_conn_facil(self, s_node, t_node, t_inout, pathes=[]):
         facil_cls = self.first_facil.facilcls
-        facils = self.data_mng.get_hwy_facils_by_nodeid(t_node,
-                                                        t_facilcls=facil_cls)
-        conn_facils = []
-        for facil in facils:
-            if facil.inout == inout:
-                conn_facils.append(facil)
-        if conn_facils:
-            if len(set(conn_facils)) > 1:
-                r_conn_facils = self._get_conn_facil_reserve(s_node,
-                                                             conn_facils)
-                return r_conn_facils
-            return conn_facils
+        conn_infos = self.data_mng.get_conn_facil(t_node, s_node, t_inout)
+        if len(conn_infos) > 1:  # UTurn的情况下，可能有多对组合
+            temp_conn_facils = []
+            for facil_info, t_pathes in conn_infos:
+                if facil_info.facilcls == facil_cls:
+                    temp_conn_facils.append((facil_info, t_pathes))
+            return temp_conn_facils
         else:
-            return []
+            return conn_infos
 
     def _get_conn_facil_reserve(self, s_node, conn_facils):
         rst_conn_facils = []
@@ -663,6 +678,8 @@ class HwyICInfoRDF(HwyICInfo):
         for path_info in self.out_path_infos:
             node_lid, link_lid = path_info[0:2]
             if len(node_lid) < 2:  # 本线与本线直接相连、本线和一般道直接相连
+                if self.facil_list[0].facilcls != HWY_IC_TYPE_JCT:
+                    continue
                 for (node, link) in self._get_2_main_link_of_jct(node_lid,
                                                                  inout):
                     if (node, link) not in node_link_list:
@@ -764,6 +781,18 @@ class HwyICInfoRDF(HwyICInfo):
             return [point]
         else:
             return []
+
+    def _get_facil_inlink(self):
+        '''取得设施本线进入link'''
+        node_id = self.first_facil.node_id
+        road_code = self.first_facil.road_code
+        G = self.data_mng.get_graph()
+        inlinks = G.get_main_inlinkids(node_id, road_code)
+        if inlinks:
+            if len(inlinks) > 1:
+                self.log.error('InLink Number > 1. node=%s' % node_id)
+            return inlinks[0]
+        return None
 
     def _get_position_path_point(self):
         return []

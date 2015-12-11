@@ -23,6 +23,7 @@ class comp_guideinfo_crossname_zenrin(component.component_base.comp_base):
         self.log.info("start make crossname_tbl ")
         self._make_temp_crossname()
         self._make_intersection_name()
+        self.__update_temp_crossname_after_delete_dummy_link()
         self._make_crossname()
         self.log.info("end make crossname_tbl ")
     
@@ -135,21 +136,74 @@ class comp_guideinfo_crossname_zenrin(component.component_base.comp_base):
         common.cache_file.close(temp_file_obj,True)
         self.CreateIndex2('temp_intersection_name_id_idx')                 
         
+    def __update_temp_crossname_after_delete_dummy_link(self):
+        self.log.info("update temp_crossname after delete  dummy link...")
+        self.CreateFunction2('zenrin_update_inlink_to_no_dummy_link')
+        self.CreateTable2('temp_zenrin_dummy_new_inlink_node_crossname')
         
+        sqlcmd = '''
+            select zenrin_update_inlink_to_no_dummy_link(2,c.id,c.nodeid,0)
+            from
+            (
+                select a.*
+                from temp_crossname as a
+                left join link_tbl as b
+                on a.inlink = b.link_id
+                where b.link_type = 4
+            ) as c
+  
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
+        self.CreateIndex2('temp_zenrin_dummy_new_inlink_node_crossname_id_idx')
         
+        sqlcmd = '''
+            drop table if exists temp_crossname_path_after_delete_dummy_link;
+            create table temp_crossname_path_after_delete_dummy_link
+            as
+            (
+                select a.id, a.inlink, a.nodeid
+                from temp_crossname as a
+                left join link_tbl as b
+                on a.inlink = b.link_id
+                where b.link_type <> 4
+                
+                union
+                
+                select a.id, a.new_inlink as inlink, a.new_node as nodeid
+                from temp_zenrin_dummy_new_inlink_node_crossname as a
+                left join 
+                (
+                    select *
+                    from temp_crossname as b
+                    left join link_tbl as c
+                    on b.inlink = c.link_id
+                    where c.link_type <> 4
+                ) as d
+                on a.new_inlink = d.inlink and a.new_node = d.nodeid
+                where d.id is null
+
+            )
+ 
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
+        self.CreateIndex2('temp_crossname_path_after_delete_dummy_link_id_idx')          
+        
+            
     def _make_crossname(self):
         self.log.info("make crossname...")
         self.CreateTable2('crossname_tbl')
         
         sqlcmd = '''
             insert into crossname_tbl(inlinkid, nodeid, outlinkid, passlid, passlink_cnt, namestr)
-            select  a.inlink, 
-                    a.nodeid,
-                    null as outlinkid,
-                    '' as passlid,
-                    0 as passlink_cnt,
-                    b.intersection_name as namestr            
-            from temp_crossname as a
+            select  distinct a.inlink, 
+                             a.nodeid, 
+                             null::bigint as outlinkid,
+                             '' as passlid,
+                             0 as passlink_cnt,
+                             b.intersection_name as namestr            
+            from temp_crossname_path_after_delete_dummy_link as a
             left join temp_intersection_name as b
             on a.id = b.id
         

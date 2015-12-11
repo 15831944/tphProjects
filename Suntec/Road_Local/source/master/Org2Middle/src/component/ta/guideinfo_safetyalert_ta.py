@@ -70,8 +70,8 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     from mid_temp_safetyalert a
                     left join mid_temp_safetyalert_link b
                     on a.featid=b.featid
-                    where a.cameratype='8'
-                    ),
+                    where a.cameratype in ('8','11')
+                ),
                 b as
                 (
                     select featid,min(dist_start) as s_min,min(dist_end) as e_min
@@ -230,7 +230,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                         from mid_temp_safetyalert_link a
                         left join org_nw b
                         on a.shape_line_id::numeric=b.id
-                        where a.cameratype='8'
+                        where a.cameratype in ('8','11')
                        -- where a.featid in 
                        -- (
                        -- select featid from mid_temp_safetyalert
@@ -254,7 +254,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     from mid_temp_safetyalert
                     left join b
                     using(featid)
-                    where cameratype='8'
+                    where cameratype in ('8','11')
                 )
                 c
                 where a.featid=c.featid
@@ -279,11 +279,11 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                 update mid_temp_safetyalert
                 set the_geom=ST_Line_Interpolate_Point(st_geometryn(start_link_geom,1),st_line_locate_point(st_geometryn(start_link_geom,1),the_geom)),
                 the_geom_endpoint=ST_Line_Interpolate_Point(st_geometryn(end_link_geom,1),st_line_locate_point(st_geometryn(end_link_geom,1),the_geom_endpoint))
-                where cameratype='8';
+                where cameratype in ('8','11');
                 
                 update mid_temp_safetyalert a
                 set the_geom=ST_Line_Interpolate_Point(st_geometryn((select the_geom from org_nw where id=a.link_id),1),st_line_locate_point(st_geometryn((select the_geom from org_nw where id=a.link_id),1),the_geom))
-                where cameratype<>'8';
+                where cameratype not in ('8','11');
                '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
@@ -319,7 +319,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                 using(featid)
                 left join org_nw c
                 on a.link_id=c.id
-                where a.cameratype<>'8'
+                where a.cameratype not in ('8','11')
                 
                 union
                 
@@ -329,7 +329,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     (st_y(the_geom)*3600*256)::int,
                     start_link::bigint,
                     start_link::bigint,
-                    4,
+                    case when cameratype = '8' then 4 else 10 end as type,
                     (drivingdirection::smallint+180)%360,
                     abs(((drivingdirection::int-
                     (case when st_line_locate_point(st_geometryn(start_link_geom,1),the_geom)<>1 then ((450-mid_cal_zm_2(st_line_substring(st_geometryn(start_link_geom,1),st_line_locate_point(st_geometryn(start_link_geom,1),the_geom),1),0))::integer)%360 
@@ -340,7 +340,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     speedunitofmeasurement::smallint-1,
                     the_geom
                 from mid_temp_safetyalert
-                where cameratype='8'
+                where cameratype in ('8','11')
                 
                 union
                 
@@ -350,7 +350,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     (st_y(the_geom_endpoint)*3600*256)::int,
                     end_link::bigint,
                     end_link::bigint,
-                    5,
+                    case when cameratype = '8' then 5 else 11 end as type,
                     (enddrivingdirection::smallint+180)%360,
                     abs(((enddrivingdirection::int-
                     (case when st_line_locate_point(st_geometryn(end_link_geom,1),the_geom_endpoint)<>1 then ((450-mid_cal_zm_2(st_line_substring(st_geometryn(end_link_geom,1),st_line_locate_point(st_geometryn(end_link_geom,1),the_geom_endpoint),1),0))::integer)%360 
@@ -361,7 +361,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
                     speedunitofmeasurement::smallint-1,
                     the_geom_endpoint
                 from mid_temp_safetyalert
-                where cameratype='8'
+                where cameratype in ('8','11')
 
                '''
         self.pg.execute2(sqlcmd)

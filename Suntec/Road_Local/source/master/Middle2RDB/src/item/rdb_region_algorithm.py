@@ -27,15 +27,17 @@ class CGraph:
         # this function returns (adjlinkid, adjcost, adjnode)
         pass
     
-    def _isDockNode(self, node_id):
+    def _isDockNode(self, node_id, dock_node_table):
         # this function returns true/false
         pass
     
-    def _isRegionNode(self, node_id):
+    def _isRegionNode(self, node_id, region_node_table):
         # this function returns true/false
         pass
     
-    def searchFromDockToDock(self, node_id, forward=True):
+    def searchFromDockToDock(self, node_id, forward=True,
+                               dock_node_table='temp_region_orgnode_level4',
+                               max_distance=1000):
         # init
         paths = []                  # efftive path (target_node_id, path)
         arrive_nodes = {}           # arrive nodes
@@ -55,7 +57,7 @@ class CGraph:
             else:
                 arrive_nodes[cur_node] = True
             
-            if (cur_node != node_id) and self._isDockNode(cur_node):
+            if (cur_node != node_id) and self._isDockNode(cur_node,dock_node_table):
                 paths.append((cur_node,path))
                 continue
             
@@ -102,14 +104,16 @@ class CGraph:
                                              next_witdh, in_angle, cur_out_angle)
                 next_cost = cur_cost + adj_cost
                 #print 'touch', adjnode, adjcost
-                if next_distance < 1000:
+                if next_distance < max_distance:
                     touch_nodes.push((next_cost, next_distance, next_node, next_in_angle, adjlink.link_id, next_path))
         else:
             return paths
     
-    def searchFromDockToRegion(self, node_id, forward=True):
+    def searchFromDockToRegion(self, node_id, forward=True, 
+                               region_node_table='temp_region_orgnode_level4',
+                               max_distance=10000):
         # if dock node is region node, then cancle the search
-        if self._isRegionNode(node_id):
+        if self._isRegionNode(node_id, region_node_table):
             return []
         
         # init
@@ -130,7 +134,7 @@ class CGraph:
                 arrive_nodes[cur_node] = True
             
             #
-            if (cur_node != node_id) and self._isRegionNode(cur_node):
+            if (cur_node != node_id) and self._isRegionNode(cur_node, region_node_table):
                 paths.append((cur_node,path))
             
             adjlink_list = self._getAdjLinkList(cur_node)
@@ -178,7 +182,7 @@ class CGraph:
                                              next_witdh, in_angle, cur_out_angle)
                 next_cost = cur_cost + adj_cost
                 #print 'touch', adjnode, adjcost
-                if next_distance < 10000:
+                if next_distance < max_distance:
                     touch_nodes.push((next_cost, next_distance, next_node, next_in_angle, adjlink.link_id, next_path))
         else:
             return paths
@@ -541,22 +545,22 @@ class CGraph_PG(CGraph):
             adjlinks.append(CLink(link_rec))
         return adjlinks
     
-    def _isDockNode(self, node_id):
+    def _isDockNode(self, node_id, dock_node_table):
         sqlcmd = """
                 select count(*)
-                from temp_region_rdb_node_dock
+                from %s
                 where node_id = %s
-                """ % str(node_id)
+                """ % (dock_node_table, str(node_id))
         self.pg.execute(sqlcmd)
         result = self.pg.fetchone2()
         return result[0] > 0
     
-    def _isRegionNode(self, node_id):
+    def _isRegionNode(self, node_id, region_node_table):
         sqlcmd = """
                 select count(*)
-                from temp_region_orgnode_level4
+                from %s
                 where node_id = %s
-                """ % str(node_id)
+                """ % (region_node_table, str(node_id))
         self.pg.execute(sqlcmd)
         result = self.pg.fetchone2()
         return result[0] > 0

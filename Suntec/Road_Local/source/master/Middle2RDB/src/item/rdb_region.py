@@ -1604,9 +1604,12 @@ class rdb_region_ta_vietnam(rdb_region):
 class rdb_region_rdf_ap(rdb_region):
     def _makeOriginalRegionOnLevel4(self, zlevel=6, fc_array=[1,2,3,4]):
         rdb_region._makeOriginalRegionOnLevel4(self, zlevel, fc_array)
-        self._addFerryIntoRegion(zlevel, fc_array)
+        self._addFerryIntoRegion(layer=4, zlevel=6, fc_array=[1,2,3,4])
     
-    def _addFerryIntoRegion(self, zlevel=6, fc_array=[1,2,3,4]):
+    def _addFerryIntoRegion(self, 
+                            layer=4, zlevel=6, fc_array=[1,2,3,4], 
+                            max_dock_distance=1000, 
+                            max_region_distance=10000):
         # find ferry link and dock
         self.log.info('find ferry link and dock...')
         sqlcmd = """
@@ -1659,8 +1662,12 @@ class rdb_region_rdf_ap(rdb_region):
             import rdb_region_algorithm
             graph = rdb_region_algorithm.CGraph_PG()
             graph.prepareData()
-            forward_paths = graph.searchFromDockToDock(node_id, True)
-            backward_paths = graph.searchFromDockToDock(node_id, False)
+            forward_paths = graph.searchFromDockToDock(node_id, forward=True, 
+                                                       dock_node_table='temp_region_rdb_node_dock',
+                                                       max_distance=max_dock_distance)
+            backward_paths = graph.searchFromDockToDock(node_id, forward=False, 
+                                                        dock_node_table='temp_region_rdb_node_dock',
+                                                        max_distance=max_dock_distance)
             #print 'node_id =', node_id, 'paths =', paths
             graph.clearData()
             
@@ -1686,8 +1693,12 @@ class rdb_region_rdf_ap(rdb_region):
             import rdb_region_algorithm
             graph = rdb_region_algorithm.CGraph_PG()
             graph.prepareData()
-            forward_paths = graph.searchFromDockToRegion(node_id, True)
-            backward_paths = graph.searchFromDockToRegion(node_id, False)
+            forward_paths = graph.searchFromDockToRegion(node_id, forward=True, 
+                                                         region_node_table='temp_region_orgnode_level%s'%layer,
+                                                         max_distance=max_region_distance)
+            backward_paths = graph.searchFromDockToRegion(node_id, forward=False, 
+                                                          region_node_table='temp_region_orgnode_level%s'%layer,
+                                                          max_distance=max_region_distance)
             #print 'node_id =', node_id, 'paths =', paths
             graph.clearData()
             
@@ -1724,24 +1735,26 @@ class rdb_region_rdf_ap(rdb_region):
         self.pg.commit2()
         
         sqlcmd = """
-                    insert into temp_region_orglink_level4
+                    insert into temp_region_orglink_level[X]
                     (
-                        select c.*, get_new_tile_id_by_zlevel(c.link_id_t,%s) as region_tile_id 
+                        select c.*, get_new_tile_id_by_zlevel(c.link_id_t,[level]) as region_tile_id 
                         from temp_region_promote_link as a
-                        left join temp_region_orglink_level4 as b
+                        left join temp_region_orglink_level[X] as b
                         on a.link_id = b.link_id
                         left join rdb_link as c
                         on a.link_id = c.link_id
                         where b.link_id is null
                     );
-                """ % (str(zlevel))
+                """
+        sqlcmd = sqlcmd.replace('[X]', str(layer))
+        sqlcmd = sqlcmd.replace('[level]', str(zlevel))
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
         sqlcmd = """
-                    insert into temp_region_orgnode_level4
+                    insert into temp_region_orgnode_level[X]
                     (
-                        select c.*, get_new_tile_id_by_zlevel(c.node_id_t,%s) as region_tile_id 
+                        select c.*, get_new_tile_id_by_zlevel(c.node_id_t,[level]) as region_tile_id 
                         from
                         (
                             select unnest(ARRAY[b.start_node_id, b.end_node_id]) as node_id
@@ -1749,13 +1762,15 @@ class rdb_region_rdf_ap(rdb_region):
                             left join rdb_link as b
                             on a.link_id = b.link_id
                         )as a
-                        left join temp_region_orgnode_level4 as b
+                        left join temp_region_orgnode_level[X] as b
                         on a.node_id = b.node_id
                         left join rdb_node as c
                         on a.node_id = c.node_id
                         where b.node_id is null
                     );
-                """ % str(zlevel)
+                """
+        sqlcmd = sqlcmd.replace('[X]', str(layer))
+        sqlcmd = sqlcmd.replace('[level]', str(zlevel))
         self.pg.execute(sqlcmd)
     
     def _makeOriginalRegionOnLevel6(self, zlevel=2, fc_array=[1,2,3]):
@@ -1786,8 +1801,8 @@ class rdb_region_rdf_ap(rdb_region):
 #        
 #        rdb_log.log('Region', 'Reset link function class end.', 'info')
 
-class rdb_region_rdf_sea(rdb_region):
-    def _hierarchy(self):
+class rdb_region_rdf_sea(rdb_region_rdf_ap):
+    def _hierarchy_backup(self):
         import rdb_region_algorithm
         objHierarchy = rdb_region_algorithm.CHierarchy()
         
@@ -1825,18 +1840,20 @@ class rdb_region_rdf_sea(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
         rdb_region._makeOriginalRegionOnLevelX(self, 
                                                layer=4, 
-                                               level=10, 
+                                               level=6, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3,4]},
-                                               additional_links='temp_hierarchy_links_layer6')
+                                               additional_links='temp_region_links')
+        rdb_region_rdf_ap._addFerryIntoRegion(self, layer=4, zlevel=6, fc_array=[1,2,3,4])
     
     def _makeOriginalRegionOnLevel6(self):
         rdb_region._makeOriginalRegionOnLevelX(self, 
                                                layer=6, 
-                                               level=6, 
+                                               level=2, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3]},
-                                               additional_links='temp_hierarchy_links_layer6')
+                                               additional_links=None)
+        rdb_region_rdf_ap._addFerryIntoRegion(self, layer=6, zlevel=2, fc_array=[1,2,3], max_region_distance=10000)
 
 class rdb_region_taiwan(rdb_region_rdf_ap):
     def _makeOriginalRegionOnLevel4(self):

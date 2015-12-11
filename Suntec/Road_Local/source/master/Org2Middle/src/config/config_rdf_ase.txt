@@ -13,6 +13,7 @@ accident_flag=true
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\HERE\15Q3\illust\pic
 toll_station_illust=Toll-Gate_Booth
 #pointlist=
-POI_Code=..\docs\poi\category_rdf_sea.txt
+POI_category_code=..\docs\poi\category_code_rdf_sea.txt
+POI_category_name=..\docs\poi\category_name_rdf_sea.txt
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_ase.xls
 #################################################################

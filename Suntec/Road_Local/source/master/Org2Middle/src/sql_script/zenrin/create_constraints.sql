@@ -190,5 +190,19 @@ CREATE INDEX temp_poi_category_mapping_org_id1_idx
 CREATE INDEX org_fastlane_info_meshcode_linkno_idx
   ON org_fastlane_info
   USING btree
-  (meshcode, linkno);  
+  (meshcode, linkno); 
+
+CREATE INDEX temp_zenrin_dummy_new_inlink_node_signpost_uc_id_idx
+  ON temp_zenrin_dummy_new_inlink_node_signpost_uc
+  USING btree
+  (id);
   
+CREATE INDEX temp_zenrin_dummy_new_inlink_node_crossname_id_idx
+  ON temp_zenrin_dummy_new_inlink_node_crossname
+  USING btree
+  (id);
+ 
+ CREATE INDEX temp_crossname_path_after_delete_dummy_link_id_idx
+  ON temp_crossname_path_after_delete_dummy_link
+  USING btree
+  (id);

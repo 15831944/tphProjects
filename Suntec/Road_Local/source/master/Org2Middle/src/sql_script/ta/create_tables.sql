@@ -953,26 +953,26 @@ CREATE TABLE mid_temp_link_lang_code
 CREATE TABLE mid_temp_safetyalert 
 as
 (
-select a.*,ST_GeomFromtext('POINT(' || a.xcoordinate || ' ' || a.ycoordinate || ')',4326) as the_geom
- ,case when a.endxcoordinate != '' then
-  ST_GeomFromtext('POINT(' || a.endxcoordinate || ' ' || a.endycoordinate || ')',4326) 
- else null end as the_geom_endpoint
-from (
- select * from scpoint
- union
- select * from scpoint_ext
-) a
-left join 
-(
- select * from scpoint_status 
- union
- select * from scpoint_ext_status
-)
-b
-on a.featid=b.featid
-where cameratype in ('1','3','8','12','40')
-and b.status<>'UNVERIFIED'
-order by cameratype
+	select a.*,ST_GeomFromtext('POINT(' || a.xcoordinate || ' ' || a.ycoordinate || ')',4326) as the_geom
+		 ,case when a.endxcoordinate != '' then
+		  ST_GeomFromtext('POINT(' || a.endxcoordinate || ' ' || a.endycoordinate || ')',4326) 
+		 else null end as the_geom_endpoint
+	from (
+		 select * from scpoint
+		 union
+		 select * from scpoint_ext
+	) a
+	left join 
+	(
+		 select * from scpoint_status 
+		 union
+		 select * from scpoint_ext_status
+	)
+	b
+	on a.featid=b.featid
+	where cameratype in ('1','3','8','11','12','40')
+	and b.status<>'UNVERIFIED'
+	order by cameratype
 );
 
 
@@ -981,23 +981,23 @@ order by cameratype
 CREATE TABLE mid_temp_safetyalert_link 
 as
 (
-select a.featid,a.cameratype,b.shape_line_id,c.the_geom as geom
-from mid_temp_safetyalert a
-left join (
- select * from scpoint_ll
- union
- select * from scpoint_ext_ll
-) b
-on a.featid = b.featid
-left join org_nw c
-on cast(b.shape_line_id as double precision) = c.id
-left join (
- select * from scpoint_status 
- union
- select * from scpoint_ext_status
-) d
-on a.featid = d.featid
-where lower(d.status) != 'unverified'
+	select a.featid,a.cameratype,b.shape_line_id,c.the_geom as geom
+	from mid_temp_safetyalert a
+	left join (
+	 select * from scpoint_ll
+	 union
+	 select * from scpoint_ext_ll
+	) b
+	on a.featid = b.featid
+	left join org_nw c
+	on cast(b.shape_line_id as double precision) = c.id
+	left join (
+	 select * from scpoint_status 
+	 union
+	 select * from scpoint_ext_status
+	) d
+	on a.featid = d.featid
+	where lower(d.status) != 'unverified'
 );
 
 -------------------------------------------------------------------------------------------
@@ -1005,16 +1005,16 @@ where lower(d.status) != 'unverified'
 CREATE TABLE mid_temp_safetyzone
 as
 (
-select a.*,ST_GeomFromtext('POINT(' || a.xcoordinate || ' ' || a.ycoordinate || ')',4326) as the_geom
- ,case when a.endxcoordinate != '' then
-  ST_GeomFromtext('POINT(' || a.endxcoordinate || ' ' || a.endycoordinate || ')',4326) 
- else null end as the_geom_endpoint
-from scpoint a
-left join scpoint_status b
-on a.featid=b.featid
-where cameratype in ('11','8')
-and b.status<>'UNVERIFIED'
-order by cameratype
+	select a.*,ST_GeomFromtext('POINT(' || a.xcoordinate || ' ' || a.ycoordinate || ')',4326) as the_geom
+	 ,case when a.endxcoordinate != '' then
+	  ST_GeomFromtext('POINT(' || a.endxcoordinate || ' ' || a.endycoordinate || ')',4326) 
+	 else null end as the_geom_endpoint
+	from scpoint a
+	left join scpoint_status b
+	on a.featid=b.featid
+	where cameratype in ('11','8')
+	and b.status<>'UNVERIFIED'
+	order by cameratype
 );
 
 
@@ -1023,15 +1023,15 @@ order by cameratype
 CREATE TABLE mid_temp_safetyzone_link 
 as
 (
-select a.featid,a.cameratype,b.shape_line_id,c.the_geom as geom
-from mid_temp_safetyzone a
-left join scpoint_ll b
-on a.featid = b.featid
-left join org_nw c
-on cast(b.shape_line_id as double precision) = c.id
-left join scpoint_status d
-on a.featid = d.featid
-where lower(d.status) != 'unverified'
+	select a.featid,a.cameratype,b.shape_line_id,c.the_geom as geom
+	from mid_temp_safetyzone a
+	left join scpoint_ll b
+	on a.featid = b.featid
+	left join org_nw c
+	on cast(b.shape_line_id as double precision) = c.id
+	left join scpoint_status d
+	on a.featid = d.featid
+	where lower(d.status) != 'unverified'
 );
 
 CREATE TABLE mid_sensis_jv_tbl

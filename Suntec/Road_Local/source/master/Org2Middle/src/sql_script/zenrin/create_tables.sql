@@ -354,49 +354,55 @@ as
 	order by id
 );
 
-create table temp_link_dummy_walked
+create table temp_link_walked
 (
-    meshcode varchar,
-    linkno   integer
+    link_id bigint
 );
 
-create table temp_dummy_link
+create table temp_intersection_link
 (
-    meshcode varchar,
-    linkno integer,
-    snodeno integer,
-    enodeno integer,
-    oneway  integer,
-    elcode  varchar,
+    link_id bigint,
+    s_node  bigint,
+    e_node  bigint,
+    one_way_code  integer,
+    link_type  int,
     the_geom geometry
 );
 
 create table temp_dummy_node 
 as
 (
-    select distinct meshcode,snodeno as nodeno
-    from temp_dummy_link
+    select distinct s_node as node_id
+    from temp_intersection_link
     union
-    select distinct meshcode,enodeno as nodeno
-    from temp_dummy_link
+    select distinct e_node as node_id
+    from temp_intersection_link
 );
 
-create table mid_dummy_reg
+
+
+create table temp_dummy_reg
 (
 	reg_id int,
 	link_id bigint,
-	seq smallint
+	seq smallint,
+	cond_id int
 );
 
-create table mid_dummy_todelete
+create table temp_dummy_link_todelete
 (
-	meshcode varchar(10),
-	linkno   int
+	link_id bigint
 );
 
-create table org_notin_gid
+create table temp_dummy_node_todelete
 (
-	gid integer
+	node_id bigint,
+	node_lid varchar(512)
+);
+
+create table temp_regulation_id
+(
+	regulation_id integer
 );
 
 CREATE TABLE temp_signpost_uc_deal_with_dummy_link
@@ -414,6 +420,7 @@ CREATE TABLE temp_signpost_uc_deal_with_dummy_link
   route_no4    character varying(1024), 
   exit_no      character varying(1024)
 );
+
 
 CREATE TABLE temp_spotguide_tbl1
 (
@@ -435,4 +442,59 @@ CREATE TABLE temp_spotguide_tbl2
   passlink_cnt smallint,
   outlink bigint,
   imagename varchar
+);
+
+create table temp_zenrin_dummy_new_inlink_node_signpost_uc
+(
+id          bigint,
+new_inlink  bigint,
+new_node    bigint
+);
+
+create table link_tbl_bak_dummy
+as
+(
+	select * from link_tbl
+);
+
+create table node_tbl_bak_dummy
+as
+(
+	select * from node_tbl
+);
+
+create table regulation_item_tbl_bak_dummy
+as
+(
+	select * from regulation_item_tbl
+);
+
+create table regulation_relation_tbl_bak_dummy
+as
+(
+	select * from regulation_relation_tbl
+);
+
+create table temp_zenrin_dummy_new_inlink_node_crossname
+(
+id          bigint,
+new_inlink  bigint,
+new_node    bigint
+);
+
+create table temp_poi_category_code
+(
+    per_code   bigint       not null,
+    is_brand   varchar,
+    gen1       int          not null,
+    gen2       int          not null,
+    gen3       int          not null,
+    level      smallint     not null,
+    code_name       varchar ,
+    genre_type varchar,
+    org_code   bigint,
+    series      varchar,
+    lang        varchar,
+    filename    varchar
+
 );

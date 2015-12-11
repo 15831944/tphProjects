@@ -1046,3 +1046,69 @@ BEGIN
 	return new_overlay_link_array;
 END;
 $$;
+
+------------------------------------------
+CREATE OR REPLACE FUNCTION rdb_find_idx_in_array(
+    _char character varying,
+    _val character varying)
+  RETURNS smallint[]
+  LANGUAGE PLPGSQL
+AS $$
+DECLARE
+	_array varchar[];
+	len smallint;
+	i smallint;
+	val varchar;
+	idx_array smallint[];
+BEGIN
+	_array = string_to_array(_char,'|');
+	len := array_upper(_array,1);
+
+	for i in 1..len loop
+	
+		val = _array[i];
+
+		if val = _val then
+			idx_array = array_append(idx_array,i::smallint);
+		end if;
+	end loop;
+	
+	return idx_array;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION rdb_del_dummy_safetyzone(
+    _char character varying,
+    s_idx smallint[],
+    e_idx smallint[])
+  RETURNS varchar
+  LANGUAGE PLPGSQL
+AS $$
+DECLARE
+	_array varchar[];
+	len smallint;
+	i smallint;
+	_array_new varchar[];
+BEGIN
+	_array = string_to_array(_char,'|');
+	len := array_upper(_array,1);
+
+	for i in 1..len loop
+
+		if i = s_idx[1] or i = e_idx[array_upper(e_idx,1)] then
+			_array_new = array_append(_array_new,_array[i]);
+		elsif i < s_idx[1] or i > e_idx[array_upper(e_idx,1)] then
+			continue;
+		elsif i = any(s_idx) or i = any(e_idx) then
+			continue;
+		else
+			_array_new = array_append(_array_new,_array[i]);
+		end if;
+	end loop;
+	
+	return array_to_string(_array_new,'|');
+
+END;
+$$;

@@ -89,6 +89,59 @@ class comp_detele_redundance_regulation(component.component_base.comp_base):
                 (
                     regulation_id integer
                 );
+                
+                DROP TABLE IF EXISTS regulation_item_tbl_bak_redundance_link;
+                CREATE TABLE regulation_item_tbl_bak_redundance_link
+                AS (
+                    SELECT *
+                    FROM regulation_item_tbl_bak_redundance
+                    WHERE seq_num != 2
+                );
+                
+                DROP INDEX IF EXISTS regulation_item_tbl_bak_redundance_link_linkid_idx;
+                CREATE INDEX regulation_item_tbl_bak_redundance_link_linkid_idx
+                    ON regulation_item_tbl_bak_redundance_link
+                    USING btree
+                    (linkid);
+                
+                analyze regulation_item_tbl_bak_redundance_link;
+                
+                DROP TABLE IF EXISTS regulation_item_tbl_bak_redundance_node;
+                CREATE TABLE regulation_item_tbl_bak_redundance_node
+                AS (
+                    SELECT *
+                    FROM regulation_item_tbl_bak_redundance
+                    WHERE seq_num = 2
+                );
+                
+                DROP INDEX IF EXISTS regulation_item_tbl_bak_redundance_node_regulation_id_idx;
+                CREATE INDEX regulation_item_tbl_bak_redundance_node_regulation_id_idx
+                    ON regulation_item_tbl_bak_redundance_node
+                    USING btree
+                    (regulation_id);
+                
+                analyze regulation_item_tbl_bak_redundance_node;
+                
+                DROP TABLE IF EXISTS regulation_item_tbl_bak_redundance_finally;
+                CREATE TABLE regulation_item_tbl_bak_redundance_finally
+                AS (
+                    SELECT d.*, e.nodeid
+                    FROM (
+                        SELECT regulation_id, array_agg(linkid) as link_array, array_agg(s_node) as s_node_array, array_agg(e_node) as e_node_array, array_agg(one_way_code) as one_way_array
+                        FROM (
+                            SELECT a.regulation_id, a.linkid, b.s_node, b.e_node, b.one_way_code
+                            FROM regulation_item_tbl_bak_redundance_link a
+                            LEFT JOIN link_tbl b
+                                ON a.linkid = b.link_id
+                            WHERE b.link_id is not null
+                            ORDER BY a.regulation_id, a.seq_num
+                        ) c
+                        GROUP BY regulation_id
+                    ) d
+                    LEFT JOIN regulation_item_tbl_bak_redundance_node e
+                        ON d.regulation_id = e.regulation_id
+                    WHERE e.regulation_id is not null
+                );
             """
         
         self.pg.execute2(sqlcmd)

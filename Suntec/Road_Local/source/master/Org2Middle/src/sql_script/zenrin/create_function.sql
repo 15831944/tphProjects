@@ -491,7 +491,7 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION zenrin_findpasslink_count(passlink varchar)  
+CREATE OR REPLACE FUNCTION zenrin_findpasslink_count_bak(passlink varchar)  
 
   RETURNS integer
   LANGUAGE plpgsql
@@ -499,6 +499,27 @@ CREATE OR REPLACE FUNCTION zenrin_findpasslink_count(passlink varchar)
   DECLARE 
 BEGIN
       return array_length(regexp_split_to_array(passlink,E'\\|+'),1);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION zenrin_findpasslink_count(passlink varchar,separator varchar)  
+
+  RETURNS integer
+  LANGUAGE plpgsql
+  AS $$ 
+DECLARE 
+	pass_array varchar[];
+	length 		integer;
+BEGIN
+	pass_array = string_to_array(passlink,separator);
+	length = array_length(pass_array,1);
+	if length is null then
+		return 0;
+	else
+		return length;
+	end if;
+      
 END;
 $$;
 
@@ -869,7 +890,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION zenrin_update_inlink_to_no_dummy_link(node bigint)
+CREATE OR REPLACE FUNCTION zenrin_update_inlink_to_no_dummy_link_bak(node bigint)
     RETURNS bigint[]
     LANGUAGE plpgsql
 AS $$
@@ -895,7 +916,7 @@ BEGIN
                     or 
                       a.e_node = node_array[i] and a.one_way_code in (1,2)
                     )
-                    and a.link_id not in (select link_id from temp_dummy_todelete )
+                    and a.link_id not in (select link_id from temp_dummy_link_todelete )
             
         loop
               if rec.link_id is not null then
@@ -915,6 +936,61 @@ BEGIN
 	end loop;
 
 	return result_link_array;
+		
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_update_inlink_to_no_dummy_link(flag integer,id bigint, node bigint,outlink bigint)
+    RETURNS integer
+    LANGUAGE plpgsql
+AS $$
+DECLARE 
+	rec 			        record;
+	node_array 		      	bigint[];
+	i 			        integer;
+   
+BEGIN
+	node_array = array_append(node_array,node);
+	
+	i := 1;
+	while i <= array_length(node_array,1) loop
+        raise info 'node = %',node_array[i];
+
+        for rec in
+            select link_id,link_type,
+                    (case when a.s_node = node_array[i] then a.e_node
+                          else a.s_node end ) as node_id
+            from link_tbl as a
+            where (  a.s_node = node_array[i] and a.one_way_code in (1,3)
+                    or 
+                      a.e_node = node_array[i] and a.one_way_code in (1,2)
+                    )
+                    and a.link_id <> outlink
+        loop
+              if rec.link_id is not null then
+                    if rec.link_type <> 4  then
+                          if flag = 1 then
+                              insert into temp_zenrin_dummy_new_inlink_node_signpost_uc(id,new_inlink,new_node)
+                                  values(id,rec.link_id,node_array[i]);
+                           end if;
+                          if flag = 2 then
+                              insert into temp_zenrin_dummy_new_inlink_node_crossname(id,new_inlink,new_node)
+                                  values(id,rec.link_id,node_array[i]);
+                           end if;
+                     else 
+                          if not rec.node_id = any(node_array) then
+                            node_array = array_append(node_array,rec.node_id);
+                          end if;
+                    end if;	
+
+              end if;
+
+        end loop;
+        i = i+ 1;
+			
+	end loop;
+
+	return 0;
 		
 END;
 $$;

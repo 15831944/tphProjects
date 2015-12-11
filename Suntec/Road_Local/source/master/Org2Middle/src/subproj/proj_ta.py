@@ -22,7 +22,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
-        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane_Pushlink'))
         return
     
         if self.comp_factory != None:
@@ -49,7 +49,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane_Pushlink'))
+            #self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane_Pushlink'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SignPost'))
             self.AddComponent(self.comp_factory.CreateOneComponent('guideinfo_signpost_uc'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Safety_Alert'))

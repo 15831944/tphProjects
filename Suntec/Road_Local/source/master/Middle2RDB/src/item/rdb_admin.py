@@ -33,6 +33,9 @@ class rdb_admin(ItemBase):
         self.__intersectTileLevel14()
         self.__makeTileAdminZone()
         
+        #delete order0 for SGP
+        self.__alter_admin_for_SGP_specially()
+        
     def __makeAdminZone(self):
         self.log.info('converting rdb_admin_zone begin...')
         
@@ -68,9 +71,6 @@ class rdb_admin(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('rdb_admin_summer_time_summer_time_id_idx')
-        
-        #delete order0 for SGP
-        self.__alter_admin_for_SGP_specially()
 
         self.log.info('converting rdb_admin_zone end.')
 
@@ -1093,15 +1093,15 @@ class rdb_admin(ItemBase):
                     self.log.info('alter rdb_admin_zone for sgp begin.')
                     sqlcmd = """
                     delete from rdb_admin_zone
-                    where ad_order = 0 and ad_code = %d
+                    where ad_order = 1 and order0_id = %d
                     """
                     self.pg.execute2(sqlcmd%sgp_order0_id)
                     self.pg.commit2()
                     
                     sqlcmd = """
                                 update rdb_admin_zone as a
-                                set order0_id = null 
-                                where order0_id = %d and ad_order in (1,2,8)
+                                set order1_id = null 
+                                where order0_id = %d and ad_order in (2,8)
                                 
                              """
                     self.pg.execute2(sqlcmd%sgp_order0_id)

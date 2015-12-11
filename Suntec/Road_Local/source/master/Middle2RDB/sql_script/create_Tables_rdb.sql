@@ -2139,7 +2139,8 @@ CREATE TABLE rdb_guideinfo_safety_zone
   speedlimit smallint,
   speedunit_code smallint,
   direction smallint,
-  safety_type smallint
+  safety_type smallint,
+  dis smallint
 );
 
 --- Forecast data.

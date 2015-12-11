@@ -166,5 +166,20 @@ class comp_link_zenrin(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         self.log.info('Inserting link succeeded')
         
-
-
+        sqlcmd='''
+            drop table if exists mid_dummy_link;
+            create table mid_dummy_link
+            as
+            (
+                select  b.link_id,a.the_geom_4326,
+                        h.node_id as s_node,
+                        i.node_id as e_node
+                from org_road a
+                join temp_link_mapping b on a.meshcode=b.meshcode and a.linkno=b.linkno
+                join temp_node_mapping h on a.meshcode=h.meshcode and a.snodeno=h.nodeno
+                join temp_node_mapping i on a.meshcode=i.meshcode and a.enodeno=i.nodeno
+                where substr(a.elcode,4,1)='8'
+            )
+            '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()

@@ -554,7 +554,10 @@ class CCheckAdminOrder(platform.TestCase.CTestCase):
                                  on or8.order0_id = or0.ad_code and or0.ad_order = 0
                                  left join rdb_admin_zone as or1
                                  on or8.order1_id = or1.ad_code and or1.ad_order = 1
-                                 where or8.order0_id = %d and or8.ad_order = 8 and (or0.ad_code is null or or1.ad_code is null) 
+                                 where or8.order0_id = %d and or8.ad_order = 8 and 
+                                         ((or8.order0_id is not null and or0.ad_code is null) 
+                                          or 
+                                          (or8.order1_id is not null and or1.ad_code is null)) 
                                                            
                                  union
                                  
@@ -562,7 +565,8 @@ class CCheckAdminOrder(platform.TestCase.CTestCase):
                                  rdb_admin_zone as or1
                                  left join rdb_admin_zone as or0
                                  on or1.order0_id = or0.ad_code and or0.ad_order = 0
-                                 where or1.order0_id = %d and or1.ad_order = 1 and (or0.ad_code is null)
+                                 where or1.order0_id = %d and or1.ad_order = 1 and 
+                                 (or1.order0_id is not null and or0.ad_code is null)
                              )as tbl
                                                 
                              ''' %(countrycode,countrycode)
@@ -860,7 +864,7 @@ class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
                     order1_name = self.pg.getOnlyQueryResult(sqlcmd%(row[0],1))
                     
                     if order0_name == order1_name:
-                        self.org_0 -= 1
+                        self.org_1 -= 1
         
     def compare_admin_mmi(self):
         sqlcmd = """

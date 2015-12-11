@@ -34,13 +34,12 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             # update sapa link
             #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_DisplayClass'))
-            
-            self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             
             # guide
             self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))

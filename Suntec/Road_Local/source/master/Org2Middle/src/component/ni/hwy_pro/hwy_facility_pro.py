@@ -236,8 +236,6 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         sapa_seq_dict = dict()
         next_seq = self._get_max_org_facil_id(road_code)
         for node, all_facils in facils_list:
-            if node == 6427570:
-                pass
             sort_facils = self._sort_facils(node, road_code, all_facils)
             road_seq_dict, next_seq = self._get_road_seq(node, road_code,
                                                          next_seq,
@@ -275,10 +273,10 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                             break
                 if road_seq:
                     if facil_key not in matched_facil:
-                        matched_facil[facil_key] = [road_seq]
+                        matched_facil[facil_key] = set([road_seq])
                     else:
                         if road_seq != matched_facil.get(facil_key):
-                            matched_facil[facil_key].append(road_seq)
+                            matched_facil[facil_key].add(road_seq)
                 else:  # 没有匹配专用数据facil_id
                     pass
                 coded_facil = (road_code, road_seq, facilcls, inout_c,
@@ -293,6 +291,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                         road_seq = sapa_seq_dict.get(node)
                         matched_facil[(facilcls, inout_c)] = [road_seq]
                     else:
+                        facil_key = facilcls, inout_c
                         if facil_key in matched_facil:
                             road_seq = min(matched_facil.get(facil_key))
                         else:

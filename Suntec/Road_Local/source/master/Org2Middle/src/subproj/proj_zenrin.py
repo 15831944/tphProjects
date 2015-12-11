@@ -69,6 +69,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
             
             #
+            self.AddComponent(self.comp_factory.CreateOneComponent('deletedummylink'))
             self.AddComponent(self.comp_factory.CreateOneComponent('GuidePoint_Adjust'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
@@ -77,5 +78,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             
             # highway
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
+            
+            
             
             pass

@@ -642,7 +642,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                                                when b.language = '2'  then  'CHT'
                                                when b.language = '3'  then  'ENG'
                                                when b.language = '4'  then  'POR' end) as language, 
-                         b.language as name_id,
+                         --b.language as name_id,
+                         b.seq_nm as name_id,
                          'office_name'::varchar as name_type,
                   --c.name as phoneme,
                   (case when c.name like '%|%'  then split_part(c.name,'|',1)
@@ -765,7 +766,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                                   when b.language = '2'  then  'CHT'
                                   when b.language = '3'  then  'ENG'
                                   when b.language = '4'  then  'POR' end)::varchar as language, 
-                            b.language as name_id,
+                            --b.language as name_id,
+                            '1'::varchar as name_id,
                             'office_name'::varchar as name_type,
                             --c.name as phoneme,
                             (case when c.name like '%|%'  then split_part(c.name,'|',1)

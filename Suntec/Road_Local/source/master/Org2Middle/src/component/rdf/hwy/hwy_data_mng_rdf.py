@@ -756,6 +756,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           FROM (
             SELECT road_code, updown, node_id
               FROM hwy_link_road_code_info
+              --where road_code in (5001347, 1400395)
               ORDER BY road_code, updown, seq_nm
           ) as a
           GROUP BY road_code, updown
@@ -810,6 +811,43 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                       updown, node_id, inout,
                                       facil_name)
             facils.append(facil_info)
+        return facils
+
+    def get_conn_facil(self, node, to_node, inout):
+        sqlcmd = """
+        SELECT a.road_code, a.road_seq, a.updown_c,
+               a.inout_c, a.facilcls_c, b.facil_name,
+               array_agg(node_lid) as pathes
+          FROM mid_temp_hwy_ic_path as a
+          INNER JOIN hwy_node as b
+          ON a.road_code = b.road_code and
+             a.road_seq = b.road_seq and
+             a.facilcls_c = b.facilcls_c and
+             a.inout_c = b.inout_c and
+             a.node_id = b.node_id
+          where a.node_id = %s and
+                a.to_node_id = %s and
+                a.inout_c = %s and
+                path_type in ('JCT', 'UTURN')
+          GROUP BY a.road_code, a.road_seq, a.facilcls_c,
+                   a.inout_c, a.updown_c, a.node_id, b.facil_name
+        """
+        facils = []
+        self.pg.execute2(sqlcmd, (node, to_node, inout))
+        data = self.pg.fetchall2()
+        for facil_info in data:
+            roadcode = facil_info[0]
+            roadseq = facil_info[1]
+            updown = facil_info[2]
+            inout = facil_info[3]
+            facilcls = facil_info[4]
+            facil_name = facil_info[5]
+            t_pathes = facil_info[6]
+            pathes = [tuple(map(int, n_lid.split(','))) for n_lid in t_pathes]
+            facil_info = HwyFacilInfo(roadcode, roadseq, facilcls,
+                                      updown, node, inout,
+                                      facil_name)
+            facils.append((facil_info, pathes))
         return facils
 
     def get_main_path(self, road_code, updown):

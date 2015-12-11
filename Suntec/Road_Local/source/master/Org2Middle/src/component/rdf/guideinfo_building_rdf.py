@@ -26,7 +26,7 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
         proj_name = common.common_func.GetProjName()
         proj_country = common.common_func.getProjCountry()
           
-        if proj_name.lower() == 'rdf' and  proj_country.lower() in ['arg','bra','hkg','mea']:
+        if proj_name.lower() == 'rdf' and  proj_country.lower() in ['arg','bra','hkg','mea','ase']:
             self._loadPOICategory_new()
         else:
             self._loadPOICategory()
@@ -270,6 +270,29 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
         
     def _makePOILocation(self):
         self.log.info('make temp_poi_location...')
+        sqlcmd = '''
+            drop index if exists rdf_poi_address_poi_id_idx;
+            create index rdf_poi_address_poi_id_idx
+            on rdf_poi_address
+            using btree
+            (poi_id);
+            
+            drop index if exists rdf_poi_address_location_id_idx;
+            create index rdf_poi_address_location_id_idx
+            on rdf_poi_address
+            using btree
+            (location_id);
+        
+            drop index if exists rdf_location_location_id_idx;
+            create index rdf_location_location_id_idx
+            on rdf_location
+            using btree
+            (location_id);        
+
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
         sqlcmd = """
                 drop table if exists temp_poi_location;
                 create table temp_poi_location 

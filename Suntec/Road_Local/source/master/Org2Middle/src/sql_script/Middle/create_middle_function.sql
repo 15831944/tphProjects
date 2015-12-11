@@ -5635,21 +5635,8 @@ DECLARE
 	link_array_len		    integer;
 BEGIN
 	FOR rec IN
-		SELECT d.*, e.nodeid
-		FROM (
-			SELECT regulation_id, array_agg(linkid) as link_array, array_agg(s_node) as s_node_array, array_agg(e_node) as e_node_array, array_agg(one_way_code) as one_way_array
-			FROM (
-				SELECT a.regulation_id, a.linkid, b.s_node, b.e_node, b.one_way_code
-				FROM regulation_item_tbl_bak_redundance a
-				LEFT JOIN link_tbl b
-					ON a.linkid = b.link_id
-				WHERE a.seq_num != 2
-				ORDER BY a.regulation_id, a.seq_num
-			) c
-			GROUP BY regulation_id
-		) d
-		LEFT JOIN regulation_item_tbl_bak_redundance e
-			ON d.regulation_id = e.regulation_id and e.seq_num = 2
+		SELECT *
+		FROM regulation_item_tbl_bak_redundance_finally
 	LOOP
 		temp_link := rec.link_array[1];
 		temp_s_node := rec.s_node_array[1];

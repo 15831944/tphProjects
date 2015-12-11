@@ -42,12 +42,11 @@ from lane_tbl;
     # 删除这些数据前根据具体情况判断是否需要生成新的车线诱导记录。
     def pushLinkOneInOneOut(self):
         sqlcmd = """
---****************************************************************************************
 -- step1: 分拆link序列。
 drop table if exists lane_tbl_link_seqnr;
 select id, 
        unnest(array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text])::bigint as link_id, 
-       generate_series(1, array_upper((string_to_array(passlid, '|')), 1)+2) as seqnr
+       generate_series(1, array_upper((array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text]), 1)) as seqnr
 into lane_tbl_link_seqnr
 from lane_tbl;
 
@@ -56,7 +55,7 @@ on lane_tbl_link_seqnr
 using btree
 (link_id);
 
---****************************************************************************************
+--***************************************************
 -- step2: 算出link序列的中间node。
 create or replace function get_connected_node(s_node1 bigint, e_node1 bigint, s_node2 bigint, e_node2 bigint)
 returns bigint
@@ -113,7 +112,7 @@ on lane_tbl_connection_node
 using btree
 (connection_node);
 
---****************************************************************************************
+--***************************************************
 -- step3: 求出每个中间node的连接link数
 drop table if exists lane_tbl_connection_node_linkcount;
 select a.id, a.connection_node, count(b.link_id) as link_count
@@ -128,7 +127,8 @@ create index lane_tbl_connection_node_linkcount_id_idx
 on lane_tbl_connection_node_linkcount
 using btree
 (id);
---****************************************************************************************
+
+--***************************************************
 -- step4: 仅取中间node的连接link数都小于等于2的项
 select t1.*, t2.lanenum, t2.laneinfo, t2.arrowinfo, t2.lanenuml,
        t2.lanenumr, t2.buslaneinfo, t2.exclusive
@@ -142,7 +142,7 @@ from
         select a.id, b.seqnr, b.link_id, c.s_node, c.e_node, c.the_geom, c.link_type
         from
         (
-            select distinct id
+            select distinct id, array_agg(link_count)
             from lane_tbl_connection_node_linkcount 
             group by id
             having (max(link_count)<=2)
@@ -225,8 +225,18 @@ on t1.id=t2.id;
                 self.log.info("""generate new lane guideinfo for id: %s, link list: %s""" % \
                               (_id, link_object.getLinkListString(onePossibleLinkList)))
             # 删除此条单进单出的记录
-            sqlcmd = """delete from lane_tbl where id=%s""" % _id
-            self.pg.execute(sqlcmd)
+        sqlcmd = """
+delete 
+from lane_tbl 
+where id in 
+(
+    select distinct id
+    from lane_tbl_connection_node_linkcount 
+    group by id
+    having (max(link_count)<=2)
+)
+"""
+        self.pg.execute(sqlcmd)
         self.conn.commit()
         return
     
