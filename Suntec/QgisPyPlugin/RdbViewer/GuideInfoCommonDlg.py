@@ -31,28 +31,28 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initcomboBoxRecordNo()
+        self.initComboBoxOutlinkid()
 
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
-        self.comboBoxRecordNo.setFocus()
+        self.comboBoxOutlinkid.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
-        self.connect(self.comboBoxRecordNo, QtCore.SIGNAL('activated(QString)'), self.comboBoxRecordNoChanged)
+        self.connect(self.comboBoxOutlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxRecordNoChanged)
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
         self.pushButtonPrev.setEnabled(False)
-        self.comboBoxRecordNo.setEnabled(False)
+        self.comboBoxOutlinkid.setEnabled(False)
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initcomboBoxRecordNo(self):
-        while(self.comboBoxRecordNo.count() > 0):
-            self.comboBoxRecordNo.removeItem(0)
+    def initComboBoxOutlinkid(self):
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():
             if self.mIsMyFeature(oneFeature):
-                self.comboBoxRecordNo.addItem("%.0f" % oneFeature.attribute('out_link_id'))
+                self.comboBoxOutlinkid.addItem("%.0f" % oneFeature.attribute('out_link_id'))
 
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
@@ -72,7 +72,7 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
 
     def comboBoxRecordNoChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxRecordNo.currentIndex()
+        inti = self.comboBoxOutlinkid.currentIndex()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
         if errMsg[0] <> '':
             QMessageBox.information(self, self.mCategory, """error:\n%s"""% errMsg[0])
@@ -84,14 +84,14 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         prevFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(prevFeatureId)
-        self.initcomboBoxRecordNo()
+        self.initComboBoxOutlinkid()
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             QMessageBox.information(self, self.mCategory, """error:\n%s"""% errMsg[0])
             return
-        self.comboBoxRecordNo.setFocus()
+        self.comboBoxOutlinkid.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
         return
@@ -101,14 +101,14 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         nextFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(nextFeatureId)
-        self.initcomboBoxRecordNo()
+        self.initComboBoxOutlinkid()
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             QMessageBox.information(self, self.mCategory, """error:\n%s"""% errMsg[0])
             return
-        self.comboBoxRecordNo.setFocus()
+        self.comboBoxOutlinkid.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
         return

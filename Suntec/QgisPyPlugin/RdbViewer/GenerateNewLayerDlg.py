@@ -9,7 +9,8 @@ FeatureTypeList = \
     """spotguide""",
     """signpost""",
     """lane""",
-    """regulation"""
+    """regulation""",
+    """building structure"""
 ]
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -137,17 +138,17 @@ on temp_regulation_link_seqnr
 using btree
 (link_id);
 
-drop table if exists temp_regulation_the_geom_seqnr;
+drop table if exists temp_regulation_link_list_geom;
 select a.record_no, st_union(array_agg(b.the_geom)) as the_geom
-into temp_regulation_the_geom_seqnr
+into temp_regulation_link_list_geom
 from
 temp_regulation_link_seqnr as a
 left join rdb_link as b
 on a.link_id=b.link_id
 group by record_no;
 
-create index temp_regulation_the_geom_seqnr_record_no_idx
-on temp_regulation_the_geom_seqnr
+create index temp_regulation_link_list_geom_record_no_idx
+on temp_regulation_link_list_geom
 using btree
 (record_no);
 
@@ -158,8 +159,19 @@ select a.record_no, a.regulation_id, a.regulation_type, a.is_seasonal, a.first_l
 into %s
 from 
 rdb_link_regulation as a
-left join temp_regulation_the_geom_seqnr as b
+left join temp_regulation_link_list_geom as b
 on a.record_no=b.record_no;""" % (newLayerName, newLayerName)
+        elif featureType == FeatureTypeList[4]:  # building structure
+            sqlcmd = \
+"""
+drop table if exists %s;
+select a.*, b.the_geom 
+into %s
+from 
+rdb_guideinfo_building_structure as a
+left join rdb_node as b
+on a.node_id=b.node_id;
+""" % (newLayerName, newLayerName)
         else:
             QMessageBox.information(self, "Generate New Layer", "error:\nnot spotguide or lane.")
             return
@@ -210,6 +222,8 @@ on a.record_no=b.record_no;""" % (newLayerName, newLayerName)
             self.lineEditNewLayerName.setText("""temp_lane_geom""")
         elif featureType == FeatureTypeList[3]:
             self.lineEditNewLayerName.setText("""temp_link_regulation_geom""")
+        elif featureType == FeatureTypeList[4]:
+            self.lineEditNewLayerName.setText("""temp_building_structure_geom""")
         return
 
     def testConnect(self):

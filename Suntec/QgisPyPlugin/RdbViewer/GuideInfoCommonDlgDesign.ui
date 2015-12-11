@@ -59,12 +59,12 @@
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="labelOutlinkid">
     <property name="text">
-     <string>Record No: </string>
+     <string>Outlinkid: </string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBoxRecordNo"/>
+   <widget class="QComboBox" name="comboBoxOutlinkid"/>
   </widget>
   <widget class="QSplitter" name="splitter_3">
    <property name="geometry">

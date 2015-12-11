@@ -6,11 +6,11 @@ class RegulationShowInfoDlg(GuideInfoCommonDlg):
         super(RegulationShowInfoDlg, self).__init__(theCanvas, theLayer, "Regulation", parent)
 
     def initcomboBoxRecordNo(self):
-        while(self.comboBoxRecordNo.count() > 0):
-            self.comboBoxRecordNo.removeItem(0)
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():
             if self.mIsMyFeature(oneFeature):
-                self.comboBoxRecordNo.addItem("%.0f" % oneFeature.attribute('record_no'))
+                self.comboBoxOutlinkid.addItem("%.0f" % oneFeature.attribute('record_no'))
 
     def mIsMyFeature(self, theFeature):
         return RegulationShowInfoDlg.isMyFeature(theFeature)

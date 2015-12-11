@@ -5,15 +5,16 @@ class BuildingStructureShowInfoDlg(GuideInfoCommonDlg):
     def __init__(self, theCanvas, theLayer, parent=None):
         super(BuildingStructureShowInfoDlg, self).__init__(theCanvas, theLayer, "Building Structure", parent)
 
-    def initcomboBoxRecordNo(self):
-        while(self.comboBoxRecordNo.count() > 0):
-            self.comboBoxRecordNo.removeItem(0)
+    def initComboBoxOutlinkid(self):
+        self.labelOutlinkid.setText("Node ID:")
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():
             if self.mIsMyFeature(oneFeature):
-                self.comboBoxRecordNo.addItem("%.0f" % oneFeature.attribute('record_no'))
+                self.comboBoxOutlinkid.addItem("%.0f" % oneFeature.attribute('node_id'))
 
     def mIsMyFeature(self, theFeature):
-        return RegulationShowInfoDlg.isMyFeature(theFeature)
+        return BuildingStructureShowInfoDlg.isMyFeature(theFeature)
 
     @staticmethod
     def isMyFeature(theFeature):
