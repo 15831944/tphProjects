@@ -1,8 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
 import os
-import psycopg2
-from MyDatParser import MyDatParser
-
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox
 from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature

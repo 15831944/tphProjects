@@ -1420,43 +1420,43 @@ class comp_link_split(component.component_base.comp_base):
                             e_dis=b.e_dis
                         from
                         (
-                        with a1 as
-                        (
-                            select a.featid,a.link_id,b.link_id as newlink_id,st_distance(a.the_geom,c.the_geom) as dist
-                            from safety_alert_tbl_bak_splitting a
-                            left join
-                            temp_split_newlink b
-                            on a.link_id=b.old_link_id
-                            left join
-                            link_tbl c
-                            on b.link_id=c.link_id
-                            where a.link_id in
+                            with a1 as
                             (
-                                select distinct(old_link_id) from temp_split_newlink
+                                select a.featid,a.type,a.link_id,b.link_id as newlink_id,st_distance(a.the_geom,c.the_geom) as dist
+                                from safety_alert_tbl_bak_splitting a
+                                left join
+                                temp_split_newlink b
+                                on a.link_id=b.old_link_id
+                                left join
+                                link_tbl c
+                                on b.link_id=c.link_id
+                                where a.link_id in
+                                (
+                                    select distinct(old_link_id) from temp_split_newlink
+                                ) 
+                            ),
+                            b2 as
+                            (
+                                select featid,type,link_id,min(dist)
+                                from a1
+                                group by featid,link_id,type
+                            ),
+                            c3 as
+                            (
+                                select a1.featid,a1.link_id,a1.type,a1.newlink_id
+                                from a1 
+                                left join b2
+                                on a1.featid=b2.featid and a1.link_id=b2.link_id and a1.type = b2.type
+                                where a1.dist=b2.min
                             )
-                        ),
-                        b2 as
-                        (
-                            select featid,link_id,min(dist)
-                            from a1
-                            group by featid,link_id
-                        ),
-                        c3 as
-                        (
-                            select a1.featid,a1.link_id,a1.newlink_id
-                            from a1 
-                            left join b2
-                            on a1.featid=b2.featid and a1.link_id=b2.link_id
-                            where a1.dist=b2.min
-                        )
-                        select a.featid,a.link_id,b.newlink_id,
-                        (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*mid_get_fraction(c.the_geom,a.the_geom))::int as s_dis,
-                        (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*(1-mid_get_fraction(c.the_geom,a.the_geom)))::int as e_dis
-                        from safety_alert_tbl_bak_splitting a
-                        inner join c3 b
-                        on a.link_id=b.link_id and a.featid=b.featid
-                        left join link_tbl c
-                           on c.link_id=b.newlink_id
+                            select a.featid,a.link_id,b.newlink_id,
+                                (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*mid_get_fraction(c.the_geom,a.the_geom))::int as s_dis,
+                                (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*(1-mid_get_fraction(c.the_geom,a.the_geom)))::int as e_dis
+                            from safety_alert_tbl_bak_splitting a
+                            inner join c3 b
+                            on a.link_id=b.link_id and a.featid=b.featid and a.type = b.type
+                            left join link_tbl c
+                            on c.link_id=b.newlink_id
                         )b
                         where a.featid=b.featid and a.link_id=b.link_id
 

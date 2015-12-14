@@ -28,6 +28,7 @@ from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFMea
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFAse
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFBra
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFArg
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFHkg
 from component.rdf.hwy.hwy_mapping_rdf import HwyMappingRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyICInfoRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryOutInfoRDF
@@ -91,6 +92,8 @@ class HighwayRDF(Highway):
             self.hwy_facil = HwyFacilityRDFBra(self.data_mng)
         elif country in ("ARG"):
             self.hwy_facil = HwyFacilityRDFArg(self.data_mng)
+        # elif country in ("HKG"):
+        #    self.hwy_facil = HwyFacilityRDFHkg(self.data_mng)
         else:
             self.hwy_facil = HwyFacilityRDF(self.data_mng)
         self.hwy_mapping = HwyMappingRDF(self)
@@ -701,12 +704,14 @@ class HighwayRDF(Highway):
                                           add_link_id, pos_type,
                                           pos_type_name, name_kanji,
                                           name_yomi, toll_flag,
-                                          dir_s_node, dir_e_node
+                                          dir_s_node, dir_e_node,
+                                          from_linkid
                                          )
           VALUES(%s, %s, %s, %s,
                  %s, %s, %s, %s,
                  %s, %s, %s, %s,
-                 %s, %s, %s, %s)
+                 %s, %s, %s, %s,
+                 %s)
         """
         for add_info in ic_info.get_add_info():
             param = (ic_info.ic_no, ic_info.updown,
@@ -716,5 +721,6 @@ class HighwayRDF(Highway):
                      add_info.get('add_link'), add_info.get('pos_type'),
                      add_info.get('pos_type_name'), ic_info.name,
                      ic_info.name_yomi, toll_flag,
-                     add_info.get('dir_s_node'), add_info.get('dir_e_node'))
+                     add_info.get('dir_s_node'), add_info.get('dir_e_node'),
+                     add_info.get('from_linkid'))
             self.pg.execute1(sqlcmd, param)

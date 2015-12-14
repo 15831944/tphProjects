@@ -106,13 +106,20 @@ class rdb_guideinfo_safety_zone(ItemBase):
         
     def _deleteDummyLinks(self):
         
-        '删除不位于起点camera与终点camera之间的safety zone link和accident zone link。' 
-
+        #=======================================================================
+        # 删除不位于起点camera与终点camera之间的safety zone link和accident zone link
+        # school zone没有camera信息，不做处理
+        #=======================================================================
+        '备份'
         self.CreateTable2('rdb_guideinfo_safety_zone_bak_delete_dummy')
         self.CreateTable2('rdb_guideinfo_safety_zone')
         
-        self.CreateTable2('temp_guideinfo_safetyalert')        
+        '存储Camera位置'
+        self.CreateTable2('temp_guideinfo_safetyalert')   
+        
+        '找到起点/终点camera在link序上的位置（一个zone区间或者一条link上可能有多个camera）'     
         self.CreateFunction2('rdb_find_idx_in_array')
+        '根据第一个起点camera与最后一个终点camera的位置，保留两个camera之间的link信息，其他删除'
         self.CreateFunction2('rdb_del_dummy_safetyzone')  
      
         sqlcmd = """

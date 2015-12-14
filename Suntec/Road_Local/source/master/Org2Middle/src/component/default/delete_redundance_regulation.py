@@ -22,13 +22,10 @@ class comp_detele_redundance_regulation(component.component_base.comp_base):
     
     def _Do(self):
         
-        self.log.info('Begin deleting redundance regulation...')
-        
         self._prepare()
         self._select_redundance_regulation_by_traffic_flow()
         self._delete_redundance_regulation()
-        
-        self.log.info('End deleting redundance regulation.')
+
         return 0
     
     def _prepare(self):
@@ -127,7 +124,9 @@ class comp_detele_redundance_regulation(component.component_base.comp_base):
                 AS (
                     SELECT d.*, e.nodeid
                     FROM (
-                        SELECT regulation_id, array_agg(linkid) as link_array, array_agg(s_node) as s_node_array, array_agg(e_node) as e_node_array, array_agg(one_way_code) as one_way_array
+                        SELECT regulation_id, count(*) as link_num, array_agg(linkid) as link_array, 
+                            array_agg(s_node) as s_node_array, array_agg(e_node) as e_node_array, 
+                            array_agg(one_way_code) as one_way_array
                         FROM (
                             SELECT a.regulation_id, a.linkid, b.s_node, b.e_node, b.one_way_code
                             FROM regulation_item_tbl_bak_redundance_link a
@@ -140,7 +139,6 @@ class comp_detele_redundance_regulation(component.component_base.comp_base):
                     ) d
                     LEFT JOIN regulation_item_tbl_bak_redundance_node e
                         ON d.regulation_id = e.regulation_id
-                    WHERE e.regulation_id is not null
                 );
             """
         
@@ -163,23 +161,29 @@ class comp_detele_redundance_regulation(component.component_base.comp_base):
         self.CreateTable2('regulation_item_tbl')
         
         sqlcmd = """
+                DROP INDEX IF EXISTS temp_traffic_flow_redundance_regulation_id_tbl_regulation_id_idx;
+                CREATE INDEX temp_traffic_flow_redundance_regulation_id_tbl_regulation_id_idx
+                    ON temp_traffic_flow_redundance_regulation_id_tbl
+                    USING btree
+                    (regulation_id);
+
+                analyze temp_traffic_flow_redundance_regulation_id_tbl;
+                
                 INSERT INTO regulation_relation_tbl
                     (regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id, gatetype, slope, is_seasonal)
-                SELECT regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id, gatetype, slope, is_seasonal
-                FROM regulation_relation_tbl_bak_redundance
-                WHERE regulation_id not in (
-                    SELECT DISTINCT regulation_id
-                    FROM temp_traffic_flow_redundance_regulation_id_tbl
-                );
+                SELECT a.regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id, gatetype, slope, is_seasonal
+                FROM regulation_relation_tbl_bak_redundance a
+                LEFT JOIN temp_traffic_flow_redundance_regulation_id_tbl b
+                    ON a.regulation_id = b.regulation_id
+                WHERE b.regulation_id is null;
                 
                 INSERT INTO regulation_item_tbl
                     (regulation_id, linkid, nodeid, seq_num)
-                SELECT regulation_id, linkid, nodeid, seq_num
-                FROM regulation_item_tbl_bak_redundance
-                WHERE regulation_id not in (
-                    SELECT DISTINCT regulation_id
-                    FROM temp_traffic_flow_redundance_regulation_id_tbl
-                );
+                SELECT a.regulation_id, linkid, nodeid, seq_num
+                FROM regulation_item_tbl_bak_redundance a
+                LEFT JOIN temp_traffic_flow_redundance_regulation_id_tbl b
+                    ON a.regulation_id = b.regulation_id
+                WHERE b.regulation_id is null;
             """
         
         self.pg.execute2(sqlcmd)

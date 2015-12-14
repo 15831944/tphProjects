@@ -10,6 +10,7 @@ from SignpostShowImageDlg import SignpostShowImageDlg
 from SpotguideShowImageDlg import SpotguideShowImageDlg
 from RegulationShowInfoDlg import RegulationShowInfoDlg
 from BuildingStructureShowInfoDlg import BuildingStructureShowInfoDlg
+from CautionShowInfoDlg import CautionShowInfoDlg
 
 class GuideInfoCommonMapTool(QgsMapTool):
     def __init__(self, canvas):
@@ -60,7 +61,7 @@ class GuideInfoCommonMapTool(QgsMapTool):
             for oneResult in resultList:
                 featureIdList.append(oneResult.mFeature.id())
             theLayer.select(featureIdList)
-            dlg = self.getAppreciateDlg(theLayer)
+            dlg = self.getAppreciateDlg(theLayer, featureIdList)
             dlg.show()
             result = dlg.exec_()
             if result:
@@ -69,24 +70,27 @@ class GuideInfoCommonMapTool(QgsMapTool):
                 pass
             return
 
-    def getAppreciateDlg(self, theLayer):
+    def getAppreciateDlg(self, theLayer, featureIdList):
         theFeature = theLayer.selectedFeatures()[0]
         if SpotguideShowImageDlg.isMyFeature(theFeature) == True:
-            return SpotguideShowImageDlg(self.mCanvas, theLayer)
+            return SpotguideShowImageDlg(self.mCanvas, theLayer, featureIdList)
 
         if LaneShowImageDlg.isMyFeature(theFeature) == True:
-            return LaneShowImageDlg(self.mCanvas, theLayer)
+            return LaneShowImageDlg(self.mCanvas, theLayer, featureIdList)
 
         if RegulationShowInfoDlg.isMyFeature(theFeature) == True:
-            return RegulationShowInfoDlg(self.mCanvas, theLayer)
+            return RegulationShowInfoDlg(self.mCanvas, theLayer, featureIdList)
 
         if SignpostShowImageDlg.isMyFeature(theFeature) == True:
-            return SignpostShowImageDlg(self.mCanvas, theLayer)
+            return SignpostShowImageDlg(self.mCanvas, theLayer, featureIdList)
 
         if BuildingStructureShowInfoDlg.isMyFeature(theFeature) == True:
-            return BuildingStructureShowInfoDlg(self.mCanvas, theLayer)
+            return BuildingStructureShowInfoDlg(self.mCanvas, theLayer, featureIdList)
 
-        return GuideInfoCommonDlg(self.mCanvas, theLayer)
+        if CautionShowInfoDlg.isMyFeature(theFeature) == True:
+            return CautionShowInfoDlg(self.mCanvas, theLayer, featureIdList)
+
+        return GuideInfoCommonDlg(self.mCanvas, theLayer, featureIdList)
 
     def removeAllSelection(self):
         layerList = self.mCanvas.layers()

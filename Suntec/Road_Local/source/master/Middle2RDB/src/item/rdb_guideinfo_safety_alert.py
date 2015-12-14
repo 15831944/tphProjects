@@ -41,7 +41,7 @@ class rdb_guideinfo_safetyalert(ItemBase):
                         SELECT lon, lat, link_id, orglink_id, type, angle, dir, 
                                s_dis, e_dis, speed, speed_unit
                           FROM safety_alert_tbl
-                          where type not in (10,11)
+                          where type not in (10,11)  -- high accident zone not included
                     )a
                 )a
                 left join rdb_tile_link b

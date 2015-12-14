@@ -5632,46 +5632,44 @@ DECLARE
 	temp_e_node             bigint;
 	temp_one_way            smallint;
 	search_node             bigint;
-	link_array_len		    integer;
 BEGIN
 	FOR rec IN
 		SELECT *
 		FROM regulation_item_tbl_bak_redundance_finally
 	LOOP
+		IF 4 = ANY(rec.one_way_array) THEN
+			-- the record has both prohibition and delete
+			--raise info 'regulation_id = %', rec.regulation_id;
+			INSERT INTO temp_traffic_flow_redundance_regulation_id_tbl(regulation_id) VALUES(rec.regulation_id);
+			continue;
+		END IF;
+		
+		IF rec.link_num = 1 THEN
+			-- the record has only one link and pass 
+			continue;
+		END IF;
+		
 		temp_link := rec.link_array[1];
 		temp_s_node := rec.s_node_array[1];
 		temp_e_node := rec.e_node_array[1];
 		temp_one_way := rec.one_way_array[1];
 		search_node := rec.nodeid;
 
-		-- first link is both prohibition and record
-		IF temp_one_way = 4 THEN
-			--raise info 'regulation_id = %', rec.regulation_id;
-			INSERT INTO temp_traffic_flow_redundance_regulation_id_tbl(regulation_id) VALUES(rec.regulation_id);
-			continue;
-		END IF;
-
-		link_array_len := array_upper(rec.link_array, 1);
-		-- equal 1 means single link regulation and get next
-		IF link_array_len = 1 THEN
-			continue;
-		END IF;
-
-		-- first link traffic flow is wrong and record  
 		IF (search_node = temp_s_node and temp_one_way not in (1, 3)) or (search_node = temp_e_node and temp_one_way not in (1, 2)) THEN
+			-- first link traffic flow is wrong and record  
 			--raise info 'regulation_id = %', rec.regulation_id;
 			INSERT INTO temp_traffic_flow_redundance_regulation_id_tbl(regulation_id) VALUES(rec.regulation_id);
 			continue;
 		END IF;
 
-		for link_loop in 2..link_array_len loop
+		FOR link_loop in 2..rec.link_num LOOP
 			temp_link := rec.link_array[link_loop];
 			temp_s_node := rec.s_node_array[link_loop];
 			temp_e_node := rec.e_node_array[link_loop];
 			temp_one_way := rec.one_way_array[link_loop];
 
-			-- some link traffic flow is wrong and record
 			IF (search_node = temp_s_node and temp_one_way not in (1, 2)) or (search_node = temp_e_node and temp_one_way not in (1, 3)) THEN
+				-- some link traffic flow is wrong and record
 				--raise info 'regulation_id = %', rec.regulation_id;
 				INSERT INTO temp_traffic_flow_redundance_regulation_id_tbl(regulation_id) VALUES(rec.regulation_id);
 				exit;
@@ -5682,7 +5680,7 @@ BEGIN
 			ELSE
 				search_node := temp_s_node;
 			END IF;
-		END loop;
+		END LOOP;
 	END LOOP;
 	
 	return 0;

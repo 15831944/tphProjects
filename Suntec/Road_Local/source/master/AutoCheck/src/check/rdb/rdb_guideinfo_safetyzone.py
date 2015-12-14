@@ -92,6 +92,7 @@ class CCheckLinkSequence(platform.TestCase.CTestCase):
             num=len(start_node_arr)
             if len(set(start_node_arr))<>len(start_node_arr) or len(set(end_node_arr))<>len(end_node_arr) \
                 or len(set(start_node_arr)-set(end_node_arr))<>1:
+                print result[0]
                 return False
             node_id=list(set(start_node_arr)-set(end_node_arr))[0]
             idx=start_node_arr.index(node_id)
@@ -99,9 +100,11 @@ class CCheckLinkSequence(platform.TestCase.CTestCase):
             for i in range(num-1):
                 node_id_next=end_node_arr[idx]
                 if start_node_arr.count(node_id_next)<>1:
+                    print result[0]
                     return False
                 idx=start_node_arr.index(node_id_next)
                 if gid_arr[idx]<>gid+1:
+                    print result[0]
                     return False
                 else:
                     gid+=1
@@ -162,3 +165,104 @@ class CCheckSchool_zone_safetyzone_id(platform.TestCase.CTestCase):
                 '''
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
+    
+class CCheckSafetyZone_Camera_Start(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        '所有起点camera都在safety zone第一条link上'
+        sqlcmd = '''
+            select * from rdb_guideinfo_safetyalert a
+            left join (
+                select link_id_array[1] as link_id
+                from (
+                    select safetyzone_id,array_agg(link_id) as link_id_array
+                    from (
+                        select * from rdb_guideinfo_safety_zone
+                        order by safetyzone_id,gid
+                    ) m 
+                    group by safetyzone_id
+                ) n
+            ) b
+            on a.link_id = b.link_id
+            where a.type in (4)
+            and b.link_id is null;
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)    
+    
+class CCheckSafetyZone_Camera_End(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        '所有终点camera都在safety zone最后一条link上'
+        sqlcmd = '''
+            select * from rdb_guideinfo_safetyalert a
+            left join (
+                select link_id_array[array_upper(link_id_array,1)] as link_id
+                from (
+                    select safetyzone_id,array_agg(link_id) as link_id_array
+                    from (
+                        select * from rdb_guideinfo_safety_zone
+                        order by safetyzone_id,gid
+                    ) m 
+                    group by safetyzone_id
+                ) n
+            ) b
+            on a.link_id = b.link_id
+            where a.type in (5)
+            and b.link_id is null;
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckSafetyZone_Distance(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        '所有dis不为-1的字段都是第一条link或者最后一条link'
+        sqlcmd = '''
+            select * from (
+                select gid from rdb_guideinfo_safety_zone
+                where dis != -1
+            ) a
+            left join (
+                select gid_array[1] as gid
+                from (
+                    select safetyzone_id,array_agg(gid) as gid_array
+                    from (
+                        select * from rdb_guideinfo_safety_zone
+                        order by safetyzone_id,gid
+                    ) m 
+                    group by safetyzone_id
+                ) n
+                union
+                select gid_array[array_upper(gid_array,1)] as gid
+                from (
+                    select safetyzone_id,array_agg(gid) as gid_array
+                    from (
+                        select * from rdb_guideinfo_safety_zone
+                        order by safetyzone_id,gid
+                    ) m 
+                    group by safetyzone_id
+                ) n
+                
+            ) b
+            on a.gid = b.gid
+            where b.gid is null;
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckSafetyZone_Camera_Position(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        '所有safety zone的第一条link和最后一条link上肯定都有camera'
+        sqlcmd = '''
+            select * from (
+                select link_id from rdb_guideinfo_safety_zone
+                where dis != -1 and safety_type = 1
+            ) a
+            left join rdb_guideinfo_safetyalert b
+            on a.link_id = b.link_id
+            where b.link_id is null;
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)            

@@ -119,13 +119,14 @@ drop table if exists %s;
 create table %s 
 as
 (
-    select a.record_no, a.regulation_id, a.regulation_type, a.is_seasonal, a.first_link_id, 
-           a.first_link_id_t, a.last_link_id, a.last_link_dir, a.last_link_id_t, a.link_num, 
-           a.key_string, a.order_id, b.the_geom
+    select a.*, c.car_type, c.start_date, c.end_date, c.month_flag, c.day_flag, 
+           week_flag, c.start_time, c.end_time, c.exclude_date, b.the_geom
     from 
     rdb_link_regulation as a
     left join temp_regulation_link_list_geom as b
     on a.record_no=b.record_no
+    left join rdb_link_cond_regulation as c
+    on a.regulation_id=c.regulation_id
 );"""
 
 strGenerateLayerBuildingStructure = \

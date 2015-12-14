@@ -3,8 +3,8 @@ import os
 from SpotguideShowImageDlg import SpotguideShowImageDlg
 class SignpostShowImageDlg(SpotguideShowImageDlg):
 
-    def __init__(self, theCanvas, theLayer, parent=None):
-        super(SignpostShowImageDlg, self).__init__(theCanvas, theLayer, parent)
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
+        super(SignpostShowImageDlg, self).__init__(theCanvas, theLayer, selFeatureIds, parent)
 
     def mIsMyFeature(self, theFeature):
         return SignpostShowImageDlg.isMyFeature(theFeature)

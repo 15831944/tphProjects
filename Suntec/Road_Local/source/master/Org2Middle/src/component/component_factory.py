@@ -939,9 +939,10 @@ class comp_factory_ni(comp_factory):
             from component.ni.hwy.hwy_prepare_ni import HwyPrepareNi
             return HwyPrepareNi()  # Create a empty table: mid_all_highway_node
         if comp_name == 'Highway':
-            from component.ni.hwy.highway_ni import HighwayNi
-            return HighwayNi()
-              
+            from component.ni.hwy_pro.highway_pro import HighwayNiPro
+            return HighwayNiPro()
+            # from component.ni.hwy.highway_ni import HighwayNi
+            # return HighwayNi()
         if comp_name == 'Regulation':
             from component.ni import regulation_ni
             return regulation_ni.comp_regulation_ni()
@@ -957,8 +958,7 @@ class comp_factory_ni(comp_factory):
         
         if comp_name == 'Guideinfo_Lane':
             from component.ni.guideinfo_lane_ni import comp_guideinfo_lane_ni
-            return comp_guideinfo_lane_ni()  
-#17CY中国仕向地signpost_uc数据转移至towardname中
+            return comp_guideinfo_lane_ni()
 #        if comp_name == 'guideinfo_signpost_uc':
 #            from component.ni.Guideinfo_signpost_uc_ni import comp_Guideinfo_signpost_uc_ni
 #            return comp_Guideinfo_signpost_uc_ni()

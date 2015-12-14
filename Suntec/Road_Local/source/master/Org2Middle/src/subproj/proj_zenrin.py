@@ -23,11 +23,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
     def ConstructComponent(self):
         """
         You can add new component depend on your requirements
-        """
-        
-        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Pushlink'))
-        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane_Pushlink'))
-        return
+        """    
         if self.comp_factory:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('PreProcess'))

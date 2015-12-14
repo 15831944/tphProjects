@@ -119,40 +119,91 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
            if 有多个附加， 且前面附加情报的设施号>后面的加情报的设施号，删除前面。
            if 有多个附加， 且前面附加情报的设施号<=后面的加情报的设施号，删除前面
         '''
+        prev_node = None
         for (link_lids, node_lids,
-             add_links, add_nodes) in self._get_multi_add_info_facil():
+             add_links, add_nodes,
+             facility_ids, facil_types) in self._get_multi_add_info_facil():
+            # facil_types: exit, exit, jct, sapa
             link_lid_list = [map(int, n_lid.split(','))
                              for n_lid in link_lids]
-            node_lid_list = [map(int, n_lid.split(','))
-                             for n_lid in node_lids]
+            # node_lid_list = [map(int, n_lid.split(','))
+            #                  for n_lid in node_lids]
             add_link_set = set(add_links)
+            add_facil_infos = zip(add_links, add_nodes,
+                                  facility_ids, facil_types)
             for link_lid in link_lid_list:
                 inter_links = add_link_set.intersection(link_lid)
-                if len(inter_links) <= 1:
-                    continue
+                inter_facils = self._get_inter_facil(inter_links,
+                                                     add_facil_infos)
+                ic_jct_facils, sapa_facils = inter_facils
+                # 注：SAPA与IC/JCT可能同时存在所以要分开判断
+                if len(ic_jct_facils) > 1:  # 一条路径上 ic/jct数目大于1
+                    if len(ic_jct_facils) == 2:
+                        # 一个是出口，一个是入口
+                        temp_types = set(info[3] for info in ic_jct_facils)
+                        if temp_types == set(['exit', 'enter']):
+                            continue
+                    # 有多个设施， 种别不同或设施番号不同
+                    self.log.warning('Mulit Add Info. link_lid=%s' % link_lid)
+                # 最多不能经过两个SAPA
+                if len(sapa_facils) > 2:
+                    self.log.warning('Mulit SAPA Add Info. link_lid=%s'
+                                     % link_lid)
+                elif len(sapa_facils) > 1:
+                    # 同个SAPA不应该出现多次
+                    facil_ids = [info[2] for info in sapa_facils]
+                    for facil_id in facil_ids:
+                        if facil_ids.count(facil_id) > 1:
+                            self.log.warning('Mulit SAPA Add Info. link_lid=%s'
+                                             % link_lid)
                 else:
-                    self.log.warning('Mulit Add Info. link_lid=%s', link_lid)
+                    pass
 #                 all_add_infos = []
 #                 for link_id in link_lid:
 #                     if link_id in add_link_set:
 #                         add_infos = self.data_mng.get_add_info(link_id)
 #                         all_add_infos.append(add_infos)
 
+    def _get_inter_facil(self, inter_links, add_facil_infos):
+        ic_jct_facil = set()
+        sapa_facil = set()
+        for link in inter_links:
+            for add_facil_info in add_facil_infos:
+                if link == add_facil_info[0]:
+                    facil_type = add_facil_info[3]
+                    if facil_type == 'sapa':
+                        sapa_facil.add(add_facil_info)
+                    elif facil_type in ('exit', 'enter', 'jct'):
+                        ic_jct_facil.add(add_facil_info)
+                    else:
+                        self.log.error('Error Facil_type. link_id=%s'
+                                       % link)
+        return ic_jct_facil, sapa_facil
+
     def _get_multi_add_info_facil(self):
         '''取得有多个附加情报的设施'''
         sqlcmd = """
         SELECT link_lids, node_lids,
-               add_links, add_nodes
+               add_links, add_nodes,
+               facility_ids, facil_types
         FROM (
             SELECT road_code, road_seq,
                    facilcls_c, inout_c, node_id,
                    array_agg(add_link) AS add_links,
-                   array_agg(add_node) AS add_nodes
+                   array_agg(add_node) AS add_nodes,
+                   array_agg(facility_id) AS facility_ids,
+                   array_agg(facil_type) AS facil_types
              FROM (
                 SELECT distinct b.road_code, b.road_seq,
                        b.facilcls_c, b.inout_c, b.node_id,
                        a.link_id as add_link,
-                       a.node_id as add_node
+                       a.node_id as add_node,
+                       facility_id,
+                       (case when exit = 1 then 'exit'
+                       when enter = 1 then 'enter'
+                       when jct = 1 then 'jct'
+                       when sapa = 1 then 'sapa'
+                       else NULL end) as facil_type
                   FROM highway_node_add_info AS a
                   INNER JOIN mid_temp_hwy_ic_path_expand_link AS b
                   ON a.link_id = b.pass_link_id and
@@ -178,7 +229,8 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
             d.facilcls_c = e.facilcls_c and
             d.inout_c = e.inout_c and
             d.node_id = e.node_id
-         order by d.road_code, d.road_seq, d.facilcls_c, d.inout_c, d.node_id
+         order by d.road_code, d.road_seq,
+                  d.facilcls_c, d.inout_c, d.node_id;
         """
         return self.get_batch_data(sqlcmd)
 
@@ -339,11 +391,10 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
     def _get_dir_node(self, add_link_id, dir_nodes):
         dir_nodes_set = set(dir_nodes)
         if not dir_nodes_set:
-            self.log.error('No Dir Node. link_id=%s'
-                           % add_link_id)
+            self.log.error('No Dir Node. link_id=%s' % add_link_id)
             return None, None
         if len(dir_nodes_set) > 1:
-            self.log.error('Number of Dir Node > 1. link_id=%s')
+            self.log.error('Number of Dir Node > 1. link_id=%s' % add_link_id)
             return None, None
         return dir_nodes_set.pop()
 

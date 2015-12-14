@@ -972,7 +972,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
           where road_code =%s and road_seq = %s
                 and node_id = %s and inout_c = %s
                 and facilcls_c <> 10     -- Not U-turn
-          order by node_lid, link_lid
+          order by array_upper(regexp_split_to_array(node_lid, E'\\\\,+'), 1),
+                   node_lid, link_lid
         """
         self.pg.execute2(sqlcmd, (facil.road_code, facil.road_point,
                                   facil.node_id, facil.inout)

@@ -12,11 +12,12 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, theCanvas, theLayer, parent=None):
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
         super(LaneShowImageDlg, self).__init__(parent)
         self.setupUi(self)
         self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
+        self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
         # 
         self.graphicViewsMap = {
@@ -41,40 +42,40 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         # 
         self.arrowImagesMap_highlight = {
-            0: ":/icons/0.png",
-            2**0 : ":/icons/1.png",
-            2**1 : ":/icons/2.png",
-            2**2 : ":/icons/4.png",
-            2**3 : ":/icons/8.png",
-            2**4 : ":/icons/16.png",
-            2**5 : ":/icons/32.png",
-            2**6 : ":/icons/64.png",
-            2**7 : ":/icons/128.png",
-            2**8 : ":/icons/256.png",
-            2**9 : ":/icons/512.png",
-            2**10 : ":/icons/1024.png",
-            2**11 : ":/icons/2048.png",
-            2**12 : ":/icons/4096.png",
-            2**13 : ":/icons/8192.png"
+            0: ":/lane/0.png",
+            2**0 : ":/lane/1.png",
+            2**1 : ":/lane/2.png",
+            2**2 : ":/lane/4.png",
+            2**3 : ":/lane/8.png",
+            2**4 : ":/lane/16.png",
+            2**5 : ":/lane/32.png",
+            2**6 : ":/lane/64.png",
+            2**7 : ":/lane/128.png",
+            2**8 : ":/lane/256.png",
+            2**9 : ":/lane/512.png",
+            2**10 : ":/lane/1024.png",
+            2**11 : ":/lane/2048.png",
+            2**12 : ":/lane/4096.png",
+            2**13 : ":/lane/8192.png"
             }
 
         #
         self.arrowImagesMap_gray = {
-            0: ":/icons/0_gray.png",
-            2**0 : ":/icons/1_gray.png",
-            2**1 : ":/icons/2_gray.png",
-            2**2 : ":/icons/4_gray.png",
-            2**3 : ":/icons/8_gray.png",
-            2**4 : ":/icons/16_gray.png",
-            2**5 : ":/icons/32_gray.png",
-            2**6 : ":/icons/64_gray.png",
-            2**7 : ":/icons/128_gray.png",
-            2**8 : ":/icons/256_gray.png",
-            2**9 : ":/icons/512_gray.png",
-            2**10 : ":/icons/1024_gray.png",
-            2**11 : ":/icons/2048_gray.png",
-            2**12 : ":/icons/4096_gray.png",
-            2**13 : ":/icons/8192_gray.png"
+            0: ":/lane/0_gray.png",
+            2**0 : ":/lane/1_gray.png",
+            2**1 : ":/lane/2_gray.png",
+            2**2 : ":/lane/4_gray.png",
+            2**3 : ":/lane/8_gray.png",
+            2**4 : ":/lane/16_gray.png",
+            2**5 : ":/lane/32_gray.png",
+            2**6 : ":/lane/64_gray.png",
+            2**7 : ":/lane/128_gray.png",
+            2**8 : ":/lane/256_gray.png",
+            2**9 : ":/lane/512_gray.png",
+            2**10 : ":/lane/1024_gray.png",
+            2**11 : ":/lane/2048_gray.png",
+            2**12 : ":/lane/4096_gray.png",
+            2**13 : ":/lane/8192_gray.png"
             }
 
         featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
@@ -88,8 +89,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initComboBoxSelectLink()
-        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        self.initComboBoxOutlink(self.mSelFeatureIds)
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
         self.comboBoxSelectLink.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
@@ -104,13 +105,16 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initComboBoxSelectLink(self):
-        while(self.comboBoxSelectLink.count() > 0):
-            self.comboBoxSelectLink.removeItem(0)
-        selectedFeatures = self.mTheLayer.selectedFeatures()
-        for oneFeature in selectedFeatures:
-            if LaneShowImageDlg.isMyFeature(oneFeature):
-                self.comboBoxSelectLink.addItem(str(oneFeature.attribute('out_link_id')))
+    def initComboBoxOutlink(self, featureIdList):
+        while(self.comboBoxOutlink.count() > 0):
+            self.comboBoxOutlink.removeItem(0)
+        for oneFeatureId in self.featureIdList:
+            featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
+            theFeature = QgsFeature()
+            if featureIter.nextFeature(theFeature) == False:
+                return
+            if self.mIsMyFeature(theFeature):
+                self.comboBoxOutlink.addItem(str(oneFeature.attribute('out_link_id')))
 
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
@@ -123,47 +127,43 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def comboBoxSelectLinkChanged(self, txt):
+    def comboBoxOutlinkChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxSelectLink.currentIndex()
-        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
+        inti = self.comboBoxOutlink.currentIndex()
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
             return
         return
 
     def onPushButtonPrev(self):
         self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()-1)
         prevFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
-        self.mTheLayer.removeSelection()
-        self.mTheLayer.select(prevFeatureId)
-        self.initComboBoxSelectLink()
-
         errMsg = ['']
-        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        self.selectFeatureById(errMsg, prevFeatureId)
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
             return
-        self.comboBoxSelectLink.setFocus()
-        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
-        self.mTheCanvas.refresh()
         return
 
     def onPushButtonNext(self):
         self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()+1)
         nextFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
-        self.mTheLayer.removeSelection()
-        self.mTheLayer.select(nextFeatureId)
-        self.initComboBoxSelectLink()
-
         errMsg = ['']
-        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        self.selectFeatureById(errMsg, nextFeatureId)
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
             return
-        self.comboBoxSelectLink.setFocus()
+        return
+
+    def selectFeatureById(self, errMsg, featureId):
+        self.mTheLayer.removeSelection()
+        self.mTheLayer.select(featureId)
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        if errMsg[0] <> '':
+            return
         return
 
     @staticmethod
