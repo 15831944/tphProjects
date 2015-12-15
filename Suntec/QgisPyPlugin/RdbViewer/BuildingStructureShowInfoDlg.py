@@ -1,17 +1,23 @@
 ﻿# -*- coding: utf-8 -*-
 import os
 from GuideInfoCommonDlg import GuideInfoCommonDlg
+from qgis.core import QgsFeatureRequest, QgsFeature
+
 class BuildingStructureShowInfoDlg(GuideInfoCommonDlg):
-    def __init__(self, theCanvas, theLayer, parent=None):
-        super(BuildingStructureShowInfoDlg, self).__init__(theCanvas, theLayer, "Building Structure", parent)
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
+        self.labelOutlinkid.setText("Node ID:")
+        super(BuildingStructureShowInfoDlg, self).__init__(theCanvas, theLayer, selFeatureIds, "Building Structure", parent)
 
     def initComboBoxOutlinkid(self):
-        self.labelOutlinkid.setText("Node ID:")
         while(self.comboBoxOutlinkid.count() > 0):
             self.comboBoxOutlinkid.removeItem(0)
-        for oneFeature in self.mTheLayer.selectedFeatures():
-            if self.mIsMyFeature(oneFeature):
-                self.comboBoxOutlinkid.addItem("%.0f" % oneFeature.attribute('node_id'))
+        for oneFeatureId in self.mSelFeatureIds:
+            featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
+            theFeature = QgsFeature()
+            if featureIter.nextFeature(theFeature) == False:
+                return
+            if self.mIsMyFeature(theFeature):
+                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('node_id')))
 
     def mIsMyFeature(self, theFeature):
         return BuildingStructureShowInfoDlg.isMyFeature(theFeature)

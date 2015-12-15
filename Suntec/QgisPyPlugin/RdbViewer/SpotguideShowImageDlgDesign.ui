@@ -101,7 +101,7 @@
      <number>-1</number>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBoxOutlink"/>
+   <widget class="QComboBox" name="comboBoxOutlinkid"/>
   </widget>
  </widget>
  <resources/>

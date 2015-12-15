@@ -89,32 +89,32 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initComboBoxOutlink(self.mSelFeatureIds)
+        self.initComboBoxOutlinkid(self.mSelFeatureIds)
         self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
-        self.comboBoxSelectLink.setFocus()
+        self.comboBoxOutlinkid.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
-        self.connect(self.comboBoxSelectLink, QtCore.SIGNAL('activated(QString)'), self.comboBoxSelectLinkChanged)
+        self.connect(self.comboBoxOutlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkidChanged)
         
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
         self.pushButtonPrev.setEnabled(False)
-        self.comboBoxSelectLink.setEnabled(False)
+        self.comboBoxOutlinkid.setEnabled(False)
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initComboBoxOutlink(self, featureIdList):
-        while(self.comboBoxOutlink.count() > 0):
-            self.comboBoxOutlink.removeItem(0)
+    def initComboBoxOutlinkid(self, featureIdList):
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
         for oneFeatureId in self.featureIdList:
             featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
             theFeature = QgsFeature()
             if featureIter.nextFeature(theFeature) == False:
                 return
             if self.mIsMyFeature(theFeature):
-                self.comboBoxOutlink.addItem(str(oneFeature.attribute('out_link_id')))
+                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('out_link_id')))
 
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
@@ -127,9 +127,9 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def comboBoxOutlinkChanged(self, txt):
+    def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxOutlink.currentIndex()
+        inti = self.comboBoxOutlinkid.currentIndex()
         self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])

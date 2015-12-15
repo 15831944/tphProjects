@@ -32,31 +32,31 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initComboBoxOutlink(self.mSelFeatureIds)
+        self.initComboBoxOutlinkid()
         self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
-        self.comboBoxOutlink.setFocus()
+        self.comboBoxOutlinkid.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
-        self.connect(self.comboBoxOutlink, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkChanged)
+        self.connect(self.comboBoxOutlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkidChanged)
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
         self.pushButtonPrev.setEnabled(False)
-        self.comboBoxOutlink.setEnabled(False)
+        self.comboBoxOutlinkid.setEnabled(False)
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initComboBoxOutlink(self, featureIdList):
-        while(self.comboBoxOutlink.count() > 0):
-            self.comboBoxOutlink.removeItem(0)
-        for oneFeatureId in self.featureIdList:
+    def initComboBoxOutlinkid(self):
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
+        for oneFeatureId in self.mSelFeatureIds:
             featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
             theFeature = QgsFeature()
             if featureIter.nextFeature(theFeature) == False:
                 return
             if self.mIsMyFeature(theFeature):
-                self.comboBoxOutlink.addItem(str(oneFeature.attribute('out_link_id')))
+                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('out_link_id')))
 
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
@@ -162,9 +162,9 @@ where %s
             errMsg[0] = ex.message
             return None, None
 
-    def comboBoxOutlinkChanged(self, txt):
+    def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxOutlink.currentIndex()
+        inti = self.comboBoxOutlinkid.currentIndex()
         self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])

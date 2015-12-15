@@ -248,7 +248,7 @@
      <string>Gid:</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBoxSelectLink"/>
+   <widget class="QComboBox" name="comboBoxOutlinkid"/>
   </widget>
  </widget>
  <resources/>

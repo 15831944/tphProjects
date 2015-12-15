@@ -1,17 +1,24 @@
 ﻿# -*- coding: utf-8 -*-
 import os
+
 from GuideInfoCommonDlg import GuideInfoCommonDlg
+from qgis.core import QgsFeatureRequest, QgsFeature
+
 class RegulationShowInfoDlg(GuideInfoCommonDlg):
-    def __init__(self, theCanvas, theLayer, parent=None):
-        super(RegulationShowInfoDlg, self).__init__(theCanvas, theLayer, "Regulation", parent)
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
+        super(RegulationShowInfoDlg, self).__init__(theCanvas, theLayer, selFeatureIds, "Regulation", parent)
+        self.labelOutlinkid.setText("record_no:")
 
     def initComboBoxOutlinkid(self):
-        self.labelOutlinkid.setText("Record No.:")
         while(self.comboBoxOutlinkid.count() > 0):
             self.comboBoxOutlinkid.removeItem(0)
-        for oneFeature in self.mTheLayer.selectedFeatures():
-            if self.mIsMyFeature(oneFeature):
-                self.comboBoxOutlinkid.addItem("%.0f" % oneFeature.attribute('record_no'))
+        for oneFeatureId in self.mSelFeatureIds:
+            featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
+            theFeature = QgsFeature()
+            if featureIter.nextFeature(theFeature) == False:
+                return
+            if self.mIsMyFeature(theFeature):
+                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('record_no')))
 
     def mIsMyFeature(self, theFeature):
         return RegulationShowInfoDlg.isMyFeature(theFeature)

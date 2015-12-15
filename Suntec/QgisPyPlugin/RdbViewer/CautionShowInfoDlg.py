@@ -118,14 +118,15 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         51 : ":/caution/51.png"
     }
 
-    def __init__(self, theCanvas, theLayer, category="Caution",  parent=None):
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
         super(CautionShowInfoDlg, self).__init__(parent)
         self.setupUi(self)
         self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
+        self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
-        self.mCategory = category
-        self.setWindowTitle(self.mCategory)
+        self.setWindowTitle("Caution")
+        self.labelOutlinkid.setText("Inlinkid:")
         self.graphicsViewCaution.setScene(QGraphicsScene())
 
         featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
@@ -139,19 +140,18 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initcomboBoxInlinkid()
-
-        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
-        self.comboBoxInlinkid.setFocus()
+        self.initComboBoxOutlinkid()
+        self.comboBoxOutlinkid.setFocus()
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
-        self.connect(self.comboBoxInlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxInlinkChanged)
+        self.connect(self.comboBoxOutlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkidChanged)
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
         self.pushButtonPrev.setEnabled(False)
-        self.comboBoxInlinkid.setEnabled(False)
+        self.comboBoxOutlinkid.setEnabled(False)
         self.textEditFeatureInfo.setEnabled(False)
         return
 
@@ -176,9 +176,9 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def comboBoxInlinkChanged(self, txt):
+    def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
-        inti = self.comboBoxInlinkid.currentIndex()
+        inti = self.comboBoxOutlinkid.currentIndex()
         self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
         if errMsg[0] <> '':
             QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
@@ -215,17 +215,16 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
             return
         return
 
-    def initcomboBoxInlinkid(self):
-        self.labelContentOfCombobox.setText("Inlinkid:")
-        while(self.comboBoxInlinkid.count() > 0):
-            self.comboBoxInlinkid.removeItem(0)
-        for oneFeatureId in self.featureIdList:
+    def initComboBoxOutlinkid(self):
+        while(self.comboBoxOutlinkid.count() > 0):
+            self.comboBoxOutlinkid.removeItem(0)
+        for oneFeatureId in self.mSelFeatureIds:
             featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
             theFeature = QgsFeature()
             if featureIter.nextFeature(theFeature) == False:
                 return
             if self.mIsMyFeature(theFeature):
-                self.comboBoxInlinkid.addItem(str(oneFeature.attribute('in_link_id')))
+                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('in_link_id')))
 
     def mIsMyFeature(self, theFeature):
         return CautionShowInfoDlg.isMyFeature(theFeature)
