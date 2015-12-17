@@ -31,13 +31,14 @@
     <Content Include="GenerateNewLayerDlgDesign.ui" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CautionShowInfoDlg.py" />
     <Compile Include="LaneShowImageDlg.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MyDatParser.py">
+    <Compile Include="DatParser.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MyGetBinType.py">
+    <Compile Include="DatGetBinType.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RdbViewer.py" />

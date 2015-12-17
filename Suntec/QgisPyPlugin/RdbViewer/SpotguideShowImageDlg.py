@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 import os
 import psycopg2
-from MyDatParser import MyDatParser
+from DatParser import DatParser
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
@@ -69,17 +69,17 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         if errMsg[0] != '':
             #QMessageBox.information(self, "Show Spotguide", errMsg[0])
             return
-        
+
         scene = QGraphicsScene()
         if pattern_dat is not None:
-            datParser = MyDatParser()
+            datParser = DatParser()
             datParser.initFromMemory(errMsg, pattern_dat) # pattern picture
             pixmap1 = QPixmap()
             pixmap1.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
             scene.addPixmap(self.getPixMapSizedByWidgt(pixmap1, self.graphicsViewShowImage))
 
         if arrow_dat is not None:
-            datParser = MyDatParser()
+            datParser = DatParser()
             datParser.initFromMemory(errMsg, arrow_dat) # arrow picture
             pixmap2 = QPixmap()
             pixmap2.loadFromData(datParser.getDatContentByIndex(errMsg, 0))

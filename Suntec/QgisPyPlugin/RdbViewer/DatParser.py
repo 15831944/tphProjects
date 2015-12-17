@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from os.path import getsize
+import os
 import struct
-import MyGetBinType
+import DatGetBinType
 
 ###########dat file type###########
 DatBinType_Invalid = -1
@@ -22,7 +22,6 @@ DatDayNightInfo_Evening = 3
 ###################################
 
 class DatBinInfo(object):
-
     def __init__(self, pBuff):
         cDatInfo = struct.unpack("<h", pBuff[0:2])[0] & 255
         self.mBinType = (cDatInfo >> 6) & 3
@@ -46,29 +45,28 @@ class DatBinInfo(object):
 
         strLanguage = ''
         if (self.mLanInfo == DatLangInfo_Common):
-            strLanguage = _T("Common language")
+            strLanguage = "Common language"
 
         strDayNight = ''
         if (self.mDayNightInfo == DatDayNightInfo_Common):
-            strDayNight = _T("Day/Night Common")
+            strDayNight = "Day/Night Common"
         elif (self.mDayNightInfo == DatDayNightInfo_Day):
-            strDayNight = _T("Day")
+            strDayNight = "Day"
         elif(self.mDayNightInfo == DatDayNightInfo_Night):
-            strDayNight = _T("Night")
+            strDayNight = "Night"
         elif(self.mDayNightInfo == DatDayNightInfo_Evening):
-            strDayNight = _T("Evening")
+            strDayNight = "Evening"
         else:
-            strDayNight = _T("")
+            strDayNight = ""
 
         strDatInfo = """%s,\n%s,\n%s,\n%d bytes\n""" % \
-        (strPicType, strLanguage, strDayNight, mDataLength)
+        (strPicType, strLanguage, strDayNight, self.mDataLength)
         return strDatInfo
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
-class MyDatParser(object):
-
+class DatParser(object):
     def __init__(self):
         self.mStrDatPath = None
         self.mPicCount = -1
@@ -79,7 +77,7 @@ class MyDatParser(object):
     def __del__(self):
         return
 
-    def clear():
+    def clear(self):
         self.mStrDatPath = None
         self.mPicCount = -1
         self.mVecDatInfoList = []
@@ -121,7 +119,7 @@ class MyDatParser(object):
             (iIdx+1, len(self.mVecDatInfoList), self.mVecDatInfoList[iIdx].GetPicInfoString())
 
         if (self.mVecDatInfoList[iIdx].mBinType == DatBinType_Pointlist):
-            strDatInfo += _T("\npointlist:\n")
+            strDatInfo += "\npointlist:\n"
             strDatInfo += self.GetPointListStringByIndex(errMsg, iIdx)
         return strDatInfo
 
@@ -180,10 +178,10 @@ class MyDatParser(object):
             pTempBuf = self.mBuff[binInfo.mDataOffset, binInfo.mDataOffset+binInfo.mDataLength]
 
             strOutJpg = ''
-            imgType = MyGetBinType.GetBinaryDataTypeByBuffer(pTempBuf)
-            if (imgType == ImageType_Jpg):
+            imgType = DatGetBinType.GetBinaryDataTypeByBuffer(pTempBuf)
+            if (imgType == DatGetBinType.ImageType_Jpg):
                 strOutJpg = """%s\\%s_%d.jpg"""%(strOutputDir, self.getDatFileNameWithoutExt(), i)
-            elif(imgType == ImageType_Png):
+            elif(imgType == DatGetBinType.ImageType_Png):
                 strOutJpg = """%s\\%s_%d.png"""%(strOutputDir, self.getDatFileNameWithoutExt(), i)
             else:
                 errMsg[0] = """dat internal error: invalid dat data type."""
@@ -221,10 +219,10 @@ class MyDatParser(object):
         return strRes
 
     def getDatFullPath(self):
-        return mStrDatPath
+        return self.mStrDatPath
 
     def setDatFullPath(self, str):
-        mStrDatPath = str
+        self.mStrDatPath = str
         return
 
     def hasPointlist(self):
