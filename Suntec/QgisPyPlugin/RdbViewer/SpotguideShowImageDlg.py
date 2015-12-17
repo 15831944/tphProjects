@@ -33,7 +33,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         errMsg = ['']
         self.initComboBoxOutlinkid()
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[0], bZoomToSelected=False)
         self.comboBoxOutlinkid.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
@@ -76,7 +76,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             datParser.initFromMemory(errMsg, pattern_dat) # pattern picture
             pixmap1 = QPixmap()
             pixmap1.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
-            scene.addPixmap(self.autoFitSize(pixmap1))
+            scene.addPixmap(self.getPixMapSizedByWidgt(pixmap1, self.graphicsViewShowImage))
 
         if arrow_dat is not None:
             datParser = MyDatParser()
@@ -108,7 +108,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strTemp += """\n\npointlist:\n"""
                 strTemp += strPointList
                 self.textEditFeatureInfo.setText(strTemp)
-            scene.addPixmap(self.autoFitSize(pixmap2))
+            scene.addPixmap(self.getPixMapSizedByWidgt(pixmap2, self.graphicsViewShowImage))
         self.graphicsViewShowImage.setScene(scene)
         return
     
@@ -165,7 +165,7 @@ where %s
     def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
         inti = self.comboBoxOutlinkid.currentIndex()
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti], bZoomToSelected=False)
         if errMsg[0] <> '':
             QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
             return
@@ -191,21 +191,22 @@ where %s
             return
         return
 
-    def selectFeatureById(self, errMsg, featureId):
+    def selectFeatureById(self, errMsg, featureId, bZoomToSelected=True):
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(featureId)
-        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
-        self.mTheCanvas.refresh()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             return
+        if bZoomToSelected == True:
+            center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+            self.mTheCanvas.refresh()
         return
 
-    def autoFitSize(self, pixmap):
+    def getPixMapSizedByWidgt(self, pixmap, theWidgt):
         pixmapWidth = pixmap.width()
         pixmapHeight = pixmap.height()
-        gpViewWidth = self.graphicsViewShowImage.width()
-        gpViewHeight = self.graphicsViewShowImage.height()
+        gpViewWidth = theWidgt.width()
+        gpViewHeight = theWidgt.height()
 
         destWidth = 0
         destHeight = 0
@@ -219,7 +220,7 @@ where %s
         else:
             destHeight = pixmapHeight
 
-        return pixmap.scaled(destWidth, destHeight)
+        return pixmap.scaled(destWidth, destHeight, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.SmoothTransformation)
 
     def mIsMyFeature(self, theFeature):
         return SpotguideShowImageDlg.isMyFeature(theFeature)

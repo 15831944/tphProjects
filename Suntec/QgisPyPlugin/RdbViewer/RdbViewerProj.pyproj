@@ -23,6 +23,7 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="CautionShowInfoDlgDesign.ui" />
     <Content Include="metadata.txt" />
     <Content Include="LaneShowImageDlgDesign.ui" />
     <Content Include="GuideInfoCommonDlgDesign.ui" />

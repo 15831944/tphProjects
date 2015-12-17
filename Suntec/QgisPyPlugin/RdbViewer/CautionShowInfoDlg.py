@@ -142,7 +142,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         errMsg = ['']
         self.initComboBoxOutlinkid()
         self.comboBoxOutlinkid.setFocus()
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[0], bZoomToSelected=False)
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
@@ -179,7 +179,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
     def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
         inti = self.comboBoxOutlinkid.currentIndex()
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti], bZoomToSelected=False)
         if errMsg[0] <> '':
             QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
             return
@@ -205,14 +205,15 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
             return
         return
 
-    def selectFeatureById(self, errMsg, featureId):
+    def selectFeatureById(self, errMsg, featureId, bZoomToSelected=True):
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(featureId)
-        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
-        self.mTheCanvas.refresh()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             return
+        if bZoomToSelected == True:
+            center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+            self.mTheCanvas.refresh()
         return
 
     def initComboBoxOutlinkid(self):

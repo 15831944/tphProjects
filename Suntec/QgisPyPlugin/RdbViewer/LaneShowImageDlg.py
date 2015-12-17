@@ -89,8 +89,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.spinBoxFeatureIndex.setMaximum(inti)
 
         errMsg = ['']
-        self.initComboBoxOutlinkid(self.mSelFeatureIds)
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[0])
+        self.initComboBoxOutlinkid()
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[0], bZoomToSelected=False)
         self.comboBoxOutlinkid.setFocus()
 
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
@@ -105,10 +105,10 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.textEditFeatureInfo.setEnabled(False)
         return
 
-    def initComboBoxOutlinkid(self, featureIdList):
+    def initComboBoxOutlinkid(self):
         while(self.comboBoxOutlinkid.count() > 0):
             self.comboBoxOutlinkid.removeItem(0)
-        for oneFeatureId in self.featureIdList:
+        for oneFeatureId in self.mSelFeatureIds:
             featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(oneFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
             theFeature = QgsFeature()
             if featureIter.nextFeature(theFeature) == False:
@@ -130,7 +130,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def comboBoxOutlinkidChanged(self, txt):
         errMsg = ['']
         inti = self.comboBoxOutlinkid.currentIndex()
-        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti])
+        self.selectFeatureById(errMsg, self.mSelFeatureIds[inti], bZoomToSelected=False)
         if errMsg[0] <> '':
             QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
             return
@@ -156,15 +156,19 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             return
         return
 
-    def selectFeatureById(self, errMsg, featureId):
+    def selectFeatureById(self, errMsg, featureId, bZoomToSelected=True):
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(featureId)
-        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
-        self.mTheCanvas.refresh()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         if errMsg[0] <> '':
             return
+        if bZoomToSelected == True:
+            center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+            self.mTheCanvas.refresh()
         return
+
+    def mIsMyFeature(self, theFeature):
+        return LaneShowImageDlg.isMyFeature(theFeature)
 
     @staticmethod
     def isMyFeature(theFeature):

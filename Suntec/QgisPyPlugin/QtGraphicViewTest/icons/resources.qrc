@@ -1,0 +1,101 @@
+<RCC>
+  <qresource prefix="/icons">
+     <file>NewLayerIcon.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>SpotguideIcon.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>LaneIcon.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>NostraIcon.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>1.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>1_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>2.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>2_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>4.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>4_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>8.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>8_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>16.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>16_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>32.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>32_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>64.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>64_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>128.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>128_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>256.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>256_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>512.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>512_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>1024.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>1024_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>2048.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>2048_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>4096.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>4096_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>8192.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>8192_gray.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>RegulationIcon.png</file>
+  </qresource>
+</RCC>
