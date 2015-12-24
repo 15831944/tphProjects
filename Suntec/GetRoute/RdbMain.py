@@ -9,17 +9,18 @@ class TestComputeRoute(object):
                                      (dbIP, dbName, userName, password))
         self.pg = self.conn.cursor()
         self.G_L6 = RdbDiGraph(self.pg)
+        self.G_L4 = RdbDiGraph(self.pg)
+        self.G_L14 = RdbDiGraph(self.pg)
 
     # 返回：level14的node序列
     def computeRoute_L14(self, errMsg, startNode_L14, endNode_L14):
-        startUpNode_L14 = self.findUpNode_L14_to_L4(startNode_L14)
-        endUpNode_L14 = self.findUpNode_L14_to_L4(endNode_L14)
+        startUpNode_L14 = self.findUpGradeNode_L14_to_L4(errMsg, startNode_L14)
+        endUpNode_L14 = self.findUpGradeNode_L14_to_L4(errMsg, endNode_L14)
         path1 = self.computeRoute14Directly(errMsg, startNode_L14, startUpNode_L14)
         path2 = self.computeRoute14Directly(errMsg, endUpNode_L14, endNode_L14)
-        midPath_L4 = self.computeRoute_L4(errMsg,
+        midPath_L14 = self.computeRoute_L4(errMsg,
                                            TestComputeRoute.node_L14_to_node_L4(startUpNode_L14),
                                            TestComputeRoute.node_L14_to_node_L4(endUpNode_L14))
-        midPath_L14 = TestComputeRoute.path_L4_to_path_L14(midPath_L4)
         path_L14 = path1
         path_L14.extend(midPath_L14[1:])
         path_L14.extend(path2[1:])
@@ -27,37 +28,39 @@ class TestComputeRoute(object):
 
     # 返回：level14的node序列
     def computeRoute_L14Directly(self, errMsg, startNode, endNode):
-        G_L14 = RdbDiGraph(self.pg)
         tileIDList_L14 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode, endNode, offset=3)
-        G_L14.addEdgeByTileIDList(errMsg, tileIDList_L14)
-        weightList, pathList = RdbDiGraph.single_source_dijkstra(G_L14, startNode, endNode)
+        self.G_L14.addEdgeByTileIDList(errMsg, tileIDList_L14)
+        weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L14, startNode, endNode)
         return pathList[endNode]
 
-    # 返回：level4的node序列
+    # 返回：level14的node序列
     def computeRoute_L4(self, errMsg, startNode_L4, endNode_L4):
-        startUpNode_L4 = self.findUpNode_L4_to_L6(startNode)
-        endUpNode_L4 = self.findUpNode_L4_to_L6(endNode)
+        startUpNode_L4 = self.findUpNode_L4_to_L6(errMsg, startNode)
+        endUpNode_L4 = self.findUpNode_L4_to_L6(errMsg, endNode)
         path1 = self.computeRoute_L4Directly(errMsg, startNode_L4, startUpNode_L4)
         path2 = self.computeRoute_L4Directly(errMsg, endUpNode_L4, endNode_L4)
 
-        path1_L14 = []
-        path2_L14 = []
-        midPath_L6 = self.computeRoute_L6(errMsg, 
-                                          TestComputeRoute.node_L4_to_node_L6(startUpNode_L4),
-                                          TestComputeRoute.node_L4_to_node_L6(endUpNode_L4))
-        midPath_L4 = TestComputeRoute.path_L6_to_path_L4(midPath_L6)
-        path_L4 = path1
-        path_L4.extend(midPath_L4[1:])
-        path_L4.extend(path2[1:])
-        return path_L4
+        path1_L14 = TestComputeRoute.path_L4_to_path_L14(path1)
+        path2_L14 = TestComputeRoute.path_L4_to_path_L14(path2)
+        midPath_L14 = self.computeRoute_L6(errMsg, 
+                                           TestComputeRoute.node_L4_to_node_L6(startUpNode_L4),
+                                           TestComputeRoute.node_L4_to_node_L6(endUpNode_L4))
+        path_L14 = path1_L14
+        path_L14.extend(midPath_L14[1:])
+        path_L14.extend(path2_L14[1:])
+        return path_L14
 
     # 返回：level4的node序列
     def computeRoute_L4Directly(self, errMsg, startNode_L4, endNode_L4):
-        G_L4 = RdbDiGraph(self.pg)
         tileIDList_L4 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode_L4, endNode_L4, offset=3)
-        G_L4.addEdgeByTileIDList(errMsg, tileIDList_L4, 'rdb_region_link_layer4_tbl')
-        weightList, pathList = RdbDiGraph.single_source_dijkstra(G_L4, startNode_L4, endNode_L4)
+        self.G_L4.addEdgeByTileIDList(errMsg, tileIDList_L4, 'rdb_region_link_layer4_tbl')
+        weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L4, startNode_L4, endNode_L4)
         return pathList[endNode_L4]
+
+    # 返回：level14的node序列。
+    def computeRoute_L6(self, errMsg, startNode_L6, endNode_L6):
+        path_L6 = self.computeRoute_L6Directly(errMsg, startNode_L6, endNode_L6)
+        return TestComputeRoute.path_L6_to_path_L14(path_L6)
 
     # 返回：level6的node序列
     def computeRoute_L6Directly(self, errMsg, startNode_L6, endNode_L6):
@@ -65,11 +68,55 @@ class TestComputeRoute(object):
         weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L6, startNode_L6, endNode_L6)
         return pathList[endNode_L6]
 
-    # 在node_L14的附近寻找上迁至level4的上迁点
+    # 在此node_L14的附近寻找可上迁至level4的上迁点
     # 返回level14的node值。
-    @staticmethod
-    def findUpNode_L14_to_L4(self, errMsg, node_L14):
+    def findUpGradeNode_L14_to_L4(self, errMsg, node_L14):
+        tileId_L14 = node_L14 >> 32
+        tileId_L4 = TestComputeRoute.tileId_L14_to_tileId_L4(errMsg, tileId_L14)
+        offset = 1
+        sqlcmdFormat = """
+select a.node_id as node_id_L4, b.node_id_14 as node_id_L14
+from rdb_region_node_layer4_tbl as a
+left join rdb_region_layer4_node_mapping as b
+on a.node_id=b.region_node_id
+where node_id_t in (%s)
+"""
+        tileId_L4List = None
+        upgradeNodeList = None
+        while (True):
+            offset += 1
+            tileId_L4List = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L4, tileId_L4, offset)
+            strTileIDList = ','.join(("%d"%x) for x in tileId_L4List)
+            sqlcmd = sqlcmdFormat % strTileIDList
+            self.pg.execute(sqlcmd)
+            rows = self.pg.fetchall()
+            if len(rows) < 100:
+                continue
+            else:
+                upgradeNodeList = list(rows) # [(node_L4, node_L14)]
+        tileIdList_L14 = TestComputeRoute.tileId_L4List_to_tileId_L14List(tileId_L4List)
+        tempG_L14 = RdbDiGraph(self.pg)
+        tempG_L14.addEdgeByTileIDList(errMsg, tileIdList_L14, 'rdb_link')
+        weightList, pathList = RdbDiGraph.single_source_dijkstra(self.tempG_L14, node_L14, None)
+
+
+
+
         return 1
+
+    @staticmethod
+    def tileId_L14_to_tileId_L4(errMsg, tileId_L14):
+
+        return 1
+
+    @staticmethod
+    def tileId_L4_to_tileId_L14(errMsg, tileId_L4):
+        return 1
+
+    @staticmethod
+    def tileId_L4List_to_tileId_L14List(errMsg, tileId_L4List):
+        todo
+        return tileId_L4List
 
     # 在node_L4的附近寻找上迁至level6的上迁点
     # 返回level4的node值。
@@ -136,9 +183,23 @@ def main():
     for dbName in dbNameList:
         try:
             computeRoute = TestComputeRoute(dbIP, dbName, userName, password)
-            path_L6 = computeRoute.computeRoute_L6Directly(errMsg, 2305843022098617489, 2305843013508663116)
-            inti = 0
-            inti += 1
+            #path_L6 = computeRoute.computeRoute_L6Directly(errMsg, 2305843022098603970, 2305843013508662291)
+            #with open(r"c:\my\path_L6.txt", "w") as oFStream:
+            #    for i in range(0, len(path_L6)-1):
+            #        oFStream.write("""%s,\n""" % (computeRoute.G_L6[path_L6[i]][path_L6[i+1]]['link_id']))
+
+            #path_L4 = computeRoute.computeRoute_L4Directly(errMsg, -6859402525099950070, -6859895114899128142)
+            #with open(r"c:\my\path_L4.txt", "w") as oFStream:
+            #    for i in range(0, len(path_L4)-1):
+            #        oFStream.write("""%s,\n""" % (computeRoute.G_L4[path_L4[i]][path_L4[i+1]]['link_id']))
+
+            #path_L14 = computeRoute.computeRoute_L14Directly(errMsg, -1394607968711868412, -1393341511705296893)
+            path_L14 = computeRoute.computeRoute_L14(errMsg, -1394607968711868412, -1393341511705296893)
+            with open(r"c:\my\path_L14.txt", "w") as oFStream:
+                for i in range(0, len(path_L14)-1):
+                    oFStream.write("""%s,\n""" % (computeRoute.G_L14[path_L14[i]][path_L14[i+1]]['link_id']))
+
+
         except Exception, ex:
             print '''%s/%s.\nmsg:\t%s\n''' % (dbIP, dbName, ex)
 

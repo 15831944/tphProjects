@@ -35,7 +35,7 @@ select  link_id, road_type, toll, link_length, one_way,
         start_node_id, end_node_id, fazm, tazm
 from %s 
 where link_id_t in (%s)
-""" % (link_tbl_name, strTileIDList)
+""" % (link_tbl_name, tileID)
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()
         for row in rows:
