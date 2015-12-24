@@ -1,5 +1,6 @@
 #encoding=utf-8
 import math
+import ctypes
 
 # 功能类，此类用于换算两点的经纬度与方位、距离
 class LatLonPoint(object):
@@ -8,9 +9,14 @@ class LatLonPoint(object):
     def __init__(self, latitude, longitude):
         self.latitude = latitude * 256 * 3600;    
         self.longitude = longitude * 256 * 3600;
-        
+    
+    def getLat(self):
+        return self.latitude / 256 / 3600
+    
+    def getLon(self):
+        return self.longitude / 256 / 3600
+    
     def getPointByAngleDistance(self, angle, distance):
-        
         return
      
     def getAngleByLatLon(self, latitude, longitude):
@@ -41,3 +47,107 @@ class LatLonPoint(object):
         s = s * LatLonPoint.A_WGS84;
         s = round(s * 10000) / 10000;
         return s
+    
+    # 通过经纬度点获取tileid。
+    # tile_z：划分tile的幅度，默认值14：将地球的墨卡托投影沿x轴和y轴切为2^14 * 2^14块。
+    @staticmethod
+    def getTileId(errMsg, latLonPoint, tile_z=14):
+        if tile_z > 14:
+            errMsg[0] = "tile_z exceed 14"  
+            return None
+    
+        lon = latLonPoint.getLon()
+        lat = latLonPoint.getLat()
+        x = lon / 360.0 + 0.5
+        y = math.log(math.tan(math.pi / 4.0 + math.radians(lat) / 2.0))
+        y = 0.5 - y / 2.0 / math.pi
+                                        
+        tile_x = int(math.floor(x * (1<<tile_z)))
+        tile_y = int(math.floor(y * (1<<tile_z)))
+                                                
+        tile_id = (tile_z<<28) | (tile_x<<14) | tile_y
+        return ctypes.c_int32(tile_id).value  
+    
+    # 获取两个经纬度点为矩形顶点的所有tile id。
+    @staticmethod
+    def getTileIdList(errMsg, latLonPoint1, latLonPoint2, tile_z=14, offset=0):
+        if tile_z > 14:
+            errMsg[0] = "tile_z: %s exceed 14" % tile_z  
+            return None
+        
+        if offset > 2**14:
+            errMsg[0] = "unavailable offset: %s" % offset
+            return None
+        
+        tileId1 = LatLonPoint.getTileId(errMsg, latLonPoint1, tile_z)
+        tileId2 = LatLonPoint.getTileId(errMsg, latLonPoint2, tile_z)
+        resultList = LatLonPoint.getTileIdListByTileId(errMsg, tileId1, tileId2, tile_z, offset)
+        if errMsg[0] <> '':
+            return None
+        return resultList
+    
+    # 获取两个tile为矩形顶点的所有tile id。
+    # tile_z：分割程度
+    # offset：向外扩张幅度。
+    @staticmethod
+    def getTileIdListByTileId(errMsg, tileId1, tileId2, offset=0):
+        tile_z = tileId1>>28;
+        if tile_z <> tileId2>>28:
+            errMsg[0] = "tile_z of two tileIDs are not equal"
+            return None
+
+        if offset > 2**14:
+            errMsg[0] = "unavailable offset: %s" % offset
+            return None
+        
+        tile_x1 = (tileId1>>14) & (2**14-1);
+        tile_y1 = (tileId1) & (2**14-1);
+        tile_x2 = (tileId2>>14) & (2**14-1);
+        tile_y2 = (tileId2) & (2**14-1);
+        
+        tile_x_min = min(max(0, tile_x1-offset), max(0, tile_x2-offset))
+        tile_x_max = max(min(tile_x1+offset, 2**14), min(tile_x2+offset, 2**14))
+        tile_y_min = min(max(0, tile_y1-offset), max(0, tile_y2-offset))
+        tile_y_max = max(min(tile_y1+offset, 2**14), min(tile_y2+offset, 2**14))
+        
+        resultList = []
+        for tile_x in range(tile_x_min, tile_x_max):
+            for tile_y in range(tile_y_min, tile_y_max):
+                tile_id = ((tile_z<<28) | (tile_x<<14) | tile_y)
+                resultList.append(ctypes.c_int32(tile_id).value)
+        
+        return resultList
+
+    # 获取两个node所在的tile为矩形顶点的所有tile id。
+    # tile_z：分割程度
+    # offset：向外扩张幅度。
+    @staticmethod
+    def getTileIdListByNodeId(errMsg, nodeId1, nodeId2, offset=0):
+        tileId1 = nodeId1>>32
+        tileId2 = nodeId2>>32
+        return LatLonPoint.getTileIdListByTileId(errMsg, tileId1, tileId2, offset)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
