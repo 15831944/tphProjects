@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
 from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
+import DatGetBinType
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'SpotguideShowImageDlgDesign.ui'))
