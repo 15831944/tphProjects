@@ -115,8 +115,8 @@ where link_id_t in (%s)
         elif rdbLinkObj.one_way == 3:
             self.add_edge(rdbLinkObj.end_node_id, rdbLinkObj.start_node_id, rdbLinkObj.getArgDist_11())
         else:
-            return  
-            
+            return
+
     # 根据起点和终点的经纬度将需要的规制信息加载到内存中。
     def addRegulationByLatLonPoints(self, errMsg, latLonPoint1, latLonPoint2):
         tileIDList = LatLonPoint.getTileIdList(errMsg, latLonPoint1, latLonPoint2, offset=3)
@@ -296,6 +296,7 @@ where link_id_t in (%s)
                 pathList[succNode] = pathList[curNode]+[succNode]
                 
         return (weightList, pathList)
+
 
 
 
