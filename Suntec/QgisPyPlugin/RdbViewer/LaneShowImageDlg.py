@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import psycopg2
-from MyDatParser import MyDatParser
+from DatParser import DatParser
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap
@@ -12,36 +12,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
-        super(LaneShowImageDlg, self).__init__(parent)
-        self.setupUi(self)
-        self.mTheCanvas = theCanvas
-        self.mTheLayer = theLayer
-        self.mSelFeatureIds = selFeatureIds
-        self.mAllFeatureIds = []
-        # 
-        self.graphicViewsMap = {
-            0 : self.graphicView_00,
-            1 : self.graphicView_01,
-            2 : self.graphicView_02,
-            3 : self.graphicView_03,
-            4 : self.graphicView_04,
-            5 : self.graphicView_05,
-            6 : self.graphicView_06,
-            7 : self.graphicView_07,
-            8 : self.graphicView_08,
-            9 : self.graphicView_09,
-            10 : self.graphicView_10,
-            11 : self.graphicView_11,
-            12 : self.graphicView_12,
-            13 : self.graphicView_13,
-            14 : self.graphicView_14,
-            15 : self.graphicView_15
-            }
-        self.initAllGraphicViews()
-
-        # 
-        self.arrowImagesMap_highlight = {
+    arrowImagesMap_highlight = {
             0: ":/lane/0.png",
             2**0 : ":/lane/1.png",
             2**1 : ":/lane/2.png",
@@ -59,8 +30,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             2**13 : ":/lane/8192.png"
             }
 
-        #
-        self.arrowImagesMap_gray = {
+    arrowImagesMap_gray = {
             0: ":/lane/0_gray.png",
             2**0 : ":/lane/1_gray.png",
             2**1 : ":/lane/2_gray.png",
@@ -78,6 +48,33 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             2**13 : ":/lane/8192_gray.png"
             }
 
+    def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
+        super(LaneShowImageDlg, self).__init__(parent)
+        self.setupUi(self)
+        self.mTheCanvas = theCanvas
+        self.mTheLayer = theLayer
+        self.mSelFeatureIds = selFeatureIds
+        self.mAllFeatureIds = []
+        self.graphicViewsMap = {
+                0 : self.graphicView_00,
+                1 : self.graphicView_01,
+                2 : self.graphicView_02,
+                3 : self.graphicView_03,
+                4 : self.graphicView_04,
+                5 : self.graphicView_05,
+                6 : self.graphicView_06,
+                7 : self.graphicView_07,
+                8 : self.graphicView_08,
+                9 : self.graphicView_09,
+                10 : self.graphicView_10,
+                11 : self.graphicView_11,
+                12 : self.graphicView_12,
+                13 : self.graphicView_13,
+                14 : self.graphicView_14,
+                15 : self.graphicView_15
+                }
+
+        self.initAllGraphicViews()
         featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
         inti = 0
         theFeature = QgsFeature()
@@ -180,14 +177,14 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             node_id_t = theFeature.attribute('node_id_t')
             out_link_id = theFeature.attribute('out_link_id')
             out_link_id_t = theFeature.attribute('out_link_id_t')
-            type = theFeature.attribute('lane_num')
-            passlink_count = theFeature.attribute('lane_info')
-            pattern_id = theFeature.attribute('arrow_info')
-            arrow_id = theFeature.attribute('lane_num_l')
-            is_exist_sar = theFeature.attribute('lane_num_r')
-            order_id = theFeature.attribute('passlink_count')
-            pattern_name = theFeature.attribute('exclusive')
-            arrow_name = theFeature.attribute('order_id')
+            lane_num = theFeature.attribute('lane_num')
+            lane_info = theFeature.attribute('lane_info')
+            arrow_info = theFeature.attribute('arrow_info')
+            lane_num_l = theFeature.attribute('lane_num_l')
+            lane_num_r = theFeature.attribute('lane_num_r')
+            passlink_count = theFeature.attribute('passlink_count')
+            #exclusive = theFeature.attribute('exclusive') # jdb has no this column
+            #order_id = theFeature.attribute('order_id') # jdb has no this column
         except KeyError, kErr:
             return False
         except Exception, ex:
@@ -269,11 +266,13 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         return
 
     def drawLaneHighlight(self, errMsg, totalLaneCount, whichLane, arrowInfo):
-        self.drawLane(errMsg, totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_highlight)
+        self.drawLane(errMsg, totalLaneCount, whichLane, 
+                      arrowInfo, LaneShowImageDlg.arrowImagesMap_highlight)
         return
 
     def drawLaneGray(self, errMsg, totalLaneCount, whichLane, arrowInfo):
-        self.drawLane(errMsg, totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_gray)
+        self.drawLane(errMsg, totalLaneCount, whichLane, 
+                      arrowInfo, LaneShowImageDlg.arrowImagesMap_gray)
         return
 
     def drawLane(self, errMsg, totalLaneCount, whichLane, arrowInfo, arrowImagesMap):
