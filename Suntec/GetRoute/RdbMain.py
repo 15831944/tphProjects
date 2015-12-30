@@ -15,12 +15,12 @@ class TestComputePath(object):
     #
     def computePath_L14(self, errMsg, startNode_L14, endNode_L14):
         possibleUpgradeNodeList_start = self.findUpGradeNode_to_L4(errMsg, startNode_L14)
-        possibleUpgradeNodeList_start.sort(lambda x,y:cmp(x[1],y[1]))
+        possibleUpgradeNodeList_start.sort(lambda x,y:cmp(x[2],y[2]))
         upgradeNode_start = possibleUpgradeNodeList_start[0][0]
         path1 = possibleUpgradeNodeList_start[0][3]
 
         possibleUpgradeNodeList_end = self.findUpGradeNode_to_L4(errMsg, endNode_L14)
-        possibleUpgradeNodeList_end.sort(lambda x,y:cmp(x[1],y[1]))
+        possibleUpgradeNodeList_end.sort(lambda x,y:cmp(x[2],y[2]))
         upgradeNode_end = possibleUpgradeNodeList_end[0][0]
         path5 = possibleUpgradeNodeList_end[0][3]
 
@@ -30,12 +30,12 @@ class TestComputePath(object):
     #
     def computePath_L4(self, errMsg, startNode_L14, endNode_L14):
         possibleUpgradeNodeList_start = self.findUpGradeNode_to_L6(errMsg, startNode_L14)
-        possibleUpgradeNodeList_start.sort(lambda x,y:cmp(x[1],y[1]))
+        possibleUpgradeNodeList_start.sort(lambda x,y:cmp(x[2],y[2]))
         upgradeNode_start = possibleUpgradeNodeList_start[0][0]
         path1 = possibleUpgradeNodeList_start[0][3]
 
         possibleUpgradeNodeList_end = self.findUpGradeNode_to_L6(errMsg, endNode_L14)
-        possibleUpgradeNodeList_end.sort(lambda x,y:cmp(x[1],y[1]))
+        possibleUpgradeNodeList_end.sort(lambda x,y:cmp(x[2],y[2]))
         upgradeNode_end = possibleUpgradeNodeList_end[0][0]
         path2 = possibleUpgradeNodeList_end[0][3]
 
@@ -50,15 +50,15 @@ class TestComputePath(object):
         return self.path_L6_to_path_L14(path_L6)
 
     #
-    def computePath_L14Directly(self, errMsg, startNode, endNode, offset=3):
-        tileIDList_L14 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode, endNode, offset)
+    def computePath_L14Directly(self, errMsg, startNode, endNode, tileOffset=3):
+        tileIDList_L14 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode, endNode, tileOffset)
         self.G_L14.addEdgeByTileIDList(errMsg, tileIDList_L14, 'rdb_link')
         weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L14, startNode, endNode)
         return pathList[endNode]
 
     #
-    def computePath_L4Directly(self, errMsg, startNode_L4, endNode_L4):
-        tileIDList_L4 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode_L4, endNode_L4, offset=3)
+    def computePath_L4Directly(self, errMsg, startNode_L4, endNode_L4, tileOffset=3):
+        tileIDList_L4 = LatLonPoint.getTileIdListByNodeId(errMsg, startNode_L4, endNode_L4, tileOffset)
         self.G_L4.addEdgeByTileIDList(errMsg, tileIDList_L4, 'rdb_region_link_layer4_tbl')
         weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L4, startNode_L4, endNode_L4)
         return pathList[endNode_L4]
@@ -72,7 +72,7 @@ class TestComputePath(object):
     # 在此node_L14的附近寻找可上迁至layer4的上迁点
     def findUpGradeNode_to_L4(self, errMsg, node_L14):
         tileId_L14 = node_L14 >> 32
-        offset = 0
+        tileOffset = 0
         upgradeNodeList = None
         sqlcmdFormat = """
 select node_id, b.region_node_id
@@ -82,8 +82,8 @@ on a.node_id=b.node_id_14
 where a.node_id_t in (%s) and b.node_id_14 is not null;
 """
         while (True):
-            offset += 1
-            tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, offset)
+            tileOffset += 1
+            tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, tileOffset)
             strTileIDList = ','.join(("%d"%x) for x in tileIdList_L14)
             sqlcmd = sqlcmdFormat % strTileIDList
             self.pg.execute(sqlcmd)
@@ -94,11 +94,11 @@ where a.node_id_t in (%s) and b.node_id_14 is not null;
                 upgradeNodeList = list(rows)
                 break
 
-        tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, offset+3)
+        tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, tileOffset+3)
         self.G_L14.addEdgeByTileIDList(errMsg, tileIdList_L14, 'rdb_link')
         weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L14, node_L14, None)
 
-        resultList = [] # node_L14, node_L4, weight, pathlist
+        resultList = [] # [(node_L14, node_L4, weight, pathlist)]
         for oneUpgradeNode in upgradeNodeList:
             if pathList.has_key(oneUpgradeNode[0]):
                 resultList.append((oneUpgradeNode[0],
@@ -110,7 +110,7 @@ where a.node_id_t in (%s) and b.node_id_14 is not null;
     # 在此node的附近寻找上迁至level6的上迁点
     def findUpGradeNode_to_L6(self, errMsg, node_L14):
         tileId_L14 = node_L14 >> 32
-        offset = 0
+        tileOffset = 0
         upgradeNodeList = None
         sqlcmdFormat = """
 select a.node_id, b.region_node_id
@@ -120,8 +120,8 @@ on a.node_id=b.node_id_14
 where a.node_id_t in (%s) and b.node_id_14 is not null;
 """
         while (True):
-            offset += 1
-            tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, offset)
+            tileOffset += 1
+            tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, tileOffset)
             strTileIDList = ','.join(("%d"%x) for x in tileIdList_L14)
             sqlcmd = sqlcmdFormat % strTileIDList
             self.pg.execute(sqlcmd)
@@ -132,7 +132,7 @@ where a.node_id_t in (%s) and b.node_id_14 is not null;
                 upgradeNodeList = list(rows)
                 break
 
-        tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, offset+3)
+        tileIdList_L14 = LatLonPoint.getTileIdListByTileId(errMsg, tileId_L14, tileId_L14, tileOffset+3)
         self.G_L14.addEdgeByTileIDList(errMsg, tileIdList_L14, 'rdb_link')
         weightList, pathList = RdbDiGraph.single_source_dijkstra(self.G_L14, node_L14, None)
 
@@ -171,7 +171,7 @@ def main():
             #with open(r"c:\my\path_L14.txt", "w") as oFStream:
             #    for i in range(0, len(path_L14)-1):
             #        oFStream.write("""%s,\n""" % (computePath.G_L14[path_L14[i]][path_L14[i+1]]['link_id']))
-            path1, path2, path3, path4, path5 = computePath.computePath_L14(errMsg, -1398548326328041464, -1360695083036311550)
+            path1, path2, path3, path4, path5 = computePath.computePath_L14(errMsg, -1398548326328041464, -1368083500527255550)
             with open(r"c:\my\path_L14_2.txt", "w") as oFStream:
                 for i in range(0, len(path1)-1):
                     oFStream.write("""%s,\n""" % (computePath.G_L14[path1[i]][path1[i+1]]['link_id']))

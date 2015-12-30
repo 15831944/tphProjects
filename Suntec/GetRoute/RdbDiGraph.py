@@ -256,22 +256,22 @@ where link_id_t in (%s)
             # this function referenced 'DiGraph.successors_iter'
             # you must input a graph which inherits from DiGraph.
             raise ValueError('the input Graph must be directed graph.')
-            return
+            return None
             
         if G.is_multigraph():
             raise ValueError('the input Graph must be non-multi graph.')
-            return
+            return None
         
         if startNode == endNode:
             return ({startNode:0}, {startNode:[startNode]})
         
-        weightList = {}  # dictionary of final distances
-        pathList = {startNode:[startNode]}  # dictionary of pathList
+        weightList = {}  # {destNode: cost}
+        pathList = {startNode:[startNode]}  # {destNode: [node1, node2, ...]}
         seenNodeDict = {startNode:0} # (seenNode, totalCost)
-        fringe = [] # use heapq with (distance, label) tuples
+        fringeNodeList = [] # [(totalCost, fringeNode)]
         heapq.heappush(fringe, (0, startNode))
-        while fringe:
-            (weight, curNode) = heapq.heappop(fringe)
+        while fringeNodeList:
+            (weight, curNode) = heapq.heappop(fringeNodeList)
             if curNode in weightList:
                 continue # already searched this node.
             weightList[curNode] = weight
@@ -291,11 +291,59 @@ where link_id_t in (%s)
                 if succNode in seenNodeDict and tempTotalWeight < seenNodeDict[succNode]:
                     continue
                 
-                heapq.heappush(fringe, (tempTotalWeight, succNode))
+                heapq.heappush(fringeNodeList, (tempTotalWeight, succNode))
                 seenNodeDict[succNode] = tempTotalWeight
                 pathList[succNode] = pathList[curNode]+[succNode]
                 
         return (weightList, pathList)
+
+    # return: list of nodes that are not connected
+    @staticmethod
+    def getDisconnectedNodeList(G):
+        if G.is_directed() == False:
+            # this function referenced 'DiGraph.successors_iter'
+            # you must input a graph which inherits from DiGraph.
+            raise ValueError('the input Graph must be directed graph.')
+            return None
+            
+        if G.is_multigraph():
+            raise ValueError('the input Graph must be non-multi graph.')
+            return None
+        
+        startNode = None
+        try:
+            startNode = G.node.items()[0][0]
+        except:
+            raise Exception("""There is not any nodes in this graph.""")
+            return None
+
+        weightList = {}  # {destNode: cost}
+        seenNodeDict = {startNode:0} # (seenNode, totalCost)
+        fringeNodeList = [] # [(totalCost, fringeNode)]
+        heapq.heappush(fringeNodeList, (0, startNode))
+        while fringeNodeList:
+            (weight, curNode) = heapq.heappop(fringeNodeList)
+            if curNode in weightList:
+                continue # already searched this node.
+            weightList[curNode] = weight
+            succNodeiter = iter(G[curNode].items())
+            for succNode, succNodeAttr in succNodeiter:
+                tempTotalWeight = weightList[curNode] + succNodeAttr.get(weight, 1)
+                if succNode in weightList:
+                    if tempTotalWeight < weightList[succNode]:
+                        raise ValueError('Contradictory pathList found:', 'negative weights?')
+                
+                if succNode in seenNodeDict and tempTotalWeight < seenNodeDict[succNode]:
+                    continue
+                
+                heapq.heappush(fringeNodeList, (tempTotalWeight, succNode))
+                seenNodeDict[succNode] = tempTotalWeight
+
+        resultList = []
+        for x in G.node:
+           if x not in weightList:
+               resultList.append(x)
+        return resultList
 
 
 

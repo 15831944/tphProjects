@@ -83,20 +83,20 @@ class RdbLinkObject(object):
         tmpStr = tmpStr.strip(", ")+"]"
         return tmpStr
 
-    @staticmethod
-    def getCost(self, link_length, road_type, toll, 
-                one_way, width, in_angle, out_angle):
-        if toll != 1:
-            toll = 0
+    def getCost(self):
+        if self.toll != 1:
+            self.toll = 0
         
-        if width == 4:
-            width = 2
+        if self.width == 4:
+            self.width = 2
         
-        if one_way in (2,3):
-            one_way = 1
+        if self.one_way in (2,3):
+            self.one_way = 1
         else:
-            one_way = 0
+            self.one_way = 0
         
+        in_angle = 100
+        out_angle = 100
         if in_angle is None:
             angle = 360
         else:
