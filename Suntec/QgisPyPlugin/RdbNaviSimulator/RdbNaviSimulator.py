@@ -2,13 +2,14 @@
 import resources
 from PyQt4.QtGui import QAction, QIcon
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from RdbNaviSimulatorMapTool import RdbNaviSimulatorMapTool
 from RdbNaviSimulatorDlg import RdbNaviSimulatorDlg
+from RdbNaviSimulatorMapTool import RdbNaviSimulatorMapTool
 
 class RdbNaviSimulator:
     def __init__(self, iface):
         self.iface = iface
-        self.naviDlg = RdbNaviSimulatorDlg()
+        self.naviDlg = RdbNaviSimulatorDlg(iface)
+        self.naviSimulatorMapTool = RdbNaviSimulatorMapTool(self.iface.mapCanvas(), self.naviDlg)
         self.actions = []
         self.menu = u'&Rdb Navi Simulator'
         self.toolbar = self.iface.addToolBar(u'RdbNaviSimulatorToolbar')
@@ -17,7 +18,7 @@ class RdbNaviSimulator:
     def initGui(self):
         icon_path = ':/icons/GuideIcon.png' 
         actionRdbNavi = QAction(QIcon(icon_path), u"Rdb Navi Simulator", None)
-        actionRdbNavi.triggered.connect(self.showNaviDlg)
+        actionRdbNavi.triggered.connect(self.actionRdbNaviTriggered)
         actionRdbNavi.setStatusTip(None)
         actionRdbNavi.setWhatsThis(None)
         self.toolbar.addAction(actionRdbNavi)
@@ -25,21 +26,21 @@ class RdbNaviSimulator:
         actionRdbNavi.setEnabled(True)
         actionRdbNavi.setCheckable(True)
         self.actions.append(actionRdbNavi)
-        self.guideInfoMapTool = RdbNaviSimulatorMapTool(self.iface.mapCanvas(), self.naviDlg)
-        self.guideInfoMapTool.setAction(actionRdbNavi)
         return
 
     def unload(self):
         for action in self.actions:
             self.iface.removePluginMenu(None, action)
             self.iface.removeToolBarIcon(action)
-        # Unset the map tool in case it's set
-        self.iface.mapCanvas().unsetMapTool(self.guideInfoMapTool)
         return
 
-    def showNaviDlg(self):
-        self.naviDlg.exec_()
+    def actionRdbNaviTriggered(self):
+        # activate our navi simulator map tool
+        self.iface.mapCanvas().setMapTool(self.naviSimulatorMapTool)
+
+        # show navi dlg
         self.naviDlg.show()
-        # activate our spotguide tool
-        self.iface.mapCanvas().setMapTool(self.guideInfoMapTool)
-        return
+        result = self.naviDlg.exec_()
+
+
+

@@ -3,6 +3,7 @@ from qgis.gui import QgsMapTool, QgsMapToolIdentify
 from qgis.core import QgsMapLayer, QgsFeature
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QCursor, QMessageBox
+from RdbLinkObject import RdbLinkObject
 
 class RdbNaviSimulatorMapTool(QgsMapTool):
     def __init__(self, canvas, naviDlg):
@@ -36,9 +37,9 @@ class RdbNaviSimulatorMapTool(QgsMapTool):
             return
         if theLayer.featureCount() == 0:
             return
-          
-        qgsMapTollIndentify = QgsMapToolIdentify(self.mCanvas)
-        resultList = qgsMapTollIndentify.identify(mouseEvent.x(), mouseEvent.y(), -1)
+
+        qgsMapToolIndentify = QgsMapToolIdentify(self.mCanvas)
+        resultList = qgsMapToolIndentify.identify(mouseEvent.x(), mouseEvent.y(), -1)
         if resultList == []: # no feature selected, pan the canvas
             if self.mDragging == True:
                 self.mCanvas.panActionEnd(mouseEvent.pos())
@@ -49,13 +50,10 @@ class RdbNaviSimulatorMapTool(QgsMapTool):
                 self.mCanvas.setCenter(center)
                 self.mCanvas.refresh()
         else: # select the features
-            featureIdList = []
-            for oneResult in resultList:
-                featureIdList.append(oneResult.mFeature.id())
-            if result:
-                pass
-            else:
-                pass
+            theFeature = (resultList[0]).mFeature
+            if RdbLinkObject.isMyFeature(theFeature) == True:
+                nodeId = theFeature.attribute('start_node_id')
+                self.mNaviDlg.addNode(nodeId)
             return
 
 

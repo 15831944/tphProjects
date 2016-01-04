@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{58fdc484-9684-4da9-82b7-4eccab1d689b}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>QtGraphicViewTest2.py</StartupFile>
+    <StartupFile>TestImageNew.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,6 +25,9 @@
     <Compile Include="QtGraphicViewTest2.py" />
     <Compile Include="QtGraphicViewTest.py" />
     <Compile Include="resources.py" />
+    <Compile Include="TestImageNew.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>397</width>
-    <height>531</height>
+    <width>263</width>
+    <height>704</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="button_box">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>490</y>
+     <x>90</x>
+     <y>670</y>
      <width>156</width>
      <height>23</height>
     </rect>
@@ -29,75 +29,66 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButtonStart">
+  <widget class="QSplitter" name="splitter_2">
    <property name="geometry">
     <rect>
-     <x>240</x>
-     <y>20</y>
-     <width>31</width>
+     <x>10</x>
+     <y>40</y>
+     <width>238</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QLabel" name="labelStart">
+    <property name="text">
+     <string>Start</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditStart"/>
+  </widget>
+  <widget class="QSplitter" name="splitter_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>71</y>
+     <width>238</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QLabel" name="labelEnd">
+    <property name="text">
+     <string>End  </string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditEnd"/>
+  </widget>
+  <widget class="QPushButton" name="pushButtonCalculatePath">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>110</y>
+     <width>101</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>go</string>
+    <string>Calculate Path</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButtonStop">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>20</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>stop</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="">
+  <widget class="QPlainTextEdit" name="plainTextEditResult">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>20</y>
-     <width>171</width>
-     <height>22</height>
+     <y>140</y>
+     <width>241</width>
+     <height>511</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QLabel" name="labelStart">
-      <property name="text">
-       <string>Start</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="lineEditStart"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>50</y>
-     <width>171</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <item>
-     <widget class="QLabel" name="labelEnd">
-      <property name="text">
-       <string>End  </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="lineEditStart_2"/>
-    </item>
-   </layout>
   </widget>
  </widget>
  <resources/>

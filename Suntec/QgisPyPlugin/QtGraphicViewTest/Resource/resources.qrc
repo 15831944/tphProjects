@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="">
+     <file>8a130311.png</file>
+  </qresource>
+  <qresource prefix="">
+     <file>8a340133.png</file>
+  </qresource>
+  <qresource prefix="">
+     <file>8a730122.png</file>
+  </qresource>
+  <qresource prefix="">
+     <file>8a730221.png</file>
+  </qresource>
+</RCC>

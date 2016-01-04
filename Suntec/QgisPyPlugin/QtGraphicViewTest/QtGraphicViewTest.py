@@ -1,20 +1,21 @@
-﻿from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+﻿import sys
+from PyQt4 import QtCore
+from PyQt4.QtGui import QApplication, QGraphicsView, QGraphicsScene, QPixmap
 
-if __name__ == "__main__":
-    import sys
-    basePath = r"C:\My\20151027_ni_15summer_illust\HKMC\2D\pattern\8a130311.png"
+def main():
     app = QApplication(sys.argv)
     mainView = QGraphicsView()
     scene = QGraphicsScene()
-    scene2 = QGraphicsScene()
-    scene.addPixmap(QPixmap(basePath).scaled(100, 100))
-    mainView.setScene(scene)
-#    for oneItem in scene.items():
-#        scene.removeItem(oneItem)
-    mainView.setScene(scene2)
+    pixmap = QPixmap(r":/8a130311.png")
+    scene.addPixmap(pixmap.scaled(100, 100, 
+                                  QtCore.Qt.IgnoreAspectRatio,
+                                  QtCore.Qt.SmoothTransformation))
     mainView.setScene(scene)
     mainView.show()
     app.exec_()
+
+if __name__ == "__main__":
+    main()
+
+
 
