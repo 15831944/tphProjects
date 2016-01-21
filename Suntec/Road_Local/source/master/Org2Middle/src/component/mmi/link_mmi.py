@@ -79,6 +79,7 @@ class comp_link_mmi(component.component_base.comp_base):
                     etc_only_flag, 
                     feature_string, 
                     feature_key, 
+                    const_st,
                     the_geom
                     ) 
                 select 
@@ -111,6 +112,7 @@ class comp_link_mmi(component.component_base.comp_base):
                         0 as etc_only_flag, 
                         feature_string,
                         feature_key,
+                        const_st,
                         the_geom
                   from 
                   (
@@ -143,6 +145,7 @@ class comp_link_mmi(component.component_base.comp_base):
                         ST_Length_Spheroid(a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length,
                         a.id::varchar as feature_string,
                         md5(a.id::varchar) as feature_key,
+                        CASE WHEN e.const_st = 1 THEN True ELSE False END AS const_st,
                         ST_LineMerge(a.the_geom) as the_geom
                    from org_city_nw_gc_polyline             as a
               left join org_city_nw_gc_extended_polyline    as e

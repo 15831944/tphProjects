@@ -1960,7 +1960,8 @@ CREATE TABLE rdb_highway_node_add_info
   enter            SMALLINT not null,
   exit             SMALLINT not null,
   jct              SMALLINT not null,
-  sapa             SMALLINT not null,
+  sa               SMALLINT not null,
+  pa               SMALLINT not null,
   gate             SMALLINT not null,
   un_open          SMALLINT not null,
   dummy            SMALLINT not null,
@@ -1977,8 +1978,67 @@ CREATE TABLE rdb_highway_node_add_info
   normal_toll      smallint not null,
   etc_toll         smallint not null,
   etc_section      smallint not null,
-  name             CHARACTER VARYING(1024),
-  tile_id          INTEGER not null
+  name             CHARACTER VARYING(4096),
+  tile_id          INTEGER not null,
+  link_lid         BIGINT[]
+);
+
+------------------------------------------------------------------------
+CREATE TABLE rdb_highway_node_add_info_link
+(
+ gid              SERIAL not null primary key,
+ link_id          BIGINT not null,
+ add_info_id      INTEGER not null,
+ facility_num     SMALLINT not null,
+ seq_num          SMALLINT not null,
+ tile_id          INTEGER
+);
+
+------------------------------------------------------------------------
+CREATE TABLE rdb_highway_node_add_info_facility
+(
+ gid              SERIAL not null primary key,
+ add_info_id      INTEGER not null,
+ node_id          BIGINT not null,
+ start_end_flag	  SMALLINT not null,
+ toll_flag        SMALLINT not null,
+ no_toll_money    SMALLINT not null,
+ up_down          SMALLINT not null,
+ facility_id      INTEGER not null,
+ dir              SMALLINT not null,
+ dir_s_node       BIGINT not null,
+ dir_e_node       BIGINT not null,
+ link_lid         BIGINT[],
+ etc_antenna      SMALLINT not null,
+ enter            SMALLINT not null,
+ exit             SMALLINT not null,
+ jct              SMALLINT not null,
+ sa               SMALLINT not null,
+ pa               SMALLINT not null,
+ gate             SMALLINT not null,
+ un_open          SMALLINT not null,
+ dummy            SMALLINT not null,
+ toll_type_num    SMALLINT not null,
+ name             CHARACTER VARYING
+);
+
+------------------------------------------------------------------------
+CREATE TABLE rdb_highway_node_add_info_toll
+(
+ gid              SERIAL not null primary key,
+ add_info_id      INTEGER not null,
+ non_ticket_gate  SMALLINT not null,
+ check_gate       SMALLINT not null,
+ single_gate      SMALLINT not null,
+ cal_gate         SMALLINT not null,
+ ticket_gate      SMALLINT not null,
+ nest             SMALLINT not null,
+ uturn            SMALLINT not null,
+ not_guide        SMALLINT not null,
+ normal_toll      SMALLINT not null,
+ etc_toll         SMALLINT not null,
+ etc_section      SMALLINT not null,
+ seq_num          INTEGER not null
 );
 
 ------------------------------------------------------------------------

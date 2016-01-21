@@ -270,6 +270,11 @@ CREATE INDEX org_r_accesscrid_idx
   ON org_r
   USING btree
   (accesscrid);
+
+CREATE INDEX org_r_undconcrid_idx
+  ON org_r
+  USING btree
+  (undconcrid);
  
 CREATE INDEX org_r_onewaycrid_idx
   ON org_r

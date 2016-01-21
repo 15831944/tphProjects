@@ -118,7 +118,8 @@ class comp_link_ta(component.component_base.comp_base):
                     urban,
                     the_geom,
                     feature_string, 
-                    feature_key
+                    feature_key,
+                    const_st
                     ) 
                     select 
                         link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
@@ -166,7 +167,8 @@ class comp_link_ta(component.component_base.comp_base):
                         urban,
                         the_geom,
                         feature_string,
-                        feature_key
+                        feature_key,
+                        const_st
                     from 
                     (
                     select  
@@ -207,7 +209,8 @@ class comp_link_ta(component.component_base.comp_base):
                         lanes,
                         ST_LineMerge(the_geom) as the_geom
                         , a.id::varchar as feature_string
-                        , md5(a.id::varchar) as feature_key
+                        , md5(a.id::varchar) as feature_key,
+                        CASE WHEN a.constatus IS NULL THEN False ELSE True END AS const_st
                       from org_nw as a
                         left join temp_link_regulation_permit_traffic as p
                             on a.id = p.link_id

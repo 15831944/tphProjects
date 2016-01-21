@@ -277,7 +277,54 @@ on a.pattern_id_list[1]=b.gid or a.pattern_id_list[array_upper(a.pattern_id_list
                     return False
         return True
 
-
+# 如果某个仕向地的spotguide同时存在底板图和箭头图，保证它们的size相同。
+# 较关注的仕向地：zenrin台湾，here所有仕向地
+class CCheckGuideSpotguideIllustSize(platform.TestCase.CTestCase):
+    def _do(self):
+        from common.DatParser import DatParser
+        from common.DatGetBinType import GetImageSize
+        sqlcmd=\
+'''
+select b.gid, c.data, d.data
+from
+(
+    select type, min(gid) as gid
+    from rdb_guideinfo_spotguidepoint
+    where type<>12
+    group by type
+) as a
+left join rdb_guideinfo_spotguidepoint as b
+on a.gid=b.gid
+left join  rdb_guideinfo_pic_blob_bytea as c
+on b.pattern_id=c.gid
+left join rdb_guideinfo_pic_blob_bytea as d
+on b.arrow_id=d.gid
+where c.data is not null and d.data is not null
+'''
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            patternData = row[1]
+            arrowData = row[2]
+            
+            errMsg = ['']
+            patternDatParser = DatParser()
+            patternDatParser.initFromMemory(errMsg, patternData)
+            patternImgData = patternDatParser.getDatContentByIndex(errMsg, 0)
+            if errMsg[0] <> '':
+                return False
+            
+            arrowDatParser = DatParser()
+            arrowDatParser.initFromMemory(errMsg, arrowData)
+            arrowImgData = arrowDatParser.getDatContentByIndex(errMsg, 0)
+            if errMsg[0] <> '':
+                return False
+            
+            patternSize = GetImageSize(patternImgData)
+            arrowSize = GetImageSize(arrowImgData)
+            if patternSize <> arrowSize:
+                return False
+        return True
 
 
 

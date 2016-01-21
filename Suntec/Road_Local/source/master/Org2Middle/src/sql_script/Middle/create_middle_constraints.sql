@@ -1118,6 +1118,12 @@ CREATE INDEX mid_temp_hwy_parallel_path_path_id_idx
   (path_id);
 
 ------------------------------------------------------------------------
+CREATE INDEX road_code_the_geom_the_geom_idx
+  ON road_code_the_geom
+  USING gist
+  (the_geom);
+
+------------------------------------------------------------------------
 CREATE INDEX hwy_tollgate_node_id_idx
   ON hwy_tollgate
   USING btree
@@ -1153,3 +1159,24 @@ CREATE UNIQUE INDEX hwy_main_side_road_relation_side_road_code_side_updown_idx
   ON hwy_main_side_road_relation
   USING btree
   (side_road_code, side_updown);
+  
+CREATE INDEX temp_highway_link_buffer_the_geom_idx
+  ON temp_highway_link_buffer
+  using gist
+  (the_geom);
+  
+-----------------------------------------------------------------------------
+CREATE INDEX grad_link_id_idx
+  ON grad
+  USING btree
+  (link_id);
+  
+CREATE INDEX grad_objectid_idx
+  ON grad
+  USING btree
+  (objectid);
+  
+CREATE INDEX grad_shape_idx
+  ON grad
+  USING gist
+  (shape);

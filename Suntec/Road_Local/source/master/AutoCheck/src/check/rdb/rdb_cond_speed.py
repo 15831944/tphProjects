@@ -504,3 +504,12 @@ class CCheckNegSpeedsourceValid(platform.TestCase.CTestCase):
                 """
         return 0 == self.pg.getOnlyQueryResult(sqlcmd) 
     
+class CCheckUnitPosNeg(platform.TestCase.CTestCase):
+    def _do(self):
+
+        sqlcmd = """
+            select count(*)
+              from link_tbl 
+              where ((speed_source_s2e >> 3) & 1) != ((speed_source_e2s >> 3) & 1);            
+                """
+        return 0 == self.pg.getOnlyQueryResult(sqlcmd)    

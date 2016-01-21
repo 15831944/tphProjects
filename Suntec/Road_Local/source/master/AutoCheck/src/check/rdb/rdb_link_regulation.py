@@ -247,6 +247,36 @@ class CCheckLastLinkDir2(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
+class CCheckLastLinkDir3(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                SELECT count(*)
+                FROM (
+                    SELECT *
+                    FROM (
+                        SELECT a.*, 
+                            case 
+                                when c.start_node_id in (b.start_node_id, b.end_node_id) then 1 
+                                when c.end_node_id in (b.start_node_id, b.end_node_id) then 2 
+                                else 4 
+                            end as last_link_dir_new 
+                        FROM ( 
+                            SELECT record_no, regulation_type, last_link_dir, link_num, string_to_array(key_string, ',')::bigint[] as links 
+                            FROM rdb_link_regulation 
+                            WHERE link_num > 1
+                        ) a 
+                        LEFT JOIN rdb_link as b 
+                            ON a.links[a.link_num-1] = b.link_id 
+                        LEFT JOIN rdb_link as c 
+                            ON a.links[a.link_num] = c.link_id 
+                        WHERE b.link_id != c.link_id
+                    ) t 
+                    WHERE last_link_dir != last_link_dir_new
+                ) d
+                """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
 class CCheckLastLinkDir_LinkNum_rel(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

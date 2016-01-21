@@ -1,0 +1,11 @@
+2016-01-21 11:55:43,196 - INFO: proj_rdf_module----start to process rdf_ase original data.
+2016-01-21 11:55:43,196 - INFO: spotguide_tbl----Start make spotguide_tbl.
+2016-01-21 11:55:46,144 - WARNING: spotguide_tbl----inlink = 116177307,outlink = 826391567 pathlink is null
+2016-01-21 11:55:47,861 - WARNING: spotguide_tbl----inlink = 116177307,outlink = 826391567 pathlink is null
+2016-01-21 11:55:47,877 - INFO: spotguide_tbl----make ejv spotguide illust info
+2016-01-21 11:56:03,227 - INFO: spotguide_tbl----End make spotguide_tbl.
+2016-01-21 11:56:03,243 - INFO: proj_rdf_module----process rdf_ase original data end.
+2016-01-21 11:56:03,243 - INFO: proj_rdf_module----start to check rdf_ase middle data.
+2016-01-21 11:56:03,243 - INFO: spotguide_tbl----Start check spotguide_tbl.
+2016-01-21 11:56:03,243 - INFO: spotguide_tbl----End check spotguide_tbl.
+2016-01-21 11:56:03,243 - INFO: proj_rdf_module----check result of middle data is ok.

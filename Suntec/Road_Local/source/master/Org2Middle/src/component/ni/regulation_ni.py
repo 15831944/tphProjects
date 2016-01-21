@@ -20,6 +20,7 @@ class comp_regulation_ni(component.component_base.comp_base):
         self.CreateTable2('regulation_item_tbl')
         self.__convert_regulation_access()
         self.__convert_regulation_oneway()
+        self.__convert_regulation_undcon()
         self.__convert_regulation_linkrow()
         self.__convert_regulation_country_boundry()
         return 0
@@ -54,20 +55,26 @@ class comp_regulation_ni(component.component_base.comp_base):
         self.log.info('convert regulation of oneway...')
         
         self.CreateIndex2('org_r_onewaycrid_idx')
-        self.CreateIndex2('org_cr_crid_idx')
-        self.CreateIndex2('org_cr_vperiod_vehcl_type_idx')
         self.CreateFunction2('mid_convert_regulation_oneway')
         self.pg.callproc('mid_convert_regulation_oneway')
         self.pg.commit2()
         
         self.log.info('convert regulation of oneway end.')
     
+    def __convert_regulation_undcon(self):
+        self.log.info('convert regulation of under-construction...')
+        
+        self.CreateIndex2('org_r_undconcrid_idx')
+        self.CreateFunction2('mid_convert_regulation_undcon')
+        self.pg.callproc('mid_convert_regulation_undcon')
+        self.pg.commit2()
+        
+        self.log.info('convert regulation of under-construction end.')
+    
     def __convert_regulation_linkrow(self):
         self.log.info('convert regulation of linkrow...')
         
         self.CreateIndex2('org_cond_crid_idx')
-        self.CreateIndex2('org_cr_crid_idx')
-        self.CreateIndex2('org_cr_vperiod_vehcl_type_idx')
         self.CreateFunction2('mid_convert_regulation_linkrow')
         self.pg.callproc('mid_convert_regulation_linkrow')
         self.pg.commit2()

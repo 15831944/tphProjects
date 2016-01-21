@@ -751,3 +751,43 @@ class CCheckCtnFlag_6(platform.TestCase.CTestCase):
             
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)                                     
+
+class CCheckTrafficInfoMustExists(platform.TestCase.CTestCase):
+
+    def _do(self):
+        
+        sqlcmd = """
+select * 
+from 
+rdb_rtic_id_matching as a
+left join rdb_trf_org2rdb as b
+on a.link_id_64=b.rdb_link_id
+where a.link_attribute=1 and b.rdb_link_id is null;       
+         """
+            
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)    
+
+# ensure link_id_32 is unique.
+class CCheckInt32LinkIdUnique(platform.TestCase.CTestCase):
+
+    def _do(self):
+        
+        sqlcmd = """
+ALTER TABLE rdb_rtic_id_matching ADD CONSTRAINT link_id_32_unique UNIQUE(link_id_32);  
+         """
+        try:
+            self.pg.execute(sqlcmd)
+        except:
+            return False
+        return True
+
+
+
+
+
+
+
+
+
+

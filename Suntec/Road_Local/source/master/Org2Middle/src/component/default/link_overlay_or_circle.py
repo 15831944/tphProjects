@@ -1001,8 +1001,8 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
 
         sqlcmd = """
             INSERT INTO safety_zone_tbl(
-                    safetyzone_id,linkid, speedlimit, speedunit_code, direction, safety_type)
-            select safetyzone_id,b.link_id,speedlimit, speedunit_code, direction, safety_type
+                    safetyzone_id,featid,linkid, speedlimit, speedunit_code, direction, safety_type)
+            select safetyzone_id,featid,b.link_id,speedlimit, speedunit_code, direction, safety_type
             from safety_zone_tbl a
             left join 
             temp_circle_link_new_seq_link b

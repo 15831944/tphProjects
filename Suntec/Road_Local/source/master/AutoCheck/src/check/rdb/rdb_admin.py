@@ -16,10 +16,21 @@ class CCheckAdmin_order0_iso_country_mapping(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         
         order0_num = self.pg.fetchall()
-        
-        for (iso_country_code, num) in order0_num:
-            if num>1:
-                return False
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strpro_name = pro_name.getProjName()
+        strcountry_name = pro_name.getCountryName()
+        if strpro_name.lower() == 'ni' and strcountry_name.lower() == 'chn':
+            for (iso_country_code, num) in order0_num:
+                if iso_country_code.lower() == 'chn':
+                    if num != 31:
+                        return False
+                else:
+                    if num>1:
+                        return False
+        else:      
+            for (iso_country_code, num) in order0_num:
+                if num>1:
+                    return False
         return True
     
 class CCheckAdminCodeCount(platform.TestCase.CTestCase):

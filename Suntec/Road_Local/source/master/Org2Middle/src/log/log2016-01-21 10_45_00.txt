@@ -1,0 +1,2 @@
+2016-01-21 10:45:00,969 - INFO: proj_rdf_module----start to process rdf_ase original data.
+2016-01-21 10:45:00,969 - INFO: spotguide_tbl----Start make spotguide_tbl.

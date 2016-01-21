@@ -24,6 +24,8 @@ class HwyLinkMappingNiPro(HwyLinkMapping):
         self._hw_junction_2_mid_linkid()
         # 合并名称相同的并设
         self._merge_hw_junction_id()
+        # 合并：两点之间多个设施
+        # self._merge_hw_jct_id()
         # 处理表mid_hwy_org_hw_junction_mid_linkid
         self._merge_hw_junction_mid_linkid()
         # 处理org_hw_jct
@@ -78,6 +80,57 @@ class HwyLinkMappingNiPro(HwyLinkMapping):
         self.pg.commit2()
         return 0
 
+    def _merge_hw_jct_id(self):
+        '''合并：两点之间多对JCT,
+           1.保存没有和其他JCT合并的JCT
+           2.多对都和其他JCT合并时，都合到最小的那个
+           3.多对都没有被合并，无法合关，报错。
+        '''
+        for jct_info in self._get_repeat_jct():
+            jct_info
+            pass
+
+    def _get_repeat_jct(self):
+        '''取得 两点之间多对JCT '''
+        sqlcmd = """
+        SELECT b.nodeid::bigint as s_node_id,
+               c.nodeid::bigint as e_node_id,
+               array_agg(s_junc_pid)::bigint[] as s_junc_pids,
+               array_agg(e_junc_pid)::bigint[]::bigint[] as e_junc_pids,
+               array_agg(b.hw_pid)::bigint[] as s_hw_pid,
+               array_agg(c.hw_pid)::bigint[] as e_hw_pid,
+               array_agg(d.id) as new_s_junc_pids,
+               array_agg(e.id) as new_e_junc_pids,
+               array_agg(f.merged_ids) as s_merged_ids_list,
+               array_agg(g.merged_ids) as e_merged_ids_list
+          FROM org_hw_jct as a
+          LEFT JOIN org_hw_junction as b
+          on a.s_junc_pid = b.id
+          LEFT JOIN org_hw_junction as c
+          on a.e_junc_pid = c.id
+          LEFT JOIN mid_hwy_org_hw_junction_merged_id as d
+          ON a.s_junc_pid::bigint = merged_id
+          LEFT JOIN mid_hwy_org_hw_junction_merged_id as e
+          ON a.e_junc_pid::bigint = e.merged_id
+          LEFT JOIN (
+             SELECT id,
+                    array_to_string(array_agg(merged_id), ',') merged_ids
+              FROM mid_hwy_org_hw_junction_merged_id
+              group by id
+          ) as f
+          ON d.id = f.id
+          LEFT JOIN (
+             SELECT id,
+                    array_to_string(array_agg(merged_id), ',') merged_ids
+              FROM mid_hwy_org_hw_junction_merged_id
+              group by id
+          ) as g
+          ON e.id = g.id
+          group by s_node_id, e_node_id
+          having count(*) > 1
+        """
+        return self.get_batch_data(sqlcmd)
+
     def _merge_hw_junction_mid_linkid(self):
         '''重新对应mid_hwy_org_hw_junction_mid_linkid中id'''
         self.CreateTable2('mid_hwy_org_hw_junction_mid_linkid_merged')
@@ -125,7 +178,9 @@ class HwyLinkMappingNiPro(HwyLinkMapping):
               on a.s_junc_pid::bigint = b.merged_id
               LEFT JOIN mid_hwy_org_hw_junction_merged_id as c
               on a.e_junc_pid::bigint = c.merged_id
-              where passlid||passlid2 = ''
+              where passlid||passlid2 = '' and
+                    b.id is not null and  -- For HKG
+                    c.id is not null
         );
         '''
         self.pg.execute2(sqlcmd)

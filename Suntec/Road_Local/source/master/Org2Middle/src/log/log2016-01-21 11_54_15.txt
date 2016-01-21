@@ -1,0 +1,86 @@
+2016-01-21 11:54:15,378 - INFO: proj_rdf_module----start to process rdf_ase original data.
+2016-01-21 11:54:15,378 - INFO: spotguide_tbl----Start make spotguide_tbl.
+2016-01-21 11:54:26,440 - WARNING: spotguide_tbl----inlink = 116177307,outlink = 826391567 pathlink is null
+2016-01-21 11:54:42,884 - WARNING: spotguide_tbl----inlink = 116177307,outlink = 826391567 pathlink is null
+2016-01-21 11:54:47,345 - INFO: spotguide_tbl----make ejv spotguide illust info
+2016-01-21 11:54:47,345 - ERROR: DataBase----SQL excute error:
+            select distinct dp_node_id,originating_link_id,out_link_id,
+                CASE WHEN mdps='T' THEN 13 
+                WHEN b.road_type in (0,1) THEN 1 
+                ELSE 4 END AS jv_type,
+                c.filename,
+                c.side,ejv_filename,dp1_dest_link,
+                mid_findpasslinkbybothlinks(
+                    originating_link_id,
+                    out_link_id,
+                    0,
+                    dp_node_id,
+                    0,
+                    10
+                    ) as pathlink
+            from(
+                select distinct dp_node_id,originating_link_id,out_link_id,
+                    a.filename, a.mdps, 
+                    a.side,ejv_filename,dp1_dest_link
+                from(
+                    SELECT distinct dp_node_id, originating_link_id,
+                        case when jv_dest_link is null or jv_dest_link = dest_link_id then dest_link_id
+                            when jv_dest_link is not null and jv_dest_link <> dest_link_id then jv_dest_link
+                        else 0
+                        end as out_link_id,
+                        filename, mdps, side, ejv_filename,dp1_dest_link
+                    FROM rdfpl_all_jv_lat_display_org
+                    where ejv_filename is not null
+                )as a
+            ) as c
+            left join link_tbl_bak_splitting as d
+            on c.originating_link_id = d.link_id;
+        
+2016-01-21 11:54:49,641 - ERROR: spotguide_tbl----Fail to make spotguide_tbl.
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 56, in _Do
+    self._get_ejv_junctions_info_by_alljv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 304, in _get_ejv_junctions_info_by_alljv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: missing FROM-clause entry for table "b"
+LINE 4:                 WHEN b.road_type in (0,1) THEN 1 
+                             ^
+
+2016-01-21 11:54:49,641 - ERROR: proj_rdf_module----error happened while processing rdf_ase original data.
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\subproj\proj_base.py", line 48, in Start2DealwithOriginalData
+    comp.Make()
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 56, in _Do
+    self._get_ejv_junctions_info_by_alljv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 304, in _get_ejv_junctions_info_by_alljv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: missing FROM-clause entry for table "b"
+LINE 4:                 WHEN b.road_type in (0,1) THEN 1 
+                             ^
+
+2016-01-21 11:54:49,641 - ERROR: System----error happened in org2middle...
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\main.py", line 21, in main
+    proj_object.Start2DealwithOriginalData()
+  File "C:\My\Road\source\master\Org2Middle\src\subproj\proj_base.py", line 48, in Start2DealwithOriginalData
+    comp.Make()
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 56, in _Do
+    self._get_ejv_junctions_info_by_alljv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 304, in _get_ejv_junctions_info_by_alljv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: missing FROM-clause entry for table "b"
+LINE 4:                 WHEN b.road_type in (0,1) THEN 1 
+                             ^
+

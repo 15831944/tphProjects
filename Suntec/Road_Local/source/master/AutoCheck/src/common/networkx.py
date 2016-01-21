@@ -11,6 +11,8 @@ import os
 import copy
 import heapq
 import threading
+from math import *
+import common.cache_file
 
 class CGraph:
     def __init__(self):
@@ -107,139 +109,126 @@ class CGraph:
         else:
             return paths
 
-class CGraph_PG(CGraph):
-    def __init__(self):
-        import common.database
-        self.__pg = common.database.CDB()
-        self.__pg.connect()
+class CGraph_Cache(CGraph): 
     
-    def __del__(self):
-        self.__pg.close()
-    
-    def prepareData(self):
-        pass
-    
-    def clearData(self):
-        pass
-    
-    def _getLinkInfo(self, link_id, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info'):
-        # this function returns (adjlinkid, adjcost, adjnode)
-        sqlcmd = """
-                SELECT link_id, road_type, toll, link_length, one_way, 
-                    start_node_id, end_node_id, fazm_path, tazm_path, 
-                    ops_width, neg_width
-                FROM %s a
-                LEFT JOIN %s b
-                    ON a.lane_id = b.lane_id
-                WHERE b.lane_id IS NOT NULL and link_id = %s
-            """ % (str(link_tbl), str(link_laneinfo_tbl), str(link_id))
-
-        self.__pg.execute(sqlcmd)
-        link_rec = self.__pg.fetchone()
-        return CLink(link_rec)
-    
-    def _getAdjLinkList(self, node_id, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info', delete_road_type = '(7, 8, 9, 14)'):
-        # this function returns (adjlinkid, adjcost, adjnode)
-        sqlcmd = """
-                SELECT link_id, road_type, toll, link_length, one_way, 
-                    start_node_id, end_node_id, fazm_path, tazm_path, 
-                    ops_width, neg_width
-                FROM %s a
-                LEFT JOIN %s b
-                    ON a.lane_id = b.lane_id
-                WHERE b.lane_id IS NOT NULL and %s in (start_node_id, end_node_id) and road_type not in %s
-            """ % (str(link_tbl), str(link_laneinfo_tbl), str(node_id), str(delete_road_type))
-
-        self.__pg.execute(sqlcmd)
-        link_recs = self.__pg.fetchall()
-        adjlinks = []
-        for link_rec in link_recs:
-            adjlinks.append(CLink(link_rec))
-        return adjlinks
-    
-    def _get_inlink(self, node_id, link_tbl = 'rdb_link'):
-        
-        sqlcmd = """
-                SELECT link_id
-                FROM %s
-                WHERE (start_node_id = %s and one_way in (1, 3)) or (end_node_id = %s and one_way in (1, 2))
-            """ % (str(link_tbl), str(node_id), str(node_id))
-
-        return self.__pg.get_batch_data(sqlcmd)
-    
-    def _get_outlink(self, node_id, link_tbl = 'rdb_link'):
-        
-        sqlcmd = """
-                SELECT link_id
-                FROM %s
-                WHERE (start_node_id = %s and one_way in (1, 2)) or (end_node_id = %s and one_way in (1, 3))
-            """ % (str(link_tbl), str(node_id), str(node_id))
-        
-        return self.__pg.get_batch_data(sqlcmd)
-
-class CGraph_Memory(CGraph):
-    
-    def __init__(self, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info', delete_road_type = '(7, 8, 9, 14)'):
+    def __init__(self, capacity = 10): 
         
         import common.database
         self.pg = common.database.CDB()
-        self.pg.connect()
+        self.pg.connect() 
         
-        self.links = {}
-        self.nodes = {}
-        self._prepareData(link_tbl, link_laneinfo_tbl, delete_road_type)
+        import common.datacache
+        self.datacache = common.datacache.LRUCache(capacity)
+        
+        self.cur_tile = -1
+        self.cur_tile_nodes = {}
+        self.mutex = threading.Lock()
     
     def __del__(self):
         
         import gc
-        del self.links
-        del self.nodes
+        
+        del self.cur_tile_nodes
+        self.datacache.clear()
         self.pg.close()
-        gc.collect()
         
-    def _prepareData(self, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info', delete_road_type = '(7, 8, 9, 14)'):
+        gc.collect() 
+    
+    def _get_tile_data(self, 
+                       tileid, 
+                       link_tbl = 'rdb_link', 
+                       node_tbl = 'rdb_node', 
+                       link_laneinfo_tbl = 'rdb_linklane_info', 
+                       delete_road_type = '(7, 8, 9, 14)'):
         
-        # init links & nodes
+        nodes = {}
+        
         sqlcmd = """
-                SELECT  a.link_id,
-                        a.road_type,
-                        a.toll,
-                        a.link_length,
-                        a.one_way,
-                        a.start_node_id,
-                        a.end_node_id,
-                        a.fazm_path as fazm,
-                        a.tazm_path as tazm,
-                        b.ops_width,
-                        b.neg_width
-                FROM %s a
-                LEFT JOIN %s b
-                    ON a.lane_id = b.lane_id
-                WHERE b.lane_id IS NOT NULL and road_type not in %s
-                """ % (str(link_tbl), str(link_laneinfo_tbl), str(delete_road_type))
+                SELECT b.link_id, b.road_type, b.toll, b.link_length, 
+                    b.one_way, b.start_node_id, b.end_node_id, b.fazm_path AS fazm, 
+                    b.tazm_path AS tazm, c.ops_width, c.neg_width, a.node_id, 
+                    ST_X(a.the_geom) AS x_coord, ST_Y(a.the_geom) AS y_coord 
+                FROM (
+                    SELECT node_id, the_geom, unnest(branches) as link_id
+                    FROM [node_tbl]
+                    WHERE node_id_t = [node_id_t]
+                ) a
+                LEFT JOIN [link_tbl] b
+                    ON a.link_id = b.link_id
+                LEFT JOIN [link_laneinfo_tbl] c
+                    ON b.lane_id = c.lane_id
+                WHERE b.road_type NOT IN [road_type]
+            """
+        
+        sqlcmd = sqlcmd.replace('[node_tbl]', str(node_tbl))
+        sqlcmd = sqlcmd.replace('[node_id_t]', str(tileid))
+        sqlcmd = sqlcmd.replace('[link_tbl]', str(link_tbl))
+        sqlcmd = sqlcmd.replace('[link_laneinfo_tbl]', str(link_laneinfo_tbl))
+        sqlcmd = sqlcmd.replace('[road_type]', str(delete_road_type))
         
         link_recs = self.pg.get_batch_data(sqlcmd)
         for link_rec in link_recs:
+            x_coord = link_rec[12]
+            y_coord = link_rec[13]
             objLink = CLink(link_rec)
-            self.links[objLink.link_id] = objLink
             
-            if not self.nodes.has_key(objLink.start_node_id):
-                self.nodes[objLink.start_node_id] = [objLink]
+            if not nodes.has_key(objLink.node_id):
+                nodes[objLink.node_id] = (x_coord, y_coord, [objLink])
             else:
-                self.nodes[objLink.start_node_id].append(objLink)
+                nodes[objLink.node_id][2].append(objLink)
                 
-            if not self.nodes.has_key(objLink.end_node_id):
-                self.nodes[objLink.end_node_id] = [objLink]
-            else:
-                self.nodes[objLink.end_node_id].append(objLink)
+        return nodes
     
-    def _getAdjLinkList(self, node_id):
-        adjlinks = self.nodes.get(node_id)
+    def _getAdjLinkList(self, 
+                        node_id, 
+                        link_tbl = 'rdb_link', 
+                        node_tbl = 'rdb_node', 
+                        link_laneinfo_tbl = 'rdb_linklane_info', 
+                        delete_road_type = '(7, 8, 9, 14)'):
+        node_id_t = self._getTileId(node_id)
+        self.mutex.acquire()
+        cur_tile_nodes = self.datacache.get(node_id_t)
+        if not cur_tile_nodes:
+            cur_tile_nodes = self._get_tile_data(node_id_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            self.datacache.set(node_id_t, self.cur_tile_nodes)
+        self.mutex.release()
+        adjlinks = cur_tile_nodes.get(node_id)[2]
         if not adjlinks:
             adjlinks = []
+        
         return adjlinks
     
-    def searchShortestPaths(self, from_node, to_node, distance = 10000.0, cost_scope=1.05):
+    def _getNodeCoord(self,
+                      node_id, 
+                      link_tbl = 'rdb_link', 
+                      node_tbl = 'rdb_node', 
+                      link_laneinfo_tbl = 'rdb_linklane_info', 
+                      delete_road_type = '(7, 8, 9, 14)'):
+        node_id_t = self._getTileId(node_id)
+        self.mutex.acquire()
+        cur_tile_nodes = self.datacache.get(node_id_t)
+        if not cur_tile_nodes:
+            cur_tile_nodes = self._get_tile_data(node_id_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            self.datacache.set(node_id_t, cur_tile_nodes)
+        self.mutex.release()
+        
+        x_coord = cur_tile_nodes.get(node_id)[0]
+        y_coord = cur_tile_nodes.get(node_id)[1]
+        
+        return (x_coord, y_coord)
+    
+    def _getTileId(self, id):
+        return id >> 32
+
+    def searchShortestPaths(self, 
+                            from_node,
+                            to_node,
+                            distance = 10000.0,
+                            link_tbl = 'rdb_link', 
+                            node_tbl = 'rdb_node',
+                            link_laneinfo_tbl = 'rdb_linklane_info', 
+                            delete_road_type = '(7, 8, 9, 14)',  
+                            cost_scope=1.05):
         # stack init
         paths = []                  # efftive path [(cur_distance, path),]
         arrive_nodes = {}           # arrive nodes
@@ -263,12 +252,11 @@ class CGraph_Memory(CGraph):
             
             #print 'search node', (cost, node_id, path)
             if arrive_nodes.has_key(cur_node):
-                if cur_cost > arrive_nodes[cur_node] * cost_scope:
-                    continue
+                continue
             else:
-                arrive_nodes[cur_node] = cur_cost
+                arrive_nodes[cur_node] = True
             
-            adjlink_list = self._getAdjLinkList(cur_node)
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
             for adjlink in adjlink_list:
                 # not one-link-uturn
                 if adjlink.link_id == last_link:
@@ -307,269 +295,30 @@ class CGraph_Memory(CGraph):
                     touch_nodes.push((next_cost, next_distance, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
         else:
             return paths
-            
-    def searchDijkstraPaths(self, from_node, to_node, max_buffer=5000, max_path_num=6, cost_scope=1.05):
-        # stack init
-        paths = []                  # efftive path [path,]
-        arrive_nodes = {}           # arrive nodes
-        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_node, in_angle, last_node, last_link, path)
-        
-        # search init
-        touch_nodes.push((0, from_node, None, None, 0, []))
-        
-        # search
-        #print 'search dock to region at node_id = %s...' % str(node_id)
-        while not touch_nodes.isempty():
-            #print 'from_node = %s, to_node = %s' % (str(from_node), str(to_node))
-            #print 'touch_nodes.length() =', touch_nodes.length()
-            if touch_nodes.length() > max_buffer:
-                break
-            
-            (cur_cost, cur_node, in_angle, last_node, last_link, path) = touch_nodes.pop()
-            #print cur_node, last_link, path
-            
-            if (to_node == cur_node):
-                paths.append(path)
-                if len(paths) >= max_path_num:
-                    break
-                else:
-                    continue
-            
-            #print 'search node', (cost, node_id, path)
-            if arrive_nodes.has_key(cur_node):
-                if cur_cost > arrive_nodes[cur_node] * cost_scope:
-                    continue
-            else:
-                arrive_nodes[cur_node] = cur_cost
-            
-            adjlink_list = self._getAdjLinkList(cur_node)
-            for adjlink in adjlink_list:
-                # not one-link-uturn
-                if adjlink.link_id == last_link:
-                    continue
-                
-                # judge direction of traffic flow
-                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
-                    pass
-                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
-                    pass
-                else:
-                    continue
-                
-                # judge next node walked or not
-                if adjlink.start_node_id == cur_node:
-                    next_node = adjlink.end_node_id
-                    cur_out_angle = adjlink.fazm
-                    next_in_angle = adjlink.tazm
-                    next_witdh = adjlink.ops_width
-                else:
-                    next_node = adjlink.start_node_id
-                    cur_out_angle = adjlink.tazm
-                    next_in_angle = adjlink.fazm
-                    next_witdh = adjlink.neg_width
-                
-                # touch
-                next_path = copy.copy(path)
-                next_path.append(adjlink.link_id)
-                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
-                                             adjlink.toll, adjlink.one_way, 
-                                             next_witdh, in_angle, cur_out_angle)
-                next_cost = cur_cost + adj_cost
-                #print 'touch', adjnode, adjcost
-                touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
-        
-        return paths
-
-class CGraph_Cache(CGraph): 
     
-    def __init__(self, capacity = 10): 
-        
-        import common.database
-        self.pg = common.database.CDB()
-        self.pg.connect() 
-        
-        import common.datacache
-        self.datacache = common.datacache.LRUCache(capacity)
-        
-        self.cur_tile = -1
-        self.cur_tile_nodes = {}
-        self.mutex = threading.Lock()
-    
-    def __del__(self):
-        
-        import gc
-        
-        del self.cur_tile_nodes
-        self.datacache.clear()
-        self.pg.close()
-        
-        gc.collect() 
-    
-    def _get_tile_data(self, 
-                       tileid, 
-                       link_tbl = 'rdb_link', 
-                       node_tbl = 'rdb_node', 
-                       link_laneinfo_tbl = 'rdb_linklane_info', 
-                       delete_road_type = '(7, 8, 9, 14)'):
-        
-        nodes = {}
-        
-        sqlcmd = """
-                SELECT b.link_id, b.road_type, b.toll, b.link_length, b.one_way, 
-                    b.start_node_id, b.end_node_id, b.fazm_path as fazm, b.tazm_path as tazm, 
-                    c.ops_width, c.neg_width, 
-                    a.node_id, b.link_id_t, d.node_id_t as start_node_id_t, e.node_id_t as end_node_id_t 
-                FROM (
-                    SELECT node_id, unnest(branches) as link_id
-                    FROM [node_tbl]
-                    WHERE node_id_t = [node_id_t]
-                ) a
-                LEFT JOIN [link_tbl] b
-                    ON a.link_id = b.link_id
-                LEFT JOIN [link_laneinfo_tbl] c
-                    ON b.lane_id = c.lane_id
-                LEFT JOIN [node_tbl] d
-                    ON b.start_node_id = d.node_id
-                LEFT JOIN [node_tbl] e
-                    ON b.end_node_id = e.node_id
-                WHERE b.road_type not in [road_type]
-            """
-        
-        sqlcmd = sqlcmd.replace('[node_tbl]', str(node_tbl))
-        sqlcmd = sqlcmd.replace('[node_id_t]', str(tileid))
-        sqlcmd = sqlcmd.replace('[link_tbl]', str(link_tbl))
-        sqlcmd = sqlcmd.replace('[link_laneinfo_tbl]', str(link_laneinfo_tbl))
-        sqlcmd = sqlcmd.replace('[road_type]', str(delete_road_type))
-        
-        link_recs = self.pg.get_batch_data(sqlcmd)
-        for link_rec in link_recs:
-            objLink = CLink(link_rec)
-            
-            if not nodes.has_key(objLink.node_id):
-                nodes[objLink.node_id] = [objLink]
-            else:
-                nodes[objLink.node_id].append(objLink)
-                
-        return nodes
-    
-    def _getAdjLinkList(self, 
-                        node_id, 
-                        node_id_t, 
-                        link_tbl = 'rdb_link', 
-                        node_tbl = 'rdb_node', 
-                        link_laneinfo_tbl = 'rdb_linklane_info', 
-                        delete_road_type = '(7, 8, 9, 14)'):
-        if node_id_t == self.cur_tile:
-            pass
-        else:
-            self.mutex.acquire()
-            self.cur_tile = node_id_t
-            self.cur_tile_nodes = self.datacache.get(node_id_t)
-            if not self.cur_tile_nodes:
-                self.cur_tile_nodes = self._get_tile_data(node_id_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
-                self.datacache.set(node_id_t, self.cur_tile_nodes)
-            self.mutex.release()
-            
-        adjlinks = self.cur_tile_nodes.get(node_id)
-        if not adjlinks:
-            adjlinks = []
-        return adjlinks
-
-    def searchShortestPaths(self, 
-                            from_node, 
-                            from_node_t, 
-                            to_node, 
-                            to_node_t, 
-                            distance = 10000.0,
-                            link_tbl = 'rdb_link', 
-                            node_tbl = 'rdb_node',
-                            link_laneinfo_tbl = 'rdb_linklane_info', 
-                            delete_road_type = '(7, 8, 9, 14)',  
-                            cost_scope=1.05):
-        # stack init
-        paths = []                  # efftive path [(cur_distance, path),]
-        arrive_nodes = {}           # arrive nodes
-        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_distance, cur_node, cur_node_t, in_angle, last_node, last_link, path)
-        
-        # search init
-        max_distance = distance * 2.0
-        touch_nodes.push((0, 0, from_node, from_node_t, None, None, 0, []))
-        
-        # search
-        #print 'search dock to region at node_id = %s...' % str(node_id)
-        while not touch_nodes.isempty():
-            (cur_cost, cur_distance, cur_node, cur_node_t, in_angle, last_node, last_link, path) = touch_nodes.pop()
-            #print cur_node, last_link, path
-            
-            if (to_node == cur_node):
-                paths.append((cur_distance,path))
-                if max_distance > cur_distance * 1.1:
-                    max_distance = cur_distance * 1.1
-                continue
-            
-            #print 'search node', (cost, node_id, path)
-            if arrive_nodes.has_key(cur_node):
-                continue
-            else:
-                arrive_nodes[cur_node] = True
-            
-            adjlink_list = self._getAdjLinkList(cur_node, cur_node_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
-            for adjlink in adjlink_list:
-                # not one-link-uturn
-                if adjlink.link_id == last_link:
-                    continue
-                
-                # judge direction of traffic flow
-                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
-                    pass
-                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
-                    pass
-                else:
-                    continue
-                
-                # judge next node walked or not
-                if adjlink.start_node_id == cur_node:
-                    next_node = adjlink.end_node_id
-                    next_node_t = adjlink.end_node_id_t
-                    cur_out_angle = adjlink.fazm
-                    next_in_angle = adjlink.tazm
-                    next_witdh = adjlink.ops_width
-                else:
-                    next_node = adjlink.start_node_id
-                    next_node_t = adjlink.start_node_id_t
-                    cur_out_angle = adjlink.tazm
-                    next_in_angle = adjlink.fazm
-                    next_witdh = adjlink.neg_width
-                
-                # touch
-                next_path = copy.deepcopy(path)
-                next_path.append(adjlink.link_id)
-                next_distance = cur_distance + adjlink.link_length
-                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
-                                             adjlink.toll, adjlink.one_way, 
-                                             next_witdh, in_angle, cur_out_angle)
-                next_cost = cur_cost + adj_cost
-                #print 'touch', adjnode, adjcost
-                if next_distance < max_distance:
-                    touch_nodes.push((next_cost, next_distance, next_node, next_node_t, next_in_angle, cur_node, adjlink.link_id, next_path))
-        else:
-            return paths
-    
-    def searchShortestPaths2(self,  
-                             from_node, from_node_t, to_node, to_node_t, forward=True,
-                             distance = 10000.0, get_link_cost='CLinkCost.getCost2', 
-                             link_tbl = 'rdb_link', node_tbl = 'rdb_node', link_laneinfo_tbl = 'rdb_linklane_info',  
-                             delete_road_type = '(7, 8, 9, 14)'):
-        
+    def _searchShortestPath(self, 
+                            from_node,                               # Start Node
+                            to_node,                                 # End Node
+                            forward=True,                            # 算路方向设定 True:S->E / False:E->S
+                            distance = 10000.0,                      # 算路距离限值
+                            get_link_cost='CLinkCost.getCost2',      # 算路cost函数
+                            link_tbl = 'rdb_link',                   # 使用Link情报表
+                            node_tbl = 'rdb_node',                   # 使用Node情报表
+                            link_laneinfo_tbl = 'rdb_linklane_info', # 使用车线情报表
+                            delete_road_type = '(7, 8, 9, 14)'       # 算路时不考虑的road_type
+                            ):
+        # 改善点：
+        # 在最大距离限定内，若找到一条路径（最短路径）即终止探索，并返回路径；
+        # 若找不到路径，直至touch_nodes为空，并返回空路径
         paths = []                 
         arrive_nodes = {}          
         touch_nodes = CHeap()
         
         max_distance = distance * 2.0
-        touch_nodes.push((0, from_node, from_node_t, None, None, 0, []))
+        touch_nodes.push((0, from_node, None, None, 0, []))
         
         while not touch_nodes.isempty():
-            (cur_cost, cur_node, cur_node_t, in_angle, last_node, last_link, path) = touch_nodes.pop()
+            (cur_cost, cur_node, in_angle, last_node, last_link, path) = touch_nodes.pop()
             
             if (to_node == cur_node):
                 paths.append((cur_cost, path))
@@ -580,7 +329,7 @@ class CGraph_Cache(CGraph):
             else:
                 arrive_nodes[cur_node] = True
             
-            adjlink_list = self._getAdjLinkList(cur_node, cur_node_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
             adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
             for adjlink in adjlink_list:
                 if adjlink.link_id == last_link:
@@ -589,13 +338,11 @@ class CGraph_Cache(CGraph):
                 # judge next node walked or not
                 if adjlink.start_node_id == cur_node:
                     next_node = adjlink.end_node_id
-                    next_node_t = adjlink.end_node_id_t
                     cur_out_angle = adjlink.fazm
                     next_in_angle = adjlink.tazm
                     next_witdh = adjlink.ops_width
                 else:
                     next_node = adjlink.start_node_id
-                    next_node_t = adjlink.start_node_id_t
                     cur_out_angle = adjlink.tazm
                     next_in_angle = adjlink.fazm
                     next_witdh = adjlink.neg_width
@@ -606,75 +353,68 @@ class CGraph_Cache(CGraph):
                 next_cost = cur_cost + adj_cost
 
                 if next_cost < max_distance:
-                    touch_nodes.push((next_cost, next_node, next_node_t, next_in_angle, cur_node, adjlink.link_id, next_path))
+                    touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
         return paths
     
-    def searchDijkstraPaths(self,
-                            from_node, from_node_t, 
-                            to_node, to_node_t, forward=True,
-                            #is_legal_path='self._is_legal_path',
-                            max_buffer=5000, max_path_num=2,
-                            cost_scope=1.05, max_cost=None,
-                            get_link_cost='CLinkCost.getCost',
-                            log=None,
-                            link_tbl = 'rdb_link', 
-                            node_tbl = 'rdb_node', 
-                            link_laneinfo_tbl = 'rdb_linklane_info', 
-                            delete_road_type = '(7, 8, 9, 14)'):
+    def _searchDijkstraPaths(self, 
+                             from_node,                               # Start Node
+                             to_node,                                 # End Node
+                             forward=True,                            # 方向 True:S->E / False:E->S
+                             max_buffer=5000,                         # touch_nodes限值
+                             max_path_num=2,                          # 最大路径数限值
+                             cost_scope=1.05,                         # 探索用cost估值参数
+                             max_cost=None,                           # 探索用cost限值
+                             get_link_cost='CLinkCost.getCost',       # 探索用cost计算方法
+                             log=None,                                # log输出（暂时无用）    
+                             link_tbl = 'rdb_link',                   # 探索用Link情报表
+                             node_tbl = 'rdb_node',                   # 探索用Node情报表
+                             link_laneinfo_tbl = 'rdb_linklane_info', # 探索用车线情报表
+                             delete_road_type = '(7, 8, 9, 14)'       # 探索屏蔽road_type
+                            ):
+        # 使用Dijkstra算法进行算路，搜索范围近似半径为r的圆
         # stack init
         paths = []                  # efftive path [path,]
         arrive_nodes = {}           # arrive nodes
-        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_node, cur_node_t, in_angle, last_node, last_link, path)
+        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_node, in_angle, last_node, last_link, path)
         
         # search init
-        touch_nodes.push((0, from_node, from_node_t, None, None, 0, []))
+        touch_nodes.push((0, from_node, None, None, 0, []))
         
         # search
-        #print 'search dock to region at node_id = %s...' % str(node_id)
         while not touch_nodes.isempty():
-            #print 'from_node = %s, to_node = %s' % (str(from_node), str(to_node))
-            #print 'touch_nodes.length() =', touch_nodes.length()
             if touch_nodes.length() > max_buffer:
                 break
             
-            (cur_cost, cur_node, cur_node_t, in_angle, last_node, last_link, path) = touch_nodes.pop()
-            #print cur_node, last_link, path
-            
+            (cur_cost, cur_node, in_angle, last_node, last_link, path) = touch_nodes.pop()
+                    
             if (to_node == cur_node):
                 paths.append((cur_cost, path))
                 if len(paths) >= max_path_num:
                     break
                 else:
                     continue
-            
-            #print 'search node', (cost, node_id, path)
+
             if arrive_nodes.has_key(cur_node):
                 if cur_cost > arrive_nodes[cur_node] * cost_scope:
                     continue
             else:
                 arrive_nodes[cur_node] = cur_cost
-            
-            adjlink_list = self._getAdjLinkList(cur_node, cur_node_t, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+                
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
             adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
             for adjlink in adjlink_list:
                 # not one-link-uturn
                 if adjlink.link_id == last_link:
                     continue
                 
-                # check if walk this link
-                #if not is_legal_path(adjlink):
-                #    continue
-                
                 # judge next node walked or not
                 if adjlink.start_node_id == cur_node:
                     next_node = adjlink.end_node_id
-                    next_node_t = adjlink.end_node_id_t
                     cur_out_angle = adjlink.fazm
                     next_in_angle = adjlink.tazm
                     next_witdh = adjlink.ops_width
                 else:
                     next_node = adjlink.start_node_id
-                    next_node_t = adjlink.start_node_id_t
                     cur_out_angle = adjlink.tazm
                     next_in_angle = adjlink.fazm
                     next_witdh = adjlink.neg_width
@@ -686,10 +426,9 @@ class CGraph_Cache(CGraph):
                                          adjlink.toll, adjlink.one_way, 
                                          next_witdh, in_angle, cur_out_angle)
                 next_cost = cur_cost + adj_cost
-                #print 'touch', adjnode, adjcost
                 
                 if max_cost is None or next_cost <= max_cost:
-                    touch_nodes.push((next_cost, next_node, next_node_t, next_in_angle, cur_node, adjlink.link_id, next_path))
+                    touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
         
         return paths
     
@@ -712,6 +451,419 @@ class CGraph_Cache(CGraph):
             legal_adjlink_list.append(adjlink)
         
         return legal_adjlink_list
+    
+    def _searchBiDijkstraPaths(self, 
+                               from_node,                               # Start Node
+                               to_node,                                 # End Node
+                               max_buffer=5000,                         # touch_nodes限值
+                               max_path_num=2,                          # 最大路径数限值
+                               cost_scope=1.05,                         # 探索用cost估值参数
+                               max_cost=None,                           # 探索用cost限值
+                               get_link_cost='CLinkCost.getCost',       # 探索用cost计算方法
+                               log=None,                                # log输出（暂时无用）
+                               link_tbl = 'rdb_link',                   # 探索用Link情报表
+                               node_tbl = 'rdb_node',                   # 探索用Node情报表
+                               link_laneinfo_tbl = 'rdb_linklane_info', # 探索用车线情报表 
+                               delete_road_type = '(7, 8, 9, 14)'       # 探索屏蔽road_type
+                               ):
+        # 使用双向Dijkstra算法算路，搜索范围近似两个半径r/2的圆
+        # stack init
+        paths = []                  # efftive path [path,]
+        touch_nodes = CHeap()       # 已经reach到的候选节点集合
+        forward_arrive_nodes = {}   # 从touch_nodes弹出的forward节点（即从起点往终点探索过程中的节点）集合
+        backward_arrive_nodes = {}  # 从touch_nodes弹出的backward节点（即从终点往起点探索过程中的节点）集合
+        
+        # search init
+        touch_nodes.push((0, from_node, True, None, None, 0, []))
+        touch_nodes.push((0, to_node, False, None, None, 0, []))
+        
+        # search
+        while not touch_nodes.isempty():
+            if touch_nodes.length() > max_buffer:
+                break
+            
+            if len(paths) >= max_path_num:
+                break
+            
+            (cur_cost, cur_node, forward, in_angle, last_node, last_link, path) = touch_nodes.pop()
+                        
+            if forward == True: # 方向：起点--->终点
+                if forward_arrive_nodes.has_key(cur_node):
+                    [forward_cost, forward_path] = forward_arrive_nodes[cur_node]
+                    if cur_cost > forward_cost * cost_scope:
+                        continue
+                else:
+                    forward_arrive_nodes[cur_node] = [cur_cost, path]
+                    if backward_arrive_nodes.has_key(cur_node):
+                        [backward_cost, backward_path] = backward_arrive_nodes[cur_node]
+                        temp_path = copy.copy(path)
+                        temp_path.extend(backward_path)
+                        if False == self._judge_path_is_exists(paths, temp_path):
+                            paths.append((cur_cost+backward_cost, temp_path))
+                        continue
+            else: # 方向：终点--->起点
+                if backward_arrive_nodes.has_key(cur_node):
+                    [backward_cost, backward_path] = backward_arrive_nodes[cur_node]
+                    if cur_cost > backward_cost * cost_scope:
+                        continue
+                else:
+                    backward_arrive_nodes[cur_node] = [cur_cost, path]
+                    if forward_arrive_nodes.has_key(cur_node):
+                        [forward_cost, forward_path] = forward_arrive_nodes[cur_node]
+                        temp_path = copy.copy(forward_path)
+                        temp_path.extend(path)
+                        if False == self._judge_path_is_exists(paths, temp_path):
+                            paths.append((forward_cost+cur_cost, temp_path))
+                        continue
+
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
+            for adjlink in adjlink_list:
+                # not one-link-uturn
+                if adjlink.link_id == last_link:
+                    continue
+                
+                # judge next node walked or not
+                if adjlink.start_node_id == cur_node:
+                    next_node = adjlink.end_node_id
+                    cur_out_angle = adjlink.fazm
+                    next_in_angle = adjlink.tazm
+                    next_witdh = adjlink.ops_width
+                else:
+                    next_node = adjlink.start_node_id
+                    cur_out_angle = adjlink.tazm
+                    next_in_angle = adjlink.fazm
+                    next_witdh = adjlink.neg_width
+                
+                # touch
+                next_path = copy.copy(path)
+                if forward == True:
+                    next_path.append(adjlink.link_id)
+                else:
+                    next_path.insert(0, adjlink.link_id)
+                adj_cost = get_link_cost(adjlink.link_length, adjlink.road_type, 
+                                         adjlink.toll, adjlink.one_way, 
+                                         next_witdh, in_angle, cur_out_angle)
+                next_cost = cur_cost + adj_cost
+                
+                if max_cost is None or next_cost <= max_cost:
+                    touch_nodes.push((next_cost, next_node, forward, next_in_angle, cur_node, adjlink.link_id, next_path))
+        
+        return paths
+    
+    def _judge_path_is_exists(self, paths, cur_path):
+        
+        # first judge the cur_path is not in paths
+        cur_path_len = len(cur_path)
+        for (cost, path) in paths:
+            path_len = len(path) 
+            if cur_path_len == path_len:
+                if self._judge_path_have_diff_link(cur_path, path):
+                    continue
+                else:
+                    return True
+        return False
+        
+    def _searchAStarPaths(self,  
+                          from_node,                               # Start Node 
+                          to_node,                                 # End Node 
+                          forward=True,                            # 方向 True:S->E / False:E->S 
+                          max_buffer=5000,                         # touch_nodes限值 
+                          max_path_num=2,                          # 最大路径数限值 
+                          cost_scope=1.05,                         # 探索用cost估值参数 
+                          max_cost=None,                           # 探索用cost限值 
+                          get_link_cost='CLinkCost.getCost',       # 探索用cost计算方法 
+                          log=None,                                # log输出（暂时无用） 
+                          link_tbl = 'rdb_link',                   # 探索用Link情报表 
+                          node_tbl = 'rdb_node',                   # 探索用Node情报表 
+                          link_laneinfo_tbl = 'rdb_linklane_info', # 探索用车线情报表 
+                          delete_road_type = '(7, 8, 9, 14)'       # 探索屏蔽road_type 
+                          ):
+        # 使用A star算法进行算路，搜索范围近似长轴为r/2的椭圆
+        # 允许多次经过同一Node，但决不允许同一link被多次走过
+        # stack init
+        paths = []                  # efftive path [path,]
+        arrive_nodes = {}           # arrive nodes（保存Node被walked次数）
+        touch_nodes = CHeap()       # touch_nodes (cur_explore_cost, cur_cost, cur_node, 
+                                    #              in_angle, last_node, path)
+                                    
+        #         ●---------●-------------●
+        #         ●---------●----------------●
+        # ★------●---------●--------------------☆----------★
+        #         ●---------●----------------●
+        #         ●---------●-------------●
+        
+        # search init
+        #file_obj = common.cache_file.open('temp1')
+        (from_node_x, from_node_y) = self._getNodeCoord(from_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+        (to_node_x, to_node_y) = self._getNodeCoord(to_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+        max_cost = self._evaluation_func_distance(from_node_y, from_node_x, to_node_y, to_node_x)
+        touch_nodes.push((max_cost+0, 0, from_node, None, None, []))
+        
+        # search
+        while not touch_nodes.isempty():
+            if touch_nodes.length() > max_buffer:
+                #while not touch_nodes.isempty(): 
+                #    (cur_search_cost, cur_cost, cur_node, in_angle, last_node, path) = touch_nodes.pop() 
+                #    rec_string = '%d,\n' % (cur_node) 
+                #    file_obj.write(rec_string)
+                #    file_obj.flush()
+                print "buffer is overflow!!!\n"
+                break
+            
+            (cur_search_cost, cur_cost, cur_node, in_angle, last_node, path) = touch_nodes.pop()
+            #rec_string = '%d,\n' % (cur_node)
+            #file_obj.write(rec_string)
+            #file_obj.flush()
+            if path:
+                last_link = path[-1]
+            else:
+                last_link = 0
+            #print cur_node
+                
+            if (to_node == cur_node):
+                paths.append((cur_cost, path))
+                #path_len = len(path)
+                #temp_string = ''
+                #for loop in range(0, path_len):
+                #    str = '%d,' % path[loop]
+                #    temp_string += str
+                #str = '%f   ' % cur_cost
+                #rec_string = str + temp_string
+                #file_obj.write(rec_string)
+                #file_obj.flush()
+                if len(paths) >= max_path_num:
+                    #while not touch_nodes.isempty(): 
+                    #    (cur_search_cost, cur_cost, cur_node, in_angle, last_node, path) = touch_nodes.pop() 
+                    #    rec_string = '%d,\n' % (cur_node) 
+                    #    file_obj.write(rec_string)
+                    #    file_obj.flush()
+                    print "search success\n"
+                    break
+                else:
+                    continue
+
+            if arrive_nodes.has_key(cur_node):
+                # 若一个Node被走过max_path_num次，就不再走；反之，继续走
+                if arrive_nodes[cur_node][1] >= max_path_num or cur_cost > arrive_nodes[cur_node][0] * cost_scope:
+                    continue
+                else:
+                    arrive_nodes[cur_node][1] += 1
+            else:
+                arrive_nodes[cur_node] = [cur_cost, 1] # 第一次走过Node
+            
+            (cur_node_x, cur_node_y) = self._getNodeCoord(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            evaluation_cost = self._evaluation_func_distance(cur_node_y, cur_node_x, to_node_y, to_node_x)
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
+            for adjlink in adjlink_list:
+                # 不允许U Turn link；不允许link被重复walked（防止绕环）
+                if (adjlink.link_id == last_link) or (adjlink.link_id in path):
+                    continue
+                
+                # judge next node walked or not
+                if adjlink.start_node_id == cur_node:
+                    next_node = adjlink.end_node_id
+                    cur_out_angle = adjlink.fazm
+                    next_in_angle = adjlink.tazm
+                    next_witdh = adjlink.ops_width
+                else:
+                    next_node = adjlink.start_node_id
+                    cur_out_angle = adjlink.tazm
+                    next_in_angle = adjlink.fazm
+                    next_witdh = adjlink.neg_width
+                
+                # touch
+                next_path = copy.copy(path)
+                next_path.append(adjlink.link_id)
+                adj_cost = get_link_cost(adjlink.link_length, adjlink.road_type, 
+                                         adjlink.toll, adjlink.one_way, 
+                                         next_witdh, in_angle, cur_out_angle)
+                next_cost = cur_cost + adj_cost
+                
+                if max_cost is None or next_cost <= max_cost:
+                    touch_nodes.push((evaluation_cost+next_cost, next_cost, next_node, next_in_angle, cur_node, next_path))
+        else:
+            print "No Road to go!!!\n"
+        #common.cache_file.close(file_obj,False)
+        return paths
+    
+    def _judge_path_have_diff_link(self, pathA = [], pathB = []):
+        # 求Path A / B的差集
+        return list(set(pathA).difference(set(pathB)))
+    
+    def _searchBi_AStarPaths(self,
+                             from_node,                               # Start Node 
+                             to_node,                                 # End Node
+                             max_buffer=5000,                         # touch_nodes限值
+                             max_path_num=2,                          # 最大路径数限值
+                             cost_scope=1.05,                         # 探索用cost估值参数
+                             max_cost=None,                           # 探索用cost限值
+                             get_link_cost='CLinkCost.getCost',       # 探索用cost计算方法
+                             log=None,                                # log输出（暂时无用）    
+                             link_tbl = 'rdb_link',                   # 探索用Link情报表
+                             node_tbl = 'rdb_node',                   # 探索用Node情报表
+                             link_laneinfo_tbl = 'rdb_linklane_info', # 探索用车线情报表
+                             delete_road_type = '(7, 8, 9, 14)'       # 探索屏蔽road_type
+                            ):
+        # 使用双向A星算路算路，搜索范围近似两个长轴为r/4的椭圆
+        # stack init
+        paths = []                  # efftive path [path,]
+        touch_nodes = CHeap()       # 已经reach到的候选节点集合
+        forward_arrive_nodes = {}   # 从touch_nodes弹出的forward节点（即从起点往终点探索过程中的节点）集合
+        backward_arrive_nodes = {}  # 从touch_nodes弹出的backward节点（即从终点往起点探索过程中的节点）集合
+        
+        # search init
+        #file_obj = common.cache_file.open('temp2')
+        (from_node_x, from_node_y) = self._getNodeCoord(from_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+        (to_node_x, to_node_y) = self._getNodeCoord(to_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+        max_cost = self._evaluation_func_distance(from_node, from_node_y, from_node_x, to_node, to_node_y, to_node_x)
+        touch_nodes.push((max_cost+0, 0, from_node, True, None, None, []))
+        touch_nodes.push((max_cost+0, 0, to_node, False, None, None, []))
+
+        # search
+        while not touch_nodes.isempty():
+            if touch_nodes.length() > max_buffer:
+                #while not touch_nodes.isempty(): 
+                #    (cur_search_cost, cur_cost, cur_node, forward, in_angle, last_node, path) = touch_nodes.pop() 
+                #    rec_string = '%d,\n' % (cur_node) 
+                #    file_obj.write(rec_string)
+                #    file_obj.flush()
+                if log:
+                    log.warning("buffer is overflow!!!")
+                break
+            
+            if len(paths) >= max_path_num:
+                #while not touch_nodes.isempty(): 
+                #    (cur_search_cost, cur_cost, cur_node, forward, in_angle, last_node, path) = touch_nodes.pop() 
+                #    rec_string = '%d,\n' % (cur_node) 
+                #    file_obj.write(rec_string)
+                #    file_obj.flush()
+                break
+            
+            (cur_search_cost, cur_cost, cur_node, forward, in_angle, last_node, path) = touch_nodes.pop()
+            #rec_string = '%d,\n' % (cur_node)
+            #file_obj.write(rec_string)
+            #file_obj.flush()
+            if path:
+                last_link = path[-1]
+            else:
+                last_link = 0
+                        
+            if True == forward: # 方向：起点--->终点
+                if forward_arrive_nodes.has_key(cur_node):
+                    if forward_arrive_nodes[cur_node][1] >= max_path_num or cur_cost > forward_arrive_nodes[cur_node][0] * cost_scope:
+                        continue
+                    else:
+                        forward_arrive_nodes[cur_node][1] += 1
+                else:
+                    forward_arrive_nodes[cur_node] = [cur_cost, 1, path]
+                    if backward_arrive_nodes.has_key(cur_node):
+                        temp_path = copy.copy(path)
+                        temp_back_path = copy.copy(backward_arrive_nodes[cur_node][2])
+                        temp_back_path.reverse()
+                        temp_path.extend(temp_back_path)
+                        if False == self._judge_path_is_exists(paths, temp_path):
+                            paths.append((cur_cost+backward_arrive_nodes[cur_node][0], temp_path))
+                            #path_len = len(temp_path)
+                            #temp_string = ''
+                            #for loop in range(0, path_len):
+                            #    str = '%d,' % temp_path[loop]
+                            #    temp_string += str
+                            #str = '%f   ' % (cur_cost+backward_arrive_nodes[cur_node][0])
+                            #rec_string = str + temp_string
+                            #file_obj.write(rec_string)
+                            #file_obj.flush()
+                        continue
+            else: # 方向：终点--->起点
+                if backward_arrive_nodes.has_key(cur_node):
+                    if backward_arrive_nodes[cur_node][1] >= max_path_num or cur_cost > backward_arrive_nodes[cur_node][0] * cost_scope:
+                        continue
+                    else:
+                        backward_arrive_nodes[cur_node][1] += 1
+                else:
+                    backward_arrive_nodes[cur_node] = [cur_cost, 1, path]
+                    if forward_arrive_nodes.has_key(cur_node):
+                        temp_path = copy.copy(forward_arrive_nodes[cur_node][2])
+                        temp_back_path = copy.copy(path)
+                        temp_back_path.reverse()
+                        temp_path.extend(temp_back_path)
+                        if False == self._judge_path_is_exists(paths, temp_path):
+                            paths.append((forward_arrive_nodes[cur_node][0]+cur_cost, temp_path))
+                            #path_len = len(temp_path)
+                            #temp_string = ''
+                            #for loop in range(0, path_len):
+                            #    str = '%d,' % temp_path[loop]
+                            #    temp_string += str
+                            #str = '%f   ' % (forward_arrive_nodes[cur_node][0]+cur_cost)
+                            #rec_string = str + temp_string
+                            #file_obj.write(rec_string)
+                            #file_obj.flush()
+                        continue
+            
+            (cur_node_x, cur_node_y) = self._getNodeCoord(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            if True == forward:
+                # 正向搜索 估价函数是当前Node至目的地Node的cost
+                evaluation_cost = self._evaluation_func_distance(cur_node, cur_node_y, cur_node_x, to_node, to_node_y, to_node_x)
+            else:
+                # 反向搜索 估价函数是当前Node至出发地Node的cost
+                evaluation_cost = self._evaluation_func_distance(cur_node, cur_node_y, cur_node_x, from_node, from_node_y, from_node_x)
+                
+            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, node_tbl, link_laneinfo_tbl, delete_road_type)
+            adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
+            for adjlink in adjlink_list:
+                # 不允许U Turn link；不允许link被重复walked（防止绕环）
+                if (adjlink.link_id == last_link) or (adjlink.link_id in path):
+                    continue
+                
+                # judge next node walked or not
+                if adjlink.start_node_id == cur_node:
+                    next_node = adjlink.end_node_id
+                    cur_out_angle = adjlink.fazm
+                    next_in_angle = adjlink.tazm
+                    next_witdh = adjlink.ops_width
+                else:
+                    next_node = adjlink.start_node_id
+                    cur_out_angle = adjlink.tazm
+                    next_in_angle = adjlink.fazm
+                    next_witdh = adjlink.neg_width
+                
+                # touch
+                next_path = copy.copy(path)
+                next_path.append(adjlink.link_id)
+                adj_cost = get_link_cost(adjlink.link_length, adjlink.road_type, adjlink.toll, adjlink.one_way, next_witdh, in_angle, cur_out_angle)
+                next_cost = cur_cost + adj_cost
+                
+                if max_cost is None or next_cost <= max_cost:
+                    touch_nodes.push((evaluation_cost+next_cost, next_cost, next_node, forward, next_in_angle, cur_node, next_path))
+        else:
+            if log:
+                log.warning("No Road to go!!!")
+        #common.cache_file.close(file_obj,False)
+        return paths
+    
+    def _evaluation_func_distance(self, nodeA, Lat_A, Lng_A, nodeB, Lat_B, Lng_B): 
+        
+        # 估价函数：通过经纬度计算Node间的距离
+        if nodeA == nodeB:
+            return 0.0
+        
+        ra = 6378.140 # 赤道半径 (km) 
+        rb = 6356.755 # 极半径 (km)
+        flatten = (ra - rb) / ra # 地球扁率
+        rad_lat_A = radians(Lat_A)
+        rad_lng_A = radians(Lng_A)
+        rad_lat_B = radians(Lat_B)
+        rad_lng_B = radians(Lng_B)
+        pA = atan(rb / ra * tan(rad_lat_A))
+        pB = atan(rb / ra * tan(rad_lat_B))
+        xx = acos(sin(pA) * sin(pB) + cos(pA) * cos(pB) * cos(rad_lng_A - rad_lng_B))
+        c1 = (sin(xx) - xx) * (sin(pA) + sin(pB)) ** 2 / cos(xx / 2) ** 2
+        c2 = (sin(xx) + xx) * (sin(pA) - sin(pB)) ** 2 / sin(xx / 2) ** 2
+        dr = flatten / 8 * (c1 - c2)
+        distance = ra * (xx + dr)
+        cost = distance / 60 * 3600 # 车速设定60km/h，cost设定为秒
+        return cost
     
 class CHeap:
     def __init__(self):
@@ -746,9 +898,6 @@ class CLink:
         self.ops_width = link_rec[9]
         self.neg_width = link_rec[10]
         self.node_id = link_rec[11]
-        self.link_id_t = link_rec[12]
-        self.start_node_id_t = link_rec[13]
-        self.end_node_id_t = link_rec[14]
 
 class CLinkCost:
     

@@ -32,12 +32,14 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_S_NODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_E_NODE
 from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_REGULATION
+from component.rdf.hwy.hwy_graph_rdf import HWY_EXTEND_FLAG
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
 from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
 from component.jdb.hwy.hwy_data_mng import TollFacilInfo
 from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY, HWY_FALSE
 from component.jdb.hwy.hwy_node_addinfo import HwyTollType
 from component.rdf.hwy.hwy_node_addinfo_rdf import AddInfoDataRDF
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_IC
 NODE_TOLL_FLAG = 1  # 收费站
 
 
@@ -104,18 +106,26 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.__ic_list = []
         self._graph = None
         self._path_graph = None
+        self._building_graph = None
         self.__link_fwd_bwd_dict = {}  # link的前方设施/后方设施
         self.__toll_facil_dict = {}
         self._sapa_postion_dict = {}
         self._add_link_dict = {}
         self._side_road_dict = {}
+        self._sapa_postion_link = {}
+        self._line_name_dict = {}
+        self._parallel_road_code = {}
 
     def initialize(self):
         self._graph = HwyGraphRDF()  # 高速link图
         self._path_graph = HwyPathGraphRDF(self._graph)  # 高速路径图
+        self._building_graph = HwyGraphRDF()
 
     def get_graph(self):
         return self._graph
+
+    def get_building_graph(self):
+        return self._building_graph
 
     def get_path_graph(self):
         return self._path_graph
@@ -157,6 +167,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                road_name, road_number, the_geom
           FROM link_tbl
           WHERE road_type in (0) and link_type in (1, 2, 4)
+                and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -178,8 +189,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
                fazm, tazm, tile_id, length,
                road_name, road_number, the_geom
           FROM link_tbl
-          where (road_type = 0 and link_type not in (1, 2)) -- not main link
-                or link_type = 7
+          where ((road_type = 0 and link_type not in (1, 2)) -- not main link
+                 or link_type = 7) and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -207,7 +218,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
           where b.road_type not in (0, 8, 9, 12) and
-                b.link_type not in (3, 5, 7)
+                b.link_type not in (3, 5, 7) and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -229,7 +240,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
           where b.road_type not in (0, 8, 9, 12) and
-                b.link_type not in (3, 5, 7)
+                b.link_type not in (3, 5, 7) and const_st = false
         )
         """
         self.pg.execute2(sqlcmd)
@@ -261,6 +272,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                 c.link_id is null and        -- Does not included
                 b.road_type not in (0, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
+                and b.const_st = false
         );
         """
         while True:
@@ -353,6 +365,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                 c.link_id is null and        -- Does not included
                 b.road_type not in (0, 1, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
+                and b.const_st = false
         """
         self.pg.execute2(sqlcmd)
         row = self.pg.fetchone2()
@@ -366,11 +379,14 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.log.info('Start Loading Highway Main Link.')
         self.pg.connect2()
         sqlcmd = """
-        SELECT link_id, s_node, e_node, one_way_code,
-               link_type, road_type, display_class, toll,
-               fazm, tazm, tile_id, length,
-               road_name, road_number
-          FROM mid_temp_hwy_main_link
+        SELECT a.link_id, a.s_node, a.e_node, a.one_way_code,
+               a.link_type, a.road_type, a.display_class, a.toll,
+               a.fazm, a.tazm, a.tile_id, a.length,
+               a.road_name, a.road_number, b.extend_flag
+        FROM mid_temp_hwy_main_link a
+        LEFT JOIN link_tbl b
+        ON a.link_id = b.link_id
+        where b.const_st = false
         """
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
@@ -387,12 +403,14 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.log.info('Start Loading Highway IC(Ramp/JCT/SAPA) Link.')
         self.pg.connect2()
         sqlcmd = """
-        SELECT link_id, s_node, e_node, one_way_code,
-               link_type, road_type, display_class, toll,
-               fazm, tazm, tile_id, length,
-               road_name, road_number
-          FROM mid_temp_hwy_ic_link;
-        """
+                SELECT a.link_id, a.s_node, a.e_node, a.one_way_code, a.link_type, 
+                    a.road_type, a.display_class, a.toll, a.fazm, a.tazm, a.tile_id, 
+                    a.length, a.road_name, a.road_number, b.extend_flag 
+                FROM mid_temp_hwy_ic_link a
+                LEFT JOIN link_tbl b
+                    ON a.link_id = b.link_id
+                where b.const_st = false
+            """
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info
@@ -408,11 +426,14 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.log.info('Start Loading Highway In/Out Link.')
         self.pg.connect2()
         sqlcmd = """
-        SELECT DISTINCT link_id, s_node, e_node, one_way_code,
-               link_type, road_type, display_class, toll,
-               fazm, tazm, tile_id, length,
-               road_name, road_number
-          FROM mid_temp_hwy_inout_link;
+        SELECT DISTINCT a.link_id, a.s_node, a.e_node, a.one_way_code,
+               a.link_type, a.road_type, a.display_class, a.toll,
+               a.fazm, a.tazm, a.tile_id, a.length,
+               a.road_name, a.road_number, b.extend_flag
+        FROM mid_temp_hwy_inout_link a
+        LEFT JOIN link_tbl b
+        ON a.link_id = b.link_id
+        where b.const_st = false
         """
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
@@ -423,6 +444,27 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  **link_attr
                                  )
         self.log.info('End Loading Highway In/Out Link.')
+
+    def load_building_road(self):
+        self.log.info('Start Loading building Hwy road.')
+        self.pg.connect2()
+        sqlcmd = """
+        SELECT a.link_id, a.s_node, a.e_node, a.one_way_code,
+               a.link_type, a.road_type, a.display_class, a.toll,
+               a.fazm, a.tazm, a.tile_id, a.length,
+               '' as road_name, '' as road_number, extend_flag
+        FROM link_tbl a
+        where road_type = 0 and const_st = True
+        """
+        for link_info in self._get_link_attr(sqlcmd):
+            (link_id, s_node, e_node, one_way,
+             s_angle, e_angle, link_attr) = link_info
+            self._building_graph.add_link(s_node, e_node,
+                                          one_way, link_id,
+                                          s_angle, e_angle,
+                                          **link_attr
+                                          )
+        self.log.info('End Loading building Hwy road.')
 
     def load_hwy_regulation(self):
         '''规制'''
@@ -510,6 +552,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
             link_attr[HWY_ROAD_NAMES] = get_road_name(link_info[12])
             # link_attr[HWY_1ST_ROAD_NAME] = get_first_road_name(link_info[12])
             link_attr[HWY_ROAD_NUMS] = get_road_number(link_info[13])
+            link_attr[HWY_EXTEND_FLAG] = link_info[14]
             yield link_id, s_node, e_node, one_way, s_angle, e_angle, link_attr
 
     def load_hwy_path(self):
@@ -558,7 +601,9 @@ class HwyDataMngRDF(component.component_base.comp_base):
           FROM mid_temp_hwy_exit_name as a
           INNER JOIN link_tbl as b
           ON a.link_id = b.link_id
-          where is_exit_name = 'Y';
+          where is_exit_name = 'Y'
+                and b.const_st = false
+          ;
         """
         for exit_info in self.get_batch_data(sqlcmd):
             s_node, e_node, one_way_code, exit_name = exit_info
@@ -582,7 +627,9 @@ class HwyDataMngRDF(component.component_base.comp_base):
           FROM mid_temp_hwy_exit_name as a
           INNER JOIN link_tbl as b
           ON a.link_id = b.link_id
-          where is_junction_name = 'Y';
+          where is_junction_name = 'Y'
+                and b.const_st = false
+          ;
         """
         for exit_info in self.get_batch_data(sqlcmd):
             s_node, e_node, junction_name = exit_info
@@ -1107,7 +1154,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
                   FROM hwy_link_road_code_info as a
                   LEFT JOIN link_tbl as b
                   ON a.link_id = b.link_id
-                  where a.link_id is not null
+                  where a.link_id is not null and
+                        b.const_st = false
             ) as c
             GROUP BY road_code, updown
             having count(*) > 1
@@ -1275,12 +1323,13 @@ class HwyDataMngRDF(component.component_base.comp_base):
                array_agg(bwd_facility_id) as bwd_facility_ids,
                array_agg(fwd_node_id) as fwd_node_ids,
                array_agg(fwd_ic_no) as fwd_ic_nos,
-               array_agg(bwd_facility_id) as fwd_facility_ids,
+               array_agg(fwd_facility_id) as fwd_facility_ids,
                array_agg(path_type) as path_types,
                link_type
           from mid_temp_hwy_ic_link_mapping as a
           LEFT JOIN link_tbl
           ON a.link_id = link_tbl.link_id
+          where link_tbl.const_st = false
           group by a.link_id, link_type
         """
         self.pg.execute2(sqlcmd)
@@ -1297,18 +1346,20 @@ class HwyDataMngRDF(component.component_base.comp_base):
                  fwd_node_id, fwd_ic_no, fwd_facility_id, path_type) in \
                 zip(bwd_node_ids, bwd_ic_nos, bwd_facility_ids,
                     fwd_node_ids, fwd_ic_nos, fwd_facility_ids, path_types):
-                bwd = {'node_id': bwd_node_id,
-                       'ic_no': bwd_ic_no,
-                       'facility_id': bwd_facility_id,
-                       'path_type': path_type}
-                if bwd not in bwd_list:
-                    bwd_list.append(bwd)
-                fwd = {'node_id': fwd_node_id,
-                       'ic_no': fwd_ic_no,
-                       'facility_id': fwd_facility_id,
-                       'path_type': path_type}
-                if fwd not in fwd_list:
-                    fwd_list.append(fwd)
+                if path_type == HWY_PATH_TYPE_IC or bwd_ic_no:
+                    bwd = {'node_id': bwd_node_id,
+                           'ic_no': bwd_ic_no,
+                           'facility_id': bwd_facility_id,
+                           'path_type': path_type}
+                    if bwd not in bwd_list:
+                        bwd_list.append(bwd)
+                if path_type == HWY_PATH_TYPE_IC or fwd_ic_no:
+                    fwd = {'node_id': fwd_node_id,
+                           'ic_no': fwd_ic_no,
+                           'facility_id': fwd_facility_id,
+                           'path_type': path_type}
+                    if fwd not in fwd_list:
+                        fwd_list.append(fwd)
             self.__link_fwd_bwd_dict[link_id] = [bwd_list, fwd_list, link_type]
 
     def load_signpost(self):
@@ -1375,6 +1426,23 @@ class HwyDataMngRDF(component.component_base.comp_base):
             key = road_code, road_seq, updown_c
             self._sapa_postion_dict[key] = (node_id, link_id)
 
+    def is_sapa_position_link(self, link_id):
+        if not self._sapa_postion_link:
+            self._load_sapa_postion_link()
+        if link_id in self._sapa_postion_link:
+            return True
+        else:
+            return False
+
+    def _load_sapa_postion_link(self):
+        sqlcmd = """
+        SELECT  link_id
+          FROM hwy_facil_position
+        """
+        for pos_info in self.get_batch_data(sqlcmd):
+            link_id = pos_info[0]
+            self._sapa_postion_link[link_id] = None
+
     def is_add_info_link(self, link_id):
         # if not self._add_link_dict:
         #    self.load_add_info_link()
@@ -1383,9 +1451,11 @@ class HwyDataMngRDF(component.component_base.comp_base):
         return False
 
     def load_add_info_link(self):
+        '''加载附加情报link: 当前只加载IC出入口'''
         sqlcmd = """
         select distinct add_link_id
-          from mid_hwy_node_add_info;
+          from mid_hwy_node_add_info
+          where path_type = 'IC';
         """
         for row in self.get_batch_data(sqlcmd):
             add_link_id = row[0]

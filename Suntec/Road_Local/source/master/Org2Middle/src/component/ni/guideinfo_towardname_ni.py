@@ -621,6 +621,49 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
     def __make_highway_name_all_language(self):
         self.log.info('make highway_name_all_language...')
         self.CreateFunction2('mid_convertstring')
+        
+        self.log.info('delete record from org_hw_junction, which we do not need...')
+        sqlcmd = '''
+            drop table if exists org_hw_junction_bak;
+            create table org_hw_junction_bak
+            as
+            select * 
+            from org_hw_junction;
+            
+            drop table if exists temp_org_hw_junction_not_need;
+            create table temp_org_hw_junction_not_need
+            as
+            (
+                select a.*
+                from org_hw_junction as a
+                left join link_tbl as b
+                on a.inlinkid::bigint = b.link_id 
+                where b.link_id is null
+                
+                union
+                
+                select a.*
+                from org_hw_junction as a
+                left join link_tbl as b
+                on a.outlinkid::bigint = b.link_id 
+                where b.link_id is null
+                
+                union
+                
+                select a.* 
+                from org_hw_junction as a
+                left join node_tbl as b
+                on a.nodeid::bigint = b.node_id
+                where b.node_id is null
+            
+            );
+            
+            delete from org_hw_junction as a
+            where a.gid in (select gid from temp_org_hw_junction_not_need);   
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         sqlcmd = '''
             drop table if exists temp_highway_name_all_language;
             create table temp_highway_name_all_language
@@ -732,14 +775,23 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
             drop table if exists temp_poi_toll;
             create table temp_poi_toll
             as
-            (
-                SELECT a.poi_id, a.kind, a.linkid, c.node_id
-                FROM org_poi as a
-                left join link_tbl as b 
-                on b.link_id = a.linkid::bigint
-                left join node_tbl as c
-                on c.toll_flag = 1 and c.node_id in (b.s_node,b.e_node)
-                where b.link_type in (1,2) and b.road_type in (0,1) and a.kind in ('8401','F00E')
+            (           
+                select poi_id,kind,linkid,(array_agg(node_id))[1] as node_id
+                from
+                (
+                
+                    SELECT a.poi_id, a.kind, a.linkid, c.node_id,st_distance(a.the_geom,c.the_geom) as distance
+                    FROM org_poi as a
+                    left join link_tbl as b 
+                    on b.link_id = a.linkid::bigint
+                    left join node_tbl as c
+                    on c.toll_flag = 1 and c.node_id in (b.s_node, b.e_node)
+                    where b.link_type in (1,2) and b.road_type in (0,1) and a.kind in ('230209') 
+                    order by a.poi_id::bigint,a.kind, a.linkid::bigint,distance
+                
+                ) as d
+                group by poi_id,kind,linkid
+                order by poi_id::bigint,kind, linkid::bigint
             )
         
         '''
@@ -760,7 +812,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                         array_agg(phoneme) as phoneme_array
                 from
                 (
-                    select  a.poi_id, a.node_id, d.link_id as inlinkid, null::bigint as outlinkid, '7'::varchar as attr, b.name,
+                    select  a.poi_id, a.node_id, d.link_id as inlinkid, k.link_id as outlinkid, '7'::varchar as attr, b.name,
                             --- b.language,
                             (case when b.language = '1'  then  'CHI'
                                   when b.language = '2'  then  'CHT'
@@ -787,6 +839,13 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                             a.node_id = d.s_node and d.one_way_code = 3
                           )
                          and d.road_type in (0,1)
+                       )
+                    left join link_tbl as k
+                    on (  ( a.node_id = k.e_node and k.one_way_code = 3
+                            or
+                            a.node_id = k.s_node and k.one_way_code = 2
+                          )
+                         and k.road_type in (0,1)
                        ) 
                     order by a.poi_id::bigint, b.language::integer  
                 ) as e
@@ -800,7 +859,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
     def __make_hw_json_name(self):
         self.CreateTable2('temp_hw_json_name')   
         sqlcmd = '''
-            select  nodeid::varchar, inlinkid::varchar, '0' as outlinkid, attr,
+            select  nodeid::varchar, inlinkid::varchar, outlinkid::varchar, attr,
                     '0' as passlid,
                     0 as passlink_cnt,
                     name_id_array,

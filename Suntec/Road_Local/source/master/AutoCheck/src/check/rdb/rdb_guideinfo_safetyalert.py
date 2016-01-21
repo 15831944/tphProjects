@@ -58,7 +58,8 @@ class CCheckSafetyAlertLinkDir(platform.TestCase.CTestCase):
                 from safety_alert_tbl a
                 left join link_tbl b
                 on a.link_id=b.link_id
-                where a.dir+
+                where a.type not in (10,11)
+                 and a.dir+
                  abs(((a.angle-(case when st_line_locate_point(b.the_geom,a.the_geom)<>1 then ((450-mid_cal_zm_2(st_line_substring(b.the_geom,st_line_locate_point(b.the_geom,a.the_geom),1),0))::integer)%360 
                                 else ((450-mid_cal_zm_2(st_line_substring(b.the_geom,0,st_line_locate_point(b.the_geom,a.the_geom)),-1))::integer)%360 end))/180.0)::int)%2
                                <>1
@@ -97,7 +98,7 @@ class CCheckSafetyAlertNOTASCOrglinkID(platform.TestCase.CTestCase):
                 left join 
                 temp_split_newlink c
                 on a.orglink_id=c.link_id
-                where not a.type in (4,5)
+                where not a.type in (4,5,10,11)
                 and b.shape_line_id::bigint<>c.old_link_id
                 and b.shape_line_id::bigint<>a.orglink_id
                 '''
@@ -152,7 +153,7 @@ class CCheckSafetyAlertNOTASCTypeAngleSpeedUnit(platform.TestCase.CTestCase):
                 )
                 c
                 on a.orglink_id=c.id
-                where not a.type in (4,5)
+                where not a.type in (4,5,10,11)
                 and (
                 a.type<>case when b.cameratype='3' then 1
                              when b.cameratype='1' then 2
@@ -253,7 +254,7 @@ class CCheckSafetyAlertNum(platform.TestCase.CTestCase):
         
         sqlcmd='''
                 select 
-                ( select sum(case when cameratype ='8' then 2 else 1 end) from mid_temp_safetyalert ) 
+                ( select sum(case when cameratype in ('8','11') then 2 else 1 end) from mid_temp_safetyalert ) 
                 =
                 (select count(1) from safety_alert_tbl)
         '''

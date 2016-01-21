@@ -1,1150 +1,864 @@
 #genre_id;name_id;name_type;name_lang;name;tr_lang;tr_name;ph_flag;phoneme_id
-247;57;ON;UKE;Catholic churches;CHT;天主教會;ON;247
-7;144;ON;UKE;Japanese food;CHT;日本美食;ON;7
-124;161;ON;UKE;Mannings;CHI;万宁;TR;124
-191;43;ON;UKE;Banks;CHI;银行;TR;191
-120;113;ON;UKE;Furniture shops;CHI;家具店;TR;120
-204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHI;大众银行;TR;204
-179;119;ON;UKE;Hang Seng Bank;CHT;恆生銀行;TR;179
-202;261;ON;UKE;The Bank of East Asia;CHT;東亞銀行;ON;202
-38;156;ON;UKE;Lexus repairs facilities;CHI;雷克萨斯维修店;ON;38
-188;37;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;TR;188
-206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHI;中信银行国际;TR;206
-156;246;ON;UKE;Stationery;CHI;文具用品;ON;156
-162;142;ON;UKE;Internet cafés;CHI;网络咖啡厅;ON;162
-86;244;ON;UKE;Sports centres;CHT;運動中心;ON;86
-164;200;ON;UKE;Other speciality shops;CHT;其他專門店;TR;164
-89;29;ON;UKE;All tourist attractions;CHT;所有觀光點;TR;89
-197;40;ON;UKE;Bank of China;CHT;中國銀行;ON;197
-118;109;ON;UKE;Flower shops;CHT;花店;ON;118
-43;34;ON;UKE;Auto parts;CHI;汽车配件店;TR;43
-11;44;ON;UKE;Barbecue/southern food;CHT;燒烤╱南部美食;TR;11
-135;223;ON;UKE;ROYAL SUPERMARKET;CHI;未来超级市场;ON;135
-71;48;ON;UKE;Bowling alleys;CHI;保龄球中心;TR;71
-78;94;ON;UKE;Drinking establishments;CHT;夜生活;TR;78
-187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;ON;187
-262;231;ON;UKE;Securities firm;CHT;證券公司;ON;262
-3;65;ON;UKE;Chinese food;CHI;中国美食;TR;3
+211;38;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;;
+82;149;ON;UKE;Karaoke;CHT;卡拉 OK;;
+41;10;ON;UKE;All auto services & maintenance facilities;CHT;所有汽車維修和保養處;;
+260;176;ON;UKE;Non-profit organization;CHI;非盈利性组织;;
+213;111;ON;UKE;Fubon Bank;CHI;富邦银行;;
+196;64;ON;UKE;China Construction Bank;CHT;中國建設銀行;;
+78;94;ON;UKE;Drinking establishments;CHT;夜生活;;
+136;201;ON;UKE;Other supermarkets;CHT;其他超級市場;;
+10;273;ON;UKE;Vietnamese food;CHT;越南美食;;
+84;217;ON;UKE;Race tracks;CHT;賽道;;
+216;73;ON;UKE;Civic/community centres;CHT;公民╱社區中心;;
+56;55;ON;UKE;Car rental facilities;CHI;租车行;;
+242;271;ON;UKE;Universities & colleges;CHI;高等院校;;
+271;4;ON;UKE;Agency offices;CHT;代表辦事處;;
+171;129;ON;UKE;HSBC;;;;
+101;235;ON;UKE;Shopping;CHI;购物;;
+36;155;ON;UKE;Lexus dealerships;CHT;凌志經銷商;;
+44;183;ON;UKE;Other auto service & maintenance facilities;CHI;其他汽车服务和保养店;;
+95;21;ON;UKE;All hotels;CHT;所有酒店;;
+155;123;ON;UKE;Hobby, toy & game stores;CHI;爱好、玩具和游戏店;;
+166;280;ON;UKE;Wines & liquors;;;;
+63;122;ON;UKE;Highway exits;;;;
+108;147;ON;UKE;Joy&peace;CHI;真美诗;;
+224;157;ON;UKE;Libraries;CHI;图书馆;;
+15;166;ON;UKE;McDonald's;CHT;麥當勞;;
+133;97;ON;UKE;eCosway;;;;
+266;51;ON;UKE;Business service agencies;CHI;商业服务机构;;
 -1;96;ON;UKE;Dummy;;;;
-196;64;ON;UKE;China Construction Bank;CHI;中国建设银行;TR;196
-84;217;ON;UKE;Race tracks;CHI;赛道;ON;84
-169;32;ON;UKE;ATM;CHI;自助取款机;ON;169
-35;33;ON;UKE;Automobile facilities;CHT;汽車設施;ON;35
-15;166;ON;UKE;McDonald's;CHT;麥當勞;ON;15
-154;27;ON;UKE;All speciality shops;CHT;所有專門店;TR;154
-34;196;ON;UKE;Others;CHT;其他;TR;34
-142;241;ON;UKE;Speciality food shops;CHT;食品專門店;TR;142
-144;179;ON;UKE;OKASHI LAND;CHI;食家物语;TR;144
-17;8;ON;UKE;AJISEN RAMEN;CHI;味千拉面;TR;17
-106;154;ON;UKE;Levi's;CHT;李維斯;ON;106
-153;242;ON;UKE;Speciality shops;CHI;专卖店;TR;153
-98;1;ON;UKE;3 Star;CHT;三星級;ON;98
-97;2;ON;UKE;4 Star;CHI;四星级;ON;97
-282;20;ON;UKE;All hamlets;CHT;所有村鎮;ON;282
-42;56;ON;UKE;Car washes;CHT;汽車美容;ON;42
-140;180;ON;UKE;Optical shops;CHI;眼镜店;TR;140
-198;42;ON;UKE;Bank of Communications;CHI;交通银行;TR;198
-246;257;ON;UKE;Temples/wats;CHI;寺庙/泰国佛寺;ON;246
-152;199;ON;UKE;Other speciality food shops;CHT;其他食品專門店;TR;152
-274;72;ON;UKE;City centres;CHT;市中心;TR;274
-188;37;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;ON;188
-244;187;ON;UKE;Other community;CHI;其他社区;TR;244
-113;83;ON;UKE;Consumer electronics;CHI;电器城;TR;113
-246;257;ON;UKE;Temples/wats;CHT;寺廟╱佛寺;TR;246
-203;91;ON;UKE;DBS;CHI;星展银行;ON;203
-153;242;ON;UKE;Speciality shops;CHT;專門店;ON;153
-68;153;ON;UKE;Leisure & tourism;CHT;休閒和旅遊;TR;68
-225;167;ON;UKE;Medical service facilities;CHT;醫療服務機構;TR;225
-89;29;ON;UKE;All tourist attractions;CHI;所有旅游胜地;TR;89
-264;228;ON;UKE;Science & research institutions;CHT;科研機構;TR;264
-4;110;ON;UKE;French food;CHT;法式美食;ON;4
-199;60;ON;UKE;Chartered;CHI;渣打银行;ON;199
-147;31;ON;UKE;AROME;CHI;东海堂;ON;147
-121;247;ON;UKE;Supermarkets;CHT;超級市場;TR;121
-76;158;ON;UKE;Lottery booths;CHT;彩票站;ON;76
-98;1;ON;UKE;3 Star;CHI;三星级;ON;98
-8;229;ON;UKE;Seafood;CHT;海鮮;TR;8
-113;83;ON;UKE;Consumer electronics;CHT;消耗型電子產品;TR;113
-183;67;ON;UKE;Chong Hing Bank;CHT;創興銀行;TR;183
-215;105;ON;UKE;Famous landmark buildings;CHT;著名的標誌性建築;ON;215
-108;147;ON;UKE;Joy&peace;CHI;真美诗;TR;108
-242;271;ON;UKE;Universities & colleges;CHT;大學及學院;ON;242
-201;282;ON;UKE;Wing Hang Bank;CHI;永亨银行;ON;201
-283;275;ON;UKE;Villages;CHI;村庄;ON;283
-261;168;ON;UKE;Mining companies;CHI;矿产公司;TR;261
-180;281;ON;UKE;Wing Hang Bank;CHT;永亨銀行;TR;180
-250;58;ON;UKE;Cemeteries;CHT;墳場;TR;250
-167;198;ON;UKE;Other shopping;CHT;其他購物;ON;167
-123;131;ON;UKE;Huarun Supermarket;CHI;华润超市;TR;123
-237;227;ON;UKE;Schools;CHI;学校;TR;237
-203;91;ON;UKE;DBS;CHI;星展银行;TR;203
-188;37;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;TR;188
-244;187;ON;UKE;Other community;CHI;其他社区;ON;244
-192;11;ON;UKE;All banks;CHI;所有银行;TR;192
-113;83;ON;UKE;Consumer electronics;CHI;电器城;ON;113
-246;257;ON;UKE;Temples/wats;CHT;寺廟╱佛寺;ON;246
-28;141;ON;UKE;International food;CHT;國際美食;TR;28
-274;72;ON;UKE;City centres;CHT;市中心;ON;274
-152;199;ON;UKE;Other speciality food shops;CHT;其他食品專門店;ON;152
-211;38;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;ON;211
-198;42;ON;UKE;Bank of Communications;CHI;交通银行;ON;198
-279;240;ON;UKE;Spas;CHT;水療中心;ON;279
-208;174;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;TR;208
-170;9;ON;UKE;All ATMs;CHT;所有自動櫃員機;ON;170
-193;130;ON;UKE;HSBC;CHT;匯豐銀行;ON;193
-246;257;ON;UKE;Temples/wats;CHI;寺庙/泰国佛寺;TR;246
-106;154;ON;UKE;Levi's;CHT;李維斯;TR;106
-163;206;ON;UKE;Pet supplies;CHI;宠物用品;ON;163
-153;242;ON;UKE;Speciality shops;CHI;专卖店;ON;153
-76;158;ON;UKE;Lottery booths;CHI;彩票站;TR;76
-98;1;ON;UKE;3 Star;CHT;三星級;TR;98
-97;2;ON;UKE;4 Star;CHI;四星级;TR;97
-282;20;ON;UKE;All hamlets;CHT;所有村鎮;TR;282
-42;56;ON;UKE;Car washes;CHT;汽車美容;TR;42
-140;180;ON;UKE;Optical shops;CHI;眼镜店;ON;140
-45;103;ON;UKE;EV charging stations;CHT;電動車充電站;ON;45
-17;8;ON;UKE;AJISEN RAMEN;CHI;味千拉面;ON;17
-195;136;ON;UKE;Ind'l Com'l Bank of China;CHT;中國工商銀行;ON;195
-46;202;ON;UKE;Outdoor car parks;CHT;室外停車場;ON;46
-144;179;ON;UKE;OKASHI LAND;CHI;食家物语;ON;144
-142;241;ON;UKE;Speciality food shops;CHT;食品專門店;ON;142
-124;161;ON;UKE;Mannings;CHT;萬寧;TR;124
-283;275;ON;UKE;Villages;CHI;村庄;TR;283
-261;168;ON;UKE;Mining companies;CHI;矿产公司;ON;261
-180;281;ON;UKE;Wing Hang Bank;CHT;永亨銀行;ON;180
-108;147;ON;UKE;Joy&peace;CHI;真美诗;ON;108
-166;280;ON;UKE;Wines & liquors;CHI;酒类;ON;166
-87;259;ON;UKE;Theatres;CHI;剧院;TR;87
-242;271;ON;UKE;Universities & colleges;CHT;大學及學院;TR;242
-201;282;ON;UKE;Wing Hang Bank;CHI;永亨银行;TR;201
-104;76;ON;UKE;Clothing shops;CHI;服装店;TR;104
-248;185;ON;UKE;Other Christian churches;CHI;基督教会;ON;248
-267;12;ON;UKE;All business services;CHT;所有商務服務;TR;267
-274;72;ON;UKE;City centres;CHI;市中心;ON;274
-4;110;ON;UKE;French food;CHI;法国美食;ON;4
-73;115;ON;UKE;Golf courses;CHI;高尔夫球场;ON;73
-81;175;ON;UKE;Night clubs;CHI;夜总会;ON;81
-215;105;ON;UKE;Famous landmark buildings;CHT;著名的標誌性建築;TR;215
-26;225;ON;UKE;Sandwiches;CHI;三明治;ON;26
-183;67;ON;UKE;Chong Hing Bank;CHT;創興銀行;ON;183
-98;1;ON;UKE;3 Star;CHI;三星级;TR;98
-8;229;ON;UKE;Seafood;CHT;海鮮;ON;8
-76;158;ON;UKE;Lottery booths;CHT;彩票站;TR;76
-113;83;ON;UKE;Consumer electronics;CHT;消耗型電子產品;ON;113
-205;68;ON;UKE;Chong Hing Bank;CHI;创兴银行;ON;205
-147;31;ON;UKE;AROME;CHI;东海堂;TR;147
-64;160;ON;UKE;Major hub railway stations;CHT;主要鐵路樞紐;TR;64
-194;71;ON;UKE;Citibank;CHI;花旗银行;TR;194
-218;213;ON;UKE;Professional organizations;CHI;专门机构协会;ON;218
-104;76;ON;UKE;Clothing shops;CHT;服裝店;ON;104
-121;247;ON;UKE;Supermarkets;CHT;超級市場;ON;121
-270;255;ON;UKE;Technical training centres;CHT;技術訓練中心;TR;270
-4;110;ON;UKE;French food;CHT;法式美食;TR;4
-89;29;ON;UKE;All tourist attractions;CHI;所有旅游胜地;ON;89
-264;228;ON;UKE;Science & research institutions;CHT;科研機構;ON;264
-199;60;ON;UKE;Chartered;CHI;渣打银行;TR;199
-74;116;ON;UKE;Golf practice ranges;CHI;高尔夫练习场;TR;74
-153;242;ON;UKE;Speciality shops;CHT;專門店;TR;153
-220;100;ON;UKE;Embassies;CHI;大使馆;TR;220
-68;153;ON;UKE;Leisure & tourism;CHT;休閒和旅遊;ON;68
-225;167;ON;UKE;Medical service facilities;CHT;醫療服務機構;ON;225
-191;43;ON;UKE;Banks;CHT;銀行;TR;191
-34;196;ON;UKE;Others;CHI;其他;ON;34
-245;219;ON;UKE;Religion;CHT;宗教;TR;245
-56;55;ON;UKE;Car rental facilities;CHI;租车行;TR;56
-135;223;ON;UKE;ROYAL SUPERMARKET;CHI;未来超级市场;TR;135
-43;34;ON;UKE;Auto parts;CHI;汽车配件店;ON;43
-211;38;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;TR;211
-118;109;ON;UKE;Flower shops;CHT;花店;TR;118
-234;211;ON;UKE;Post offices;CHI;邮局;TR;234
-11;44;ON;UKE;Barbecue/southern food;CHT;燒烤╱南部美食;ON;11
-141;236;ON;UKE;Shopping malls/department stores;CHT;購物商場╱百貨公司;TR;141
-89;29;ON;UKE;All tourist attractions;CHT;所有觀光點;ON;89
-223;126;ON;UKE;Hospitals/polyclinics;CHT;醫院╱診所;ON;223
-136;201;ON;UKE;Other supermarkets;CHI;其他超市;TR;136
-197;40;ON;UKE;Bank of China;CHT;中國銀行;TR;197
-111;82;ON;UKE;Computers & software;CHT;電腦和軟體;TR;111
-82;149;ON;UKE;Karaoke;CHI;卡拉OK;ON;82
-275;74;ON;UKE;Cleaning & laundry;CHT;清潔和洗衣店;ON;275
-164;200;ON;UKE;Other speciality shops;CHT;其他專門店;ON;164
-247;57;ON;UKE;Catholic churches;CHI;天主教会;ON;247
-162;142;ON;UKE;Internet cafés;CHI;网络咖啡厅;TR;162
-86;244;ON;UKE;Sports centres;CHT;運動中心;TR;86
-188;37;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;ON;188
-206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHI;中信银行国际;ON;206
-156;246;ON;UKE;Stationery;CHI;文具用品;TR;156
-176;41;ON;UKE;Bank of Communications;CHI;交通银行;ON;176
-137;125;ON;UKE;Home improvement & hardware shops;CHI;家装五金用品店;ON;137
-38;156;ON;UKE;Lexus repairs facilities;CHI;雷克萨斯维修店;TR;38
-216;73;ON;UKE;Civic/community centres;CHT;公民╱社區中心;ON;216
-217;13;ON;UKE;All civic/community centres;CHT;所有公民╱社區中心;TR;217
-55;159;ON;UKE;LPG stations;CHT;液化氣站;TR;55
-186;283;ON;UKE;WING LUNG BANK;CHT;永隆銀行;TR;186
-2;24;ON;UKE;All restaurants;CHT;所有餐廳;ON;2
-120;113;ON;UKE;Furniture shops;CHI;家具店;ON;120
-257;138;ON;UKE;Insurance companies;CHT;保險公司;TR;257
-204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHI;大众银行;ON;204
-179;119;ON;UKE;Hang Seng Bank;CHT;恆生銀行;ON;179
-202;261;ON;UKE;The Bank of East Asia;CHT;東亞銀行;TR;202
-19;270;ON;UKE;Tsui Wah Restaurant;CHT;翠華餐廳;ON;19
-78;94;ON;UKE;Drinking establishments;CHI;夜生活;ON;78
-124;161;ON;UKE;Mannings;CHI;万宁;ON;124
-235;215;ON;UKE;Public toilets;CHI;公共厕所;ON;235
-247;57;ON;UKE;Catholic churches;CHT;天主教會;TR;247
-7;144;ON;UKE;Japanese food;CHT;日本美食;TR;7
-234;211;ON;UKE;Post offices;CHT;郵局;TR;234
-191;43;ON;UKE;Banks;CHI;银行;ON;191
-203;91;ON;UKE;DBS;CHT;星展銀行;TR;203
-214;184;ON;UKE;Other banks;CHT;其他銀行;ON;214
-40;35;ON;UKE;Auto service & maintenance facilities;CHI;汽车服务和保养店;ON;40
-122;28;ON;UKE;All supermarkets;CHI;所有超市;TR;122
-118;109;ON;UKE;Flower shops;CHI;花店;TR;118
-81;175;ON;UKE;Night clubs;CHT;夜總會;TR;81
-144;179;ON;UKE;OKASHI LAND;CHT;食家物語;ON;144
-33;253;ON;UKE;Tea houses;CHI;茶馆;ON;33
-154;27;ON;UKE;All speciality shops;CHT;所有專門店;ON;154
-138;124;ON;UKE;Home furnishings & supplies shops;CHT;家居專門店;ON;138
-62;140;ON;UKE;International border crossings;CHT;邊境口岸;ON;62
-34;196;ON;UKE;Others;CHT;其他;ON;34
-35;33;ON;UKE;Automobile facilities;CHT;汽車設施;TR;35
-15;166;ON;UKE;McDonald's;CHT;麥當勞;TR;15
-269;95;ON;UKE;Driving schools;CHT;駕駛學校;TR;269
-55;159;ON;UKE;LPG stations;CHI;液化气站;TR;55
-53;237;ON;UKE;Sinopec;CHT;中國石化;ON;53
-29;209;ON;UKE;Pizza;CHT;比薩;TR;29
-266;51;ON;UKE;Business service agencies;CHI;商业服务机构;ON;266
-9;258;ON;UKE;Thai food;CHT;泰國美食;TR;9
-238;25;ON;UKE;All schools;CHI;所有学校;TR;238
-196;64;ON;UKE;China Construction Bank;CHI;中国建设银行;ON;196
-84;217;ON;UKE;Race tracks;CHI;赛道;TR;84
-169;32;ON;UKE;ATM;CHI;自助取款机;TR;169
-1;221;ON;UKE;Restaurants;CHI;餐馆;ON;1
-174;63;ON;UKE;China Construction Bank;CHT;中國建設銀行;ON;174
-227;75;ON;UKE;Clinics & medical centres;CHI;诊所/医疗中心;ON;227
-3;65;ON;UKE;Chinese food;CHI;中国美食;ON;3
-115;98;ON;UKE;Electrical appliances;CHI;电器;TR;115
-262;231;ON;UKE;Securities firm;CHT;證券公司;TR;262
-7;144;ON;UKE;Japanese food;CHI;日本美食;TR;7
-71;48;ON;UKE;Bowling alleys;CHI;保龄球中心;ON;71
-78;94;ON;UKE;Drinking establishments;CHT;夜生活;ON;78
-187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;TR;187
-217;13;ON;UKE;All civic/community centres;CHI;所有文娱/社区中心;ON;217
-106;154;ON;UKE;Levi's;CHI;李维斯;TR;106
-228;80;ON;UKE;Community medical treatment centres;CHI;社区医疗中心;ON;228
-72;69;ON;UKE;Cinemas;CHI;电影院;ON;72
-161;254;ON;UKE;Tea shops;CHI;茶叶店;TR;161
-75;133;ON;UKE;Ice skating rinks;CHT;溜冰場;TR;75
-132;139;ON;UKE;International;CHT;國際超級市場;ON;132
-46;202;ON;UKE;Outdoor car parks;CHI;室外停车场;TR;46
-216;73;ON;UKE;Civic/community centres;CHI;文娱/社区中心;ON;216
-63;122;ON;UKE;Highway exits;CHT;高速公路出口;TR;63
-181;260;ON;UKE;The Bank of East Asia;CHT;東亞銀行;TR;181
-69;30;ON;UKE;Amusement parks;CHI;游乐园;ON;69
-105;14;ON;UKE;All clothing shops;CHI;所有服装店;TR;105
-185;173;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;TR;185
-130;203;ON;UKE;PARKnSHOP;CHT;百佳超市;TR;130
-64;160;ON;UKE;Major hub railway stations;CHI;主要铁路枢纽;ON;64
-10;273;ON;UKE;Vietnamese food;CHI;越南美食;TR;10
-256;256;ON;UKE;Telecom companies;CHT;電訊公司;TR;256
-171;129;ON;UKE;HSBC;CHI;汇丰银行;TR;171
-157;277;ON;UKE;Watches & cameras;CHI;手表、照相机;ON;157
-224;157;ON;UKE;Libraries;CHT;圖書館;ON;224
-230;193;ON;UKE;Other medical services;CHT;其他醫療服務;ON;230
-57;268;ON;UKE;Transportations;CHI;交通运输;TR;57
-101;235;ON;UKE;Shopping;CHI;购物;ON;101
-114;16;ON;UKE;All consumer electronics;CHI;所有消费性电子产品;ON;114
-231;93;ON;UKE;Dentists;CHT;牙醫;ON;231
-48;205;ON;UKE;Petrol stations;CHI;加油站;ON;48
-287;177;ON;UKE;Non-vehicle repair services;CHT;非車輛維修服務;TR;287
-85;245;ON;UKE;Sports event facilities;CHT;體育活動設施;ON;85
-131;145;ON;UKE;JAPAN HOME CENTRE;CHT;日本城;TR;131
-178;59;ON;UKE;Chartered;CHI;渣打银行;ON;178
-61;107;ON;UKE;Ferry terminals;CHI;渡轮码头;TR;61
-253;15;ON;UKE;All companies;CHI;所有商业机构;TR;253
-190;182;ON;UKE;Other ATMs;CHI;其他自助取款机;TR;190
-233;210;ON;UKE;Police stations;CHI;警察局;ON;233
-88;263;ON;UKE;Tourist attractions;CHI;旅游胜地;TR;88
-117;189;ON;UKE;Other consumer electronics;CHT;其他消耗型電子產品;TR;117
-58;7;ON;UKE;Airports;CHI;机场;ON;58
-97;2;ON;UKE;4 Star;CHT;四星級;TR;97
-240;99;ON;UKE;Elementary schools;CHT;小學;TR;240
-102;5;ON;UKE;Agricultural product markets;CHT;農產品市場;ON;102
-63;122;ON;UKE;Highway exits;CHI;高速公路出口;TR;63
-205;68;ON;UKE;Chong Hing Bank;CHT;創興銀行;ON;205
-90;226;ON;UKE;Scenic spots;CHI;风景名胜;TR;90
-160;85;ON;UKE;Cosmetics;CHT;化妝品;TR;160
-259;121;ON;UKE;High rise buildings;CHT;高層建築;TR;259
-239;151;ON;UKE;Kindergartens;CHT;幼稚園;ON;239
-117;189;ON;UKE;Other consumer electronics;CHI;其他消费性电子产品;TR;117
-183;67;ON;UKE;Chong Hing Bank;CHI;创兴银行;ON;183
-148;249;ON;UKE;Tai Cheong Bakery;CHT;泰昌餅家;TR;148
-10;273;ON;UKE;Vietnamese food;CHT;越南美食;TR;10
-130;203;ON;UKE;PARKnSHOP;CHI;百佳超市;TR;130
-92;6;ON;UKE;Agricultural tours;CHI;农场旅游;TR;92
-92;6;ON;UKE;Agricultural tours;CHT;農場旅遊;ON;92
-151;86;ON;UKE;CRCare;CHT;華潤堂;TR;151
-207;89;ON;UKE;DAHSING BANK;CHI;大新银行;TR;207
-131;145;ON;UKE;JAPAN HOME CENTRE;CHI;日本城;TR;131
-26;225;ON;UKE;Sandwiches;CHT;三文治;ON;26
-48;205;ON;UKE;Petrol stations;CHT;加油站;ON;48
-268;267;ON;UKE;Training centres;CHT;訓練中心;TR;268
-162;142;ON;UKE;Internet cafés;CHT;網絡咖啡廳;ON;162
-218;213;ON;UKE;Professional organizations;CHT;專業機構和協會;TR;218
-41;10;ON;UKE;All auto services & maintenance facilities;CHI;所以汽车服务和保养店;ON;41
-175;39;ON;UKE;Bank of China;CHI;中国银行;TR;175
-273;128;ON;UKE;HR markets;CHT;人力資源市場;TR;273
-96;3;ON;UKE;5 Star;CHT;五星級;TR;96
-80;45;ON;UKE;Bars/pubs/stube/biergarten;CHT;酒吧╱酒館╱斯圖貝╱露天啤酒屋;TR;80
-285;191;ON;UKE;Other hamlets;CHI;其他村镇;TR;285
-100;181;ON;UKE;Other accommodations;CHT;其他住宿;TR;100
-236;220;ON;UKE;Residential areas;CHT;住宅區;TR;236
-276;112;ON;UKE;Funeral directors;CHI;葬仪社;ON;276
-219;87;ON;UKE;Cultural exchange activity centres;CHI;文化交流中心;ON;219
-47;137;ON;UKE;Indoor car parks;CHT;室內停車場;TR;47
-67;262;ON;UKE;Toll booths;CHI;收费站;TR;67
-200;120;ON;UKE;Hang Seng Bank;CHI;恒生银行;ON;200
-187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;ON;187
-260;176;ON;UKE;Non-profit organization;CHT;非營利機構;TR;260
-226;22;ON;UKE;All medical service facilities;CHT;所有醫療服務機構;ON;226
-280;46;ON;UKE;Beauty salons;CHT;美容院;TR;280
-122;28;ON;UKE;All supermarkets;CHT;所有超級市場;TR;122
-173;135;ON;UKE;Ind'l & Com'l Bank of China;CHT;中國工商銀行;TR;173
-110;186;ON;UKE;Other clothing shops;CHI;其他服装店;TR;110
-24;190;ON;UKE;Other fast food;CHI;其他快餐;ON;24
-194;71;ON;UKE;Citibank;CHT;花旗銀行;ON;194
-27;239;ON;UKE;Southeast asian food;CHT;東南亞美食;TR;27
-206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHT;中信銀行國際;ON;206
-241;230;ON;UKE;Secondary schools;CHT;中學;ON;241
-128;92;ON;UKE;DCH FOOD;CHT;大昌食品;TR;128
-119;146;ON;UKE;Jewellery shops;CHT;珠寶店;TR;119
-139;178;ON;UKE;Office supplies & services shops;CHI;办公用品服务;TR;139
-126;278;ON;UKE;WATSONS;CHI;屈臣氏;ON;126
-91;169;ON;UKE;Monasteries/convents;CHT;寺廟，道觀;TR;91
-157;277;ON;UKE;Watches & cameras;CHT;手錶和攝影器材;TR;157
-271;4;ON;UKE;Agency offices;CHI;代理机构;ON;271
-159;172;ON;UKE;Music instruments;CHI;乐器;ON;159
-108;147;ON;UKE;Joy&peace;CHT;真美詩;TR;108
-152;199;ON;UKE;Other speciality food shops;CHI;其他特产店;ON;152
-273;128;ON;UKE;HR markets;CHI;人才市场;TR;273
-263;50;ON;UKE;Business centres;CHT;商務中心;ON;263
-51;234;ON;UKE;Shell;CHI;壳牌;ON;51
-9;258;ON;UKE;Thai food;CHI;泰国美食;TR;9
-116;78;ON;UKE;Communication equipment;CHI;通信设备;TR;116
-109;162;ON;UKE;MARATHON Sport;CHT;馬拉松;ON;109
-136;201;ON;UKE;Other supermarkets;CHT;其他超級市場;ON;136
-100;181;ON;UKE;Other accommodations;CHI;其他住宿;TR;100
-102;5;ON;UKE;Agricultural product markets;CHI;农产品市场;ON;102
-222;117;ON;UKE;Government offices;CHT;政府辦事處;ON;222
-280;46;ON;UKE;Beauty salons;CHI;美容院;TR;280
-196;64;ON;UKE;China Construction Bank;CHT;中國建設銀行;ON;196
-163;206;ON;UKE;Pet supplies;CHT;寵物用品;TR;163
-174;63;ON;UKE;China Construction Bank;CHI;中国建设银行;ON;174
-259;121;ON;UKE;High rise buildings;CHI;高层建筑物;ON;259
-219;87;ON;UKE;Cultural exchange activity centres;CHT;文化交流中心;ON;219
-109;162;ON;UKE;MARATHON Sport;CHI;马拉松;ON;109
-129;248;ON;UKE;SUPERSTORE;CHI;SUPERSTORE;TR;129
-209;284;ON;UKE;WING LUNG BANK;CHT;永隆銀行;TR;209
-226;22;ON;UKE;All medical service facilities;CHI;所有医疗服务机构;ON;226
-189;36;ON;UKE;Banco Nacional Ultramarino;CHI;大西洋银行;ON;189
-213;111;ON;UKE;Fubon Bank;CHI;富邦银行;ON;213
-24;190;ON;UKE;Other fast food;CHT;其他快餐;ON;24
-18;53;ON;UKE;Café de Coral;CHI;大家乐;ON;18
-227;75;ON;UKE;Clinics & medical centres;CHT;醫務所╱醫療中心;TR;227
-268;267;ON;UKE;Training centres;CHI;培训中心;ON;268
-184;88;ON;UKE;DAHSING BANK;CHI;大新银行;TR;184
-82;149;ON;UKE;Karaoke;CHT;卡拉 OK;ON;82
-222;117;ON;UKE;Government offices;CHI;政府机构;ON;222
-75;133;ON;UKE;Ice skating rinks;CHI;溜冰场;TR;75
-25;152;ON;UKE;Korean food;CHT;韓國美食;TR;25
-126;278;ON;UKE;WATSONS;CHT;屈臣氏;ON;126
-128;92;ON;UKE;DCH FOOD;CHI;大昌食品;TR;128
-229;222;ON;UKE;Retirement/nursing homes;CHI;养老院/疗养院;TR;229
-252;81;ON;UKE;Companies;CHI;商业机构;ON;252
-233;210;ON;UKE;Police stations;CHT;警署;TR;233
-271;4;ON;UKE;Agency offices;CHI;代理机构;TR;271
-159;172;ON;UKE;Music instruments;CHI;乐器;TR;159
-91;169;ON;UKE;Monasteries/convents;CHT;寺廟，道觀;ON;91
-157;277;ON;UKE;Watches & cameras;CHT;手錶和攝影器材;ON;157
-273;128;ON;UKE;HR markets;CHI;人才市场;ON;273
-108;147;ON;UKE;Joy&peace;CHT;真美詩;ON;108
-152;199;ON;UKE;Other speciality food shops;CHI;其他特产店;TR;152
-241;230;ON;UKE;Secondary schools;CHT;中學;TR;241
-206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHT;中信銀行國際;TR;206
-139;178;ON;UKE;Office supplies & services shops;CHI;办公用品服务;ON;139
-126;278;ON;UKE;WATSONS;CHI;屈臣氏;TR;126
-128;92;ON;UKE;DCH FOOD;CHT;大昌食品;ON;128
-119;146;ON;UKE;Jewellery shops;CHT;珠寶店;ON;119
-27;239;ON;UKE;Southeast asian food;CHT;東南亞美食;ON;27
-24;190;ON;UKE;Other fast food;CHI;其他快餐;TR;24
-122;28;ON;UKE;All supermarkets;CHT;所有超級市場;ON;122
-173;135;ON;UKE;Ind'l & Com'l Bank of China;CHT;中國工商銀行;ON;173
-110;186;ON;UKE;Other clothing shops;CHI;其他服装店;ON;110
-194;71;ON;UKE;Citibank;CHT;花旗銀行;TR;194
-226;22;ON;UKE;All medical service facilities;CHT;所有醫療服務機構;TR;226
-280;46;ON;UKE;Beauty salons;CHT;美容院;ON;280
-260;176;ON;UKE;Non-profit organization;CHT;非營利機構;ON;260
-219;87;ON;UKE;Cultural exchange activity centres;CHI;文化交流中心;TR;219
-47;137;ON;UKE;Indoor car parks;CHT;室內停車場;ON;47
-67;262;ON;UKE;Toll booths;CHI;收费站;ON;67
-187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;TR;187
-200;120;ON;UKE;Hang Seng Bank;CHI;恒生银行;TR;200
-236;220;ON;UKE;Residential areas;CHT;住宅區;ON;236
-100;181;ON;UKE;Other accommodations;CHT;其他住宿;ON;100
-276;112;ON;UKE;Funeral directors;CHI;葬仪社;TR;276
-96;3;ON;UKE;5 Star;CHT;五星級;ON;96
-80;45;ON;UKE;Bars/pubs/stube/biergarten;CHT;酒吧╱酒館╱斯圖貝╱露天啤酒屋;ON;80
-285;191;ON;UKE;Other hamlets;CHI;其他村镇;ON;285
-128;92;ON;UKE;DCH FOOD;CHI;大昌食品;ON;128
-229;222;ON;UKE;Retirement/nursing homes;CHI;养老院/疗养院;ON;229
-126;278;ON;UKE;WATSONS;CHT;屈臣氏;TR;126
-252;81;ON;UKE;Companies;CHI;商业机构;TR;252
-233;210;ON;UKE;Police stations;CHT;警署;ON;233
-184;88;ON;UKE;DAHSING BANK;CHI;大新银行;ON;184
-82;149;ON;UKE;Karaoke;CHT;卡拉 OK;TR;82
-227;75;ON;UKE;Clinics & medical centres;CHT;醫務所╱醫療中心;ON;227
-268;267;ON;UKE;Training centres;CHI;培训中心;TR;268
-222;117;ON;UKE;Government offices;CHI;政府机构;TR;222
-75;133;ON;UKE;Ice skating rinks;CHI;溜冰场;ON;75
-25;152;ON;UKE;Korean food;CHT;韓國美食;ON;25
-226;22;ON;UKE;All medical service facilities;CHI;所有医疗服务机构;TR;226
-189;36;ON;UKE;Banco Nacional Ultramarino;CHI;大西洋银行;TR;189
-213;111;ON;UKE;Fubon Bank;CHI;富邦银行;TR;213
-18;53;ON;UKE;Café de Coral;CHI;大家乐;TR;18
-24;190;ON;UKE;Other fast food;CHT;其他快餐;TR;24
-109;162;ON;UKE;MARATHON Sport;CHI;马拉松;TR;109
-209;284;ON;UKE;WING LUNG BANK;CHT;永隆銀行;ON;209
-129;248;ON;UKE;SUPERSTORE;CHI;SUPERSTORE;ON;129
-174;63;ON;UKE;China Construction Bank;CHI;中国建设银行;TR;174
-259;121;ON;UKE;High rise buildings;CHI;高层建筑物;TR;259
-219;87;ON;UKE;Cultural exchange activity centres;CHT;文化交流中心;TR;219
-222;117;ON;UKE;Government offices;CHT;政府辦事處;TR;222
-196;64;ON;UKE;China Construction Bank;CHT;中國建設銀行;TR;196
-163;206;ON;UKE;Pet supplies;CHT;寵物用品;ON;163
-280;46;ON;UKE;Beauty salons;CHI;美容院;ON;280
-102;5;ON;UKE;Agricultural product markets;CHI;农产品市场;TR;102
-116;78;ON;UKE;Communication equipment;CHI;通信设备;ON;116
-109;162;ON;UKE;MARATHON Sport;CHT;馬拉松;TR;109
-136;201;ON;UKE;Other supermarkets;CHT;其他超級市場;TR;136
-263;50;ON;UKE;Business centres;CHT;商務中心;TR;263
-51;234;ON;UKE;Shell;CHI;壳牌;TR;51
-9;258;ON;UKE;Thai food;CHI;泰国美食;ON;9
-100;181;ON;UKE;Other accommodations;CHI;其他住宿;ON;100
-287;177;ON;UKE;Non-vehicle repair services;CHT;非車輛維修服務;ON;287
-85;245;ON;UKE;Sports event facilities;CHT;體育活動設施;TR;85
-114;16;ON;UKE;All consumer electronics;CHI;所有消费性电子产品;TR;114
-231;93;ON;UKE;Dentists;CHT;牙醫;TR;231
-48;205;ON;UKE;Petrol stations;CHI;加油站;TR;48
-178;59;ON;UKE;Chartered;CHI;渣打银行;TR;178
-131;145;ON;UKE;JAPAN HOME CENTRE;CHT;日本城;ON;131
-224;157;ON;UKE;Libraries;CHT;圖書館;TR;224
-157;277;ON;UKE;Watches & cameras;CHI;手表、照相机;TR;157
-101;235;ON;UKE;Shopping;CHI;购物;TR;101
-230;193;ON;UKE;Other medical services;CHT;其他醫療服務;TR;230
-57;268;ON;UKE;Transportations;CHI;交通运输;ON;57
-64;160;ON;UKE;Major hub railway stations;CHI;主要铁路枢纽;TR;64
-10;273;ON;UKE;Vietnamese food;CHI;越南美食;ON;10
-171;129;ON;UKE;HSBC;CHI;汇丰银行;ON;171
-256;256;ON;UKE;Telecom companies;CHT;電訊公司;ON;256
-130;203;ON;UKE;PARKnSHOP;CHT;百佳超市;ON;130
-105;14;ON;UKE;All clothing shops;CHI;所有服装店;ON;105
-185;173;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;ON;185
-216;73;ON;UKE;Civic/community centres;CHI;文娱/社区中心;TR;216
-63;122;ON;UKE;Highway exits;CHT;高速公路出口;ON;63
-69;30;ON;UKE;Amusement parks;CHI;游乐园;TR;69
-181;260;ON;UKE;The Bank of East Asia;CHT;東亞銀行;ON;181
-75;133;ON;UKE;Ice skating rinks;CHT;溜冰場;ON;75
-132;139;ON;UKE;International;CHT;國際超級市場;TR;132
-72;69;ON;UKE;Cinemas;CHI;电影院;TR;72
-161;254;ON;UKE;Tea shops;CHI;茶叶店;ON;161
-46;202;ON;UKE;Outdoor car parks;CHI;室外停车场;ON;46
-228;80;ON;UKE;Community medical treatment centres;CHI;社区医疗中心;TR;228
-217;13;ON;UKE;All civic/community centres;CHI;所有文娱/社区中心;TR;217
-106;154;ON;UKE;Levi's;CHI;李维斯;ON;106
-218;213;ON;UKE;Professional organizations;CHT;專業機構和協會;ON;218
-162;142;ON;UKE;Internet cafés;CHT;網絡咖啡廳;TR;162
-175;39;ON;UKE;Bank of China;CHI;中国银行;ON;175
-273;128;ON;UKE;HR markets;CHT;人力資源市場;ON;273
-41;10;ON;UKE;All auto services & maintenance facilities;CHI;所以汽车服务和保养店;TR;41
-207;89;ON;UKE;DAHSING BANK;CHI;大新银行;ON;207
-131;145;ON;UKE;JAPAN HOME CENTRE;CHI;日本城;ON;131
-48;205;ON;UKE;Petrol stations;CHT;加油站;TR;48
-268;267;ON;UKE;Training centres;CHT;訓練中心;ON;268
-26;225;ON;UKE;Sandwiches;CHT;三文治;TR;26
-92;6;ON;UKE;Agricultural tours;CHI;农场旅游;ON;92
-130;203;ON;UKE;PARKnSHOP;CHI;百佳超市;ON;130
-92;6;ON;UKE;Agricultural tours;CHT;農場旅遊;TR;92
-151;86;ON;UKE;CRCare;CHT;華潤堂;ON;151
-183;67;ON;UKE;Chong Hing Bank;CHI;创兴银行;TR;183
-10;273;ON;UKE;Vietnamese food;CHT;越南美食;ON;10
-148;249;ON;UKE;Tai Cheong Bakery;CHT;泰昌餅家;ON;148
-90;226;ON;UKE;Scenic spots;CHI;风景名胜;ON;90
-205;68;ON;UKE;Chong Hing Bank;CHT;創興銀行;TR;205
-239;151;ON;UKE;Kindergartens;CHT;幼稚園;TR;239
-117;189;ON;UKE;Other consumer electronics;CHI;其他消费性电子产品;ON;117
-160;85;ON;UKE;Cosmetics;CHT;化妝品;ON;160
-259;121;ON;UKE;High rise buildings;CHT;高層建築;ON;259
-97;2;ON;UKE;4 Star;CHT;四星級;ON;97
-240;99;ON;UKE;Elementary schools;CHT;小學;ON;240
-58;7;ON;UKE;Airports;CHI;机场;TR;58
-63;122;ON;UKE;Highway exits;CHI;高速公路出口;ON;63
-102;5;ON;UKE;Agricultural product markets;CHT;農產品市場;TR;102
-117;189;ON;UKE;Other consumer electronics;CHT;其他消耗型電子產品;ON;117
-279;240;ON;UKE;Spas;CHT;水療中心;TR;279
-61;107;ON;UKE;Ferry terminals;CHI;渡轮码头;ON;61
-253;15;ON;UKE;All companies;CHI;所有商业机构;ON;253
-190;182;ON;UKE;Other ATMs;CHI;其他自助取款机;ON;190
-233;210;ON;UKE;Police stations;CHI;警察局;TR;233
-88;263;ON;UKE;Tourist attractions;CHI;旅游胜地;ON;88
-147;31;ON;UKE;AROME;CHT;東海堂;TR;147
-264;228;ON;UKE;Science & research institutions;CHI;科研机构;ON;264
-121;247;ON;UKE;Supermarkets;CHI;超市;TR;121
-286;208;ON;UKE;Photography studios;CHI;照相馆;ON;286
-243;276;ON;UKE;Vocational schools;CHT;專業學校;ON;243
-36;155;ON;UKE;Lexus dealerships;CHT;凌志經銷商;ON;36
-283;275;ON;UKE;Villages;CHT;村莊;ON;283
-22;104;ON;UKE;Fairwood;CHI;大快活;TR;22
-6;143;ON;UKE;Italian food;CHT;意大利美食;ON;6
-42;56;ON;UKE;Car washes;CHI;洗车;ON;42
-77;171;ON;UKE;Museums;CHT;博物館;TR;77
-129;248;ON;UKE;SUPERSTORE;CHT;超級商場;ON;129
-278;19;ON;UKE;All hair & beauty supplies shops;CHI;所有美容美发店;ON;278
-116;78;ON;UKE;Communication equipment;CHT;通訊設備;ON;116
-45;103;ON;UKE;EV charging stations;CHI;电动汽车充电站;ON;45
-245;219;ON;UKE;Religion;CHI;宗教信仰;TR;245
-12;106;ON;UKE;Fast food;CHI;快餐;TR;12
-249;195;ON;UKE;Other places of worship;CHT;其他禮拜場所;TR;249
-204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHT;大眾銀行;TR;204
-261;168;ON;UKE;Mining companies;CHT;礦業公司;ON;261
-141;236;ON;UKE;Shopping malls/department stores;CHI;购物中心/百货商店;ON;141
-125;279;ON;UKE;Wellcome;CHT;惠康;TR;125
-79;17;ON;UKE;All drinking establishments;CHT;所有夜生活;TR;79
-19;270;ON;UKE;Tsui Wah Restaurant;CHI;翠华餐厅;TR;19
-8;229;ON;UKE;Seafood;CHI;海鲜;ON;8
-35;33;ON;UKE;Automobile facilities;CHI;汽车设施;TR;35
-28;141;ON;UKE;International food;CHI;国际美食;ON;28
-72;69;ON;UKE;Cinemas;CHT;戲院;ON;72
-93;269;ON;UKE;Travel agencies;CHI;旅行社;TR;93
-94;127;ON;UKE;Hotels;CHI;酒店;ON;94
-186;283;ON;UKE;WING LUNG BANK;CHI;永隆银行;ON;186
-142;241;ON;UKE;Speciality food shops;CHI;食品专门店;ON;142
-86;244;ON;UKE;Sports centres;CHI;体育中心;ON;86
-154;27;ON;UKE;All speciality shops;CHI;所有专卖店;TR;154
-44;183;ON;UKE;Other auto service & maintenance facilities;CHI;其他汽车服务和保养店;ON;44
-284;264;ON;UKE;Towns;CHT;城鎮;ON;284
-195;136;ON;UKE;Ind'l Com'l Bank of China;CHI;中国工商银行;ON;195
-36;155;ON;UKE;Lexus dealerships;CHI;雷克萨斯经销商;TR;36
-139;178;ON;UKE;Office supplies & services shops;CHT;辦公用品服務;ON;139
-151;86;ON;UKE;CRCare;CHI;华润堂;TR;151
-23;250;ON;UKE;TAI HING;CHT;太興;TR;23
-242;271;ON;UKE;Universities & colleges;CHI;高等院校;ON;242
-182;90;ON;UKE;DBS;CHT;星展銀行;TR;182
-12;106;ON;UKE;Fast food;CHT;快餐;TR;12
-31;132;ON;UKE;Ice cream;CHI;冰淇淋;TR;31
-159;172;ON;UKE;Music instruments;CHT;樂器;ON;159
-67;262;ON;UKE;Toll booths;CHT;收費亭;TR;67
-22;104;ON;UKE;Fairwood;CHT;大快活;TR;22
-6;143;ON;UKE;Italian food;CHI;意大利美食;ON;6
-68;153;ON;UKE;Leisure & tourism;CHI;休闲和旅游;ON;68
-181;260;ON;UKE;The Bank of East Asia;CHI;东亚银行;TR;181
-284;264;ON;UKE;Towns;CHI;城镇;TR;284
-210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;TR;210
-143;26;ON;UKE;All speciality food shops;CHI;所有食品专门店;TR;143
-79;17;ON;UKE;All drinking establishments;CHI;所有夜生活;TR;79
-235;215;ON;UKE;Public toilets;CHT;公共廁所;ON;235
-65;170;ON;UKE;Motorway rest areas;CHI;高速公路服务区;TR;65
-125;279;ON;UKE;Wellcome;CHI;惠康;TR;125
-207;89;ON;UKE;DAHSING BANK;CHT;大新銀行;ON;207
-214;184;ON;UKE;Other banks;CHI;其他银行;ON;214
-190;182;ON;UKE;Other ATMs;CHT;其他自動櫃員機;TR;190
-85;245;ON;UKE;Sports event facilities;CHI;体育活动设施;ON;85
-23;250;ON;UKE;TAI HING;CHI;太兴;TR;23
-255;49;ON;UKE;Broadcasting studios;CHI;广播室;ON;255
-260;176;ON;UKE;Non-profit organization;CHI;非盈利性组织;TR;260
-60;218;ON;UKE;Railway stations;CHI;火车站/地铁站;ON;60
-2;24;ON;UKE;All restaurants;CHI;所有餐馆;TR;2
-40;35;ON;UKE;Auto service & maintenance facilities;CHT;汽車維修和保養處;ON;40
-94;127;ON;UKE;Hotels;CHT;酒店;ON;94
-93;269;ON;UKE;Travel agencies;CHT;旅行社;TR;93
-73;115;ON;UKE;Golf courses;CHT;高爾夫球場;TR;73
-62;140;ON;UKE;International border crossings;CHI;边境口岸;TR;62
-177;61;ON;UKE;China CITIC Bank;CHT;中信銀行;ON;177
-172;70;ON;UKE;Citibank;CHI;花旗银行;ON;172
-88;263;ON;UKE;Tourist attractions;CHT;觀光點;TR;88
-251;197;ON;UKE;Others;CHI;其他;ON;251
-272;212;ON;UKE;Power offices;CHI;供电局;ON;272
-103;47;ON;UKE;Bookshops;CHT;書店;ON;103
-18;53;ON;UKE;Café de Coral;CHT;大家樂;ON;18
-165;243;ON;UKE;Sporting goods shops;CHI;体育用品店;ON;165
-225;167;ON;UKE;Medical service facilities;CHI;医疗服务机构;TR;225
-53;237;ON;UKE;Sinopec;CHI;中国石化;TR;53
-44;183;ON;UKE;Other auto service & maintenance facilities;CHT;其他汽車維修和保養處;TR;44
-248;185;ON;UKE;Other Christian churches;CHT;基督教會;TR;248
-87;259;ON;UKE;Theatres;CHT;劇院;TR;87
-270;255;ON;UKE;Technical training centres;CHI;技能培训中心;TR;270
-59;52;ON;UKE;Bus stations;CHT;巴士站;ON;59
-90;226;ON;UKE;Scenic spots;CHT;景點;ON;90
-66;252;ON;UKE;Taxi stands;CHI;出租车站;TR;66
-69;30;ON;UKE;Amusement parks;CHT;遊樂場;ON;69
-158;272;ON;UKE;Video/audio shops;CHI;影音店;ON;158
-16;286;ON;UKE;Yoshinoya;CHI;吉野家;ON;16
-112;84;ON;UKE;Convenience stores;CHT;便利店;TR;112
-145;164;ON;UKE;Maxim's;CHT;美心;ON;145
-197;40;ON;UKE;Bank of China;CHI;中国银行;TR;197
-215;105;ON;UKE;Famous landmark buildings;CHI;市政厅;TR;215
-155;123;ON;UKE;Hobby, toy & game stores;CHT;愛好、玩具和遊戲店;TR;155
-239;151;ON;UKE;Kindergartens;CHI;幼儿园;ON;239
-263;50;ON;UKE;Business centres;CHI;商业中心;ON;263
-31;132;ON;UKE;Ice cream;CHT;雪糕;TR;31
-52;54;ON;UKE;Caltex;CHI;加德士;ON;52
-228;80;ON;UKE;Community medical treatment centres;CHT;社區醫療中心;ON;228
-254;216;ON;UKE;Publishers;CHI;出版社;TR;254
-32;77;ON;UKE;Coffee shops;CHT;咖啡店;TR;32
-133;97;ON;UKE;eCosway;CHT;科士威;TR;133
-77;171;ON;UKE;Museums;CHI;博物馆;TR;77
-170;9;ON;UKE;All ATMs;CHI;所有自助取款机;ON;170
-50;102;ON;UKE;Esso;CHT;埃索;ON;50
-25;152;ON;UKE;Korean food;CHI;韩国美食;ON;25
-30;238;ON;UKE;Snacks & beverages;CHT;小食和飲品;ON;30
-39;266;ON;UKE;Toyota repairs facilities;CHI;丰田维修店;TR;39
-135;223;ON;UKE;ROYAL SUPERMARKET;CHT;來來超級市場;TR;135
-70;288;ON;UKE;Zoos;CHT;動物園;TR;70
-199;60;ON;UKE;Chartered;CHT;渣打銀行;ON;199
-269;95;ON;UKE;Driving schools;CHI;驾驶学校;TR;269
-251;197;ON;UKE;Others;CHT;其他;ON;251
-192;11;ON;UKE;All banks;CHT;所有銀行;TR;192
-238;25;ON;UKE;All schools;CHT;所有學校;TR;238
-193;130;ON;UKE;HSBC;CHI;汇丰银行;TR;193
-275;74;ON;UKE;Cleaning & laundry;CHI;保洁和洗衣店;TR;275
-150;285;ON;UKE;Wing Wah;CHI;永华;ON;150
-47;137;ON;UKE;Indoor car parks;CHI;室内停车场;ON;47
-185;173;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;TR;185
-15;166;ON;UKE;McDonald's;CHI;麦当劳;ON;15
-65;170;ON;UKE;Motorway rest areas;CHT;高速公路休息區;TR;65
-33;253;ON;UKE;Tea houses;CHT;茶餐廳;ON;33
-52;54;ON;UKE;Caltex;CHT;加德士;ON;52
-232;207;ON;UKE;Pharmacies;CHI;药店;ON;232
-254;216;ON;UKE;Publishers;CHT;出版社;TR;254
-256;256;ON;UKE;Telecom companies;CHI;电信企业;TR;256
-70;288;ON;UKE;Zoos;CHI;动物园;TR;70
-182;90;ON;UKE;DBS;CHI;星展银行;TR;182
-112;84;ON;UKE;Convenience stores;CHI;便利店;TR;112
-184;88;ON;UKE;DAHSING BANK;CHT;大新銀行;ON;184
-145;164;ON;UKE;Maxim's;CHI;美心;ON;145
-240;99;ON;UKE;Elementary schools;CHI;小学;ON;240
-158;272;ON;UKE;Video/audio shops;CHT;影音店;ON;158
-16;286;ON;UKE;Yoshinoya;CHT;吉野家;ON;16
-281;274;ON;UKE;Villages;CHI;村镇;TR;281
-179;119;ON;UKE;Hang Seng Bank;CHI;恒生银行;TR;179
-57;268;ON;UKE;Transportations;CHT;交通運輸;ON;57
-50;102;ON;UKE;Esso;CHI;埃索;ON;50
-32;77;ON;UKE;Coffee shops;CHI;咖啡店;TR;32
-133;97;ON;UKE;eCosway;CHI;科士威;TR;133
-21;287;ON;UKE;Yum!;CHT;百勝;TR;21
-1;221;ON;UKE;Restaurants;CHT;餐廳;TR;1
-50;102;ON;UKE;Esso;CHT;埃索;TR;50
-25;152;ON;UKE;Korean food;CHI;韩国美食;TR;25
-30;238;ON;UKE;Snacks & beverages;CHT;小食和飲品;TR;30
-39;266;ON;UKE;Toyota repairs facilities;CHI;丰田维修店;ON;39
-32;77;ON;UKE;Coffee shops;CHT;咖啡店;ON;32
-133;97;ON;UKE;eCosway;CHT;科士威;ON;133
-77;171;ON;UKE;Museums;CHI;博物馆;ON;77
-170;9;ON;UKE;All ATMs;CHI;所有自助取款机;TR;170
-263;50;ON;UKE;Business centres;CHI;商业中心;TR;263
-31;132;ON;UKE;Ice cream;CHT;雪糕;ON;31
-239;151;ON;UKE;Kindergartens;CHI;幼儿园;TR;239
-52;54;ON;UKE;Caltex;CHI;加德士;TR;52
-228;80;ON;UKE;Community medical treatment centres;CHT;社區醫療中心;TR;228
-254;216;ON;UKE;Publishers;CHI;出版社;ON;254
-158;272;ON;UKE;Video/audio shops;CHI;影音店;TR;158
-16;286;ON;UKE;Yoshinoya;CHI;吉野家;TR;16
-197;40;ON;UKE;Bank of China;CHI;中国银行;ON;197
-215;105;ON;UKE;Famous landmark buildings;CHI;市政厅;ON;215
-155;123;ON;UKE;Hobby, toy & game stores;CHT;愛好、玩具和遊戲店;ON;155
-112;84;ON;UKE;Convenience stores;CHT;便利店;ON;112
-145;164;ON;UKE;Maxim's;CHT;美心;TR;145
-69;30;ON;UKE;Amusement parks;CHT;遊樂場;TR;69
-59;52;ON;UKE;Bus stations;CHT;巴士站;TR;59
-90;226;ON;UKE;Scenic spots;CHT;景點;TR;90
-66;252;ON;UKE;Taxi stands;CHI;出租车站;ON;66
-44;183;ON;UKE;Other auto service & maintenance facilities;CHT;其他汽車維修和保養處;ON;44
-248;185;ON;UKE;Other Christian churches;CHT;基督教會;ON;248
-87;259;ON;UKE;Theatres;CHT;劇院;ON;87
-270;255;ON;UKE;Technical training centres;CHI;技能培训中心;ON;270
-103;47;ON;UKE;Bookshops;CHT;書店;TR;103
-18;53;ON;UKE;Café de Coral;CHT;大家樂;TR;18
-165;243;ON;UKE;Sporting goods shops;CHI;体育用品店;TR;165
-225;167;ON;UKE;Medical service facilities;CHI;医疗服务机构;ON;225
-53;237;ON;UKE;Sinopec;CHI;中国石化;ON;53
-177;61;ON;UKE;China CITIC Bank;CHT;中信銀行;TR;177
-172;70;ON;UKE;Citibank;CHI;花旗银行;TR;172
-88;263;ON;UKE;Tourist attractions;CHT;觀光點;ON;88
-251;197;ON;UKE;Others;CHI;其他;TR;251
-272;212;ON;UKE;Power offices;CHI;供电局;TR;272
-1;221;ON;UKE;Restaurants;CHT;餐廳;ON;1
-32;77;ON;UKE;Coffee shops;CHI;咖啡店;ON;32
-133;97;ON;UKE;eCosway;CHI;科士威;ON;133
-21;287;ON;UKE;Yum!;CHT;百勝;ON;21
-179;119;ON;UKE;Hang Seng Bank;CHI;恒生银行;ON;179
-57;268;ON;UKE;Transportations;CHT;交通運輸;TR;57
-50;102;ON;UKE;Esso;CHI;埃索;TR;50
-112;84;ON;UKE;Convenience stores;CHI;便利店;ON;112
-184;88;ON;UKE;DAHSING BANK;CHT;大新銀行;TR;184
-145;164;ON;UKE;Maxim's;CHI;美心;TR;145
-182;90;ON;UKE;DBS;CHI;星展银行;ON;182
-281;274;ON;UKE;Villages;CHI;村镇;ON;281
-240;99;ON;UKE;Elementary schools;CHI;小学;TR;240
-158;272;ON;UKE;Video/audio shops;CHT;影音店;TR;158
-16;286;ON;UKE;Yoshinoya;CHT;吉野家;TR;16
-52;54;ON;UKE;Caltex;CHT;加德士;TR;52
-232;207;ON;UKE;Pharmacies;CHI;药店;TR;232
-254;216;ON;UKE;Publishers;CHT;出版社;ON;254
-256;256;ON;UKE;Telecom companies;CHI;电信企业;ON;256
-70;288;ON;UKE;Zoos;CHI;动物园;ON;70
-33;253;ON;UKE;Tea houses;CHT;茶餐廳;TR;33
-47;137;ON;UKE;Indoor car parks;CHI;室内停车场;TR;47
-185;173;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;ON;185
-65;170;ON;UKE;Motorway rest areas;CHT;高速公路休息區;ON;65
-15;166;ON;UKE;McDonald's;CHI;麦当劳;TR;15
-150;285;ON;UKE;Wing Wah;CHI;永华;TR;150
-199;60;ON;UKE;Chartered;CHT;渣打銀行;TR;199
-269;95;ON;UKE;Driving schools;CHI;驾驶学校;ON;269
-251;197;ON;UKE;Others;CHT;其他;TR;251
-275;74;ON;UKE;Cleaning & laundry;CHI;保洁和洗衣店;ON;275
-192;11;ON;UKE;All banks;CHT;所有銀行;ON;192
-238;25;ON;UKE;All schools;CHT;所有學校;ON;238
-193;130;ON;UKE;HSBC;CHI;汇丰银行;ON;193
-70;288;ON;UKE;Zoos;CHT;動物園;ON;70
-135;223;ON;UKE;ROYAL SUPERMARKET;CHT;來來超級市場;ON;135
-154;27;ON;UKE;All speciality shops;CHI;所有专卖店;ON;154
-142;241;ON;UKE;Speciality food shops;CHI;食品专门店;TR;142
-86;244;ON;UKE;Sports centres;CHI;体育中心;TR;86
-195;136;ON;UKE;Ind'l Com'l Bank of China;CHI;中国工商银行;TR;195
-36;155;ON;UKE;Lexus dealerships;CHI;雷克萨斯经销商;ON;36
-44;183;ON;UKE;Other auto service & maintenance facilities;CHI;其他汽车服务和保养店;TR;44
-284;264;ON;UKE;Towns;CHT;城鎮;TR;284
-28;141;ON;UKE;International food;CHI;国际美食;TR;28
-35;33;ON;UKE;Automobile facilities;CHI;汽车设施;ON;35
-94;127;ON;UKE;Hotels;CHI;酒店;TR;94
-186;283;ON;UKE;WING LUNG BANK;CHI;永隆银行;TR;186
-72;69;ON;UKE;Cinemas;CHT;戲院;TR;72
-93;269;ON;UKE;Travel agencies;CHI;旅行社;ON;93
-79;17;ON;UKE;All drinking establishments;CHT;所有夜生活;ON;79
-19;270;ON;UKE;Tsui Wah Restaurant;CHI;翠华餐厅;ON;19
-8;229;ON;UKE;Seafood;CHI;海鲜;TR;8
-204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHT;大眾銀行;ON;204
-249;195;ON;UKE;Other places of worship;CHT;其他禮拜場所;ON;249
-125;279;ON;UKE;Wellcome;CHT;惠康;ON;125
-261;168;ON;UKE;Mining companies;CHT;礦業公司;TR;261
-141;236;ON;UKE;Shopping malls/department stores;CHI;购物中心/百货商店;TR;141
-45;103;ON;UKE;EV charging stations;CHI;电动汽车充电站;TR;45
-278;19;ON;UKE;All hair & beauty supplies shops;CHI;所有美容美发店;TR;278
-116;78;ON;UKE;Communication equipment;CHT;通訊設備;TR;116
-12;106;ON;UKE;Fast food;CHI;快餐;ON;12
-245;219;ON;UKE;Religion;CHI;宗教信仰;ON;245
-22;104;ON;UKE;Fairwood;CHI;大快活;ON;22
-6;143;ON;UKE;Italian food;CHT;意大利美食;TR;6
-77;171;ON;UKE;Museums;CHT;博物館;ON;77
-129;248;ON;UKE;SUPERSTORE;CHT;超級商場;TR;129
-42;56;ON;UKE;Car washes;CHI;洗车;TR;42
-286;208;ON;UKE;Photography studios;CHI;照相馆;TR;286
-243;276;ON;UKE;Vocational schools;CHT;專業學校;TR;243
-36;155;ON;UKE;Lexus dealerships;CHT;凌志經銷商;TR;36
-283;275;ON;UKE;Villages;CHT;村莊;TR;283
-147;31;ON;UKE;AROME;CHT;東海堂;ON;147
-264;228;ON;UKE;Science & research institutions;CHI;科研机构;TR;264
-121;247;ON;UKE;Supermarkets;CHI;超市;ON;121
-93;269;ON;UKE;Travel agencies;CHT;旅行社;ON;93
-40;35;ON;UKE;Auto service & maintenance facilities;CHT;汽車維修和保養處;TR;40
-94;127;ON;UKE;Hotels;CHT;酒店;TR;94
-73;115;ON;UKE;Golf courses;CHT;高爾夫球場;ON;73
-62;140;ON;UKE;International border crossings;CHI;边境口岸;ON;62
-260;176;ON;UKE;Non-profit organization;CHI;非盈利性组织;ON;260
-2;24;ON;UKE;All restaurants;CHI;所有餐馆;ON;2
-60;218;ON;UKE;Railway stations;CHI;火车站/地铁站;TR;60
-207;89;ON;UKE;DAHSING BANK;CHT;大新銀行;TR;207
-214;184;ON;UKE;Other banks;CHI;其他银行;TR;214
-125;279;ON;UKE;Wellcome;CHI;惠康;ON;125
-255;49;ON;UKE;Broadcasting studios;CHI;广播室;TR;255
-190;182;ON;UKE;Other ATMs;CHT;其他自動櫃員機;ON;190
-85;245;ON;UKE;Sports event facilities;CHI;体育活动设施;TR;85
-23;250;ON;UKE;TAI HING;CHI;太兴;ON;23
-143;26;ON;UKE;All speciality food shops;CHI;所有食品专门店;ON;143
-210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;ON;210
-65;170;ON;UKE;Motorway rest areas;CHI;高速公路服务区;ON;65
-79;17;ON;UKE;All drinking establishments;CHI;所有夜生活;ON;79
-235;215;ON;UKE;Public toilets;CHT;公共廁所;TR;235
-284;264;ON;UKE;Towns;CHI;城镇;ON;284
-22;104;ON;UKE;Fairwood;CHT;大快活;ON;22
-6;143;ON;UKE;Italian food;CHI;意大利美食;TR;6
-68;153;ON;UKE;Leisure & tourism;CHI;休闲和旅游;TR;68
-181;260;ON;UKE;The Bank of East Asia;CHI;东亚银行;ON;181
-182;90;ON;UKE;DBS;CHT;星展銀行;ON;182
-12;106;ON;UKE;Fast food;CHT;快餐;ON;12
-31;132;ON;UKE;Ice cream;CHI;冰淇淋;ON;31
-159;172;ON;UKE;Music instruments;CHT;樂器;TR;159
-67;262;ON;UKE;Toll booths;CHT;收費亭;ON;67
-23;250;ON;UKE;TAI HING;CHT;太興;ON;23
-242;271;ON;UKE;Universities & colleges;CHI;高等院校;TR;242
-151;86;ON;UKE;CRCare;CHI;华润堂;ON;151
-139;178;ON;UKE;Office supplies & services shops;CHT;辦公用品服務;TR;139
-60;218;ON;UKE;Railway stations;CHT;通勤鐵路車站;TR;60
-266;51;ON;UKE;Business service agencies;CHT;商務服務機構;TR;266
-250;58;ON;UKE;Cemeteries;CHI;墓地;ON;250
-83;204;ON;UKE;Parks/recreation areas;CHI;公园/游乐区;ON;83
-107;114;ON;UKE;G2000;CHI;G2000;TR;107
-167;198;ON;UKE;Other shopping;CHI;其他购物;TR;167
-156;246;ON;UKE;Stationery;CHT;文具;TR;156
-189;36;ON;UKE;Banco Nacional Ultramarino;CHT;大西洋銀行;TR;189
-272;212;ON;UKE;Power offices;CHT;供電機構;TR;272
-243;276;ON;UKE;Vocational schools;CHI;职业学校;ON;243
-95;21;ON;UKE;All hotels;CHT;所有酒店;ON;95
-173;135;ON;UKE;Ind'l & Com'l Bank of China;CHI;中国工商银行;ON;173
-83;204;ON;UKE;Parks/recreation areas;CHT;公園╱遊樂區;TR;83
-37;265;ON;UKE;Toyota dealerships;CHI;丰田经销商;ON;37
-91;169;ON;UKE;Monasteries/convents;CHI;寺院、道观;TR;91
-146;251;ON;UKE;TAIPAN;CHT;大班;TR;146
-277;118;ON;UKE;Hair & beauty supplies shops;CHT;美容美髮店;TR;277
-282;20;ON;UKE;All hamlets;CHI;所有村镇;TR;282
-84;217;ON;UKE;Race tracks;CHT;賽道;TR;84
-281;274;ON;UKE;Villages;CHT;村鎮;TR;281
-14;150;ON;UKE;KFC;CHT;肯德基;TR;14
-160;85;ON;UKE;Cosmetics;CHI;化妆品;TR;160
-120;113;ON;UKE;Furniture shops;CHT;家俱店;ON;120
-49;23;ON;UKE;All petrol stations;CHT;所有加油站;ON;49
-5;134;ON;UKE;Indian food;CHT;印度美食;TR;5
-101;235;ON;UKE;Shopping;CHT;購物;TR;101
-20;165;ON;UKE;Maxim's MX;CHI;美心;ON;20
-71;48;ON;UKE;Bowling alleys;CHT;保齡球場;ON;71
-220;100;ON;UKE;Embassies;CHT;領事館;TR;220
-66;252;ON;UKE;Taxi stands;CHT;的士站;ON;66
-99;192;ON;UKE;Other hotels/motels;CHI;其他旅馆/汽车旅馆;ON;99
-17;8;ON;UKE;AJISEN RAMEN;CHT;味千拉麵;TR;17
-56;55;ON;UKE;Car rental facilities;CHT;租車行;TR;56
-13;18;ON;UKE;All fast food;CHI;所有快餐;ON;13
-178;59;ON;UKE;Chartered;CHT;渣打銀行;ON;178
-27;239;ON;UKE;Southeast asian food;CHI;东南亚美食;TR;27
-61;107;ON;UKE;Ferry terminals;CHT;客輪碼頭;TR;61
-41;10;ON;UKE;All auto services & maintenance facilities;CHT;所有汽車維修和保養處;TR;41
-229;222;ON;UKE;Retirement/nursing homes;CHT;護老院╱護養院;ON;229
-241;230;ON;UKE;Secondary schools;CHI;中学;TR;241
-107;114;ON;UKE;G2000;CHT;G2000;TR;107
-252;81;ON;UKE;Companies;CHT;商務機構;ON;252
-277;118;ON;UKE;Hair & beauty supplies shops;CHI;美容美发店;TR;277
-114;16;ON;UKE;All consumer electronics;CHT;所有消耗型電子產品;ON;114
-123;131;ON;UKE;Huarun Supermarket;CHT;華潤超市;TR;123
-38;156;ON;UKE;Lexus repairs facilities;CHT;凌志維修處;TR;38
-39;266;ON;UKE;Toyota repairs facilities;CHT;豐田維修處;TR;39
-58;7;ON;UKE;Airports;CHT;機場;TR;58
-140;180;ON;UKE;Optical shops;CHT;眼鏡店;TR;140
-249;195;ON;UKE;Other places of worship;CHI;其他礼拜场所;TR;249
-258;101;ON;UKE;Entertainer management companies;CHI;演艺经济公司;ON;258
-202;261;ON;UKE;The Bank of East Asia;CHI;东亚银行;ON;202
-177;61;ON;UKE;China CITIC Bank;CHI;中信银行;ON;177
-148;249;ON;UKE;Tai Cheong Bakery;CHI;泰昌饼家;TR;148
-146;251;ON;UKE;TAIPAN;CHI;大班;TR;146
-95;21;ON;UKE;All hotels;CHI;所有酒店;ON;95
-271;4;ON;UKE;Agency offices;CHT;代表辦事處;TR;271
-127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHI;佳宝食品超级市场;ON;127
-119;146;ON;UKE;Jewellery shops;CHI;珠宝店;TR;119
-49;23;ON;UKE;All petrol stations;CHI;所有加油站;ON;49
-5;134;ON;UKE;Indian food;CHI;印度美食;TR;5
-208;174;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;ON;208
-265;188;ON;UKE;Other companies;CHT;其他商務機構;TR;265
-11;44;ON;UKE;Barbecue/southern food;CHI;烧烤/南部风味;ON;11
-59;52;ON;UKE;Bus stations;CHI;公共汽车站;ON;59
-200;120;ON;UKE;Hang Seng Bank;CHT;恆生銀行;ON;200
-14;150;ON;UKE;KFC;CHI;肯德基;TR;14
-244;187;ON;UKE;Other community;CHT;其他社區;TR;244
-276;112;ON;UKE;Funeral directors;CHT;殯儀館;ON;276
-265;188;ON;UKE;Other companies;CHI;其他商业机构;TR;265
-96;3;ON;UKE;5 Star;CHI;五星级;TR;96
-168;79;ON;UKE;Community;CHI;社区;ON;168
-253;15;ON;UKE;All companies;CHT;所有商務機構;TR;253
-13;18;ON;UKE;All fast food;CHT;所有快餐;ON;13
-149;224;ON;UKE;Saint Honore Cake Shop;CHI;圣安娜饼屋;ON;149
-161;254;ON;UKE;Tea shops;CHT;茶莊;TR;161
-198;42;ON;UKE;Bank of Communications;CHT;交通銀行;ON;198
-166;280;ON;UKE;Wines & liquors;CHT;酒類;TR;166
-171;129;ON;UKE;HSBC;CHT;匯豐銀行;TR;171
-255;49;ON;UKE;Broadcasting studios;CHT;播音室;ON;255
-20;165;ON;UKE;Maxim's MX;CHT;美心;ON;20
-279;240;ON;UKE;Spas;CHI;水疗中心;TR;279
-115;98;ON;UKE;Electrical appliances;CHT;家用電器;TR;115
-221;108;ON;UKE;Fire stations;CHI;消防局;TR;221
-132;139;ON;UKE;International;CHI;国际超级市场;TR;132
-54;194;ON;UKE;Other petrol stations;CHI;其他加油站;TR;54
-223;126;ON;UKE;Hospitals/polyclinics;CHI;医院/联合诊所;TR;223
-165;243;ON;UKE;Sporting goods shops;CHT;體育用品店;TR;165
-168;79;ON;UKE;Community;CHT;社區;TR;168
-231;93;ON;UKE;Dentists;CHI;牙医诊所;TR;231
-110;186;ON;UKE;Other clothing shops;CHT;其他服裝店;ON;110
-3;65;ON;UKE;Chinese food;CHT;中式美食;ON;3
-99;192;ON;UKE;Other hotels/motels;CHT;其他酒店;TR;99
-80;45;ON;UKE;Bars/pubs/stube/biergarten;CHI;酒吧/俱乐部/餐厅/露天啤酒馆;TR;80
-155;123;ON;UKE;Hobby, toy & game stores;CHI;爱好、玩具和游戏店;ON;155
-21;287;ON;UKE;Yum!;CHI;百胜餐饮;TR;21
-30;238;ON;UKE;Snacks & beverages;CHI;小吃和饮料;ON;30
-287;177;ON;UKE;Non-vehicle repair services;CHI;非车辆维修服务;TR;287
-267;12;ON;UKE;All business services;CHI;所有商业服务;ON;267
-169;32;ON;UKE;ATM;CHT;自動櫃員機;ON;169
-237;227;ON;UKE;Schools;CHT;學校;TR;237
-134;163;ON;UKE;MARKET PLACE by JASONS;CHI;MARKET PLACE by JASONS;ON;134
-285;191;ON;UKE;Other hamlets;CHT;其他村鎮;TR;285
-262;231;ON;UKE;Securities firm;CHI;证券公司;TR;262
-138;124;ON;UKE;Home furnishings & supplies shops;CHI;家居专卖店;TR;138
-210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;TR;210
-74;116;ON;UKE;Golf practice ranges;CHT;高爾夫練習場;ON;74
-236;220;ON;UKE;Residential areas;CHI;居民区;TR;236
-232;207;ON;UKE;Pharmacies;CHT;藥房;ON;232
-209;284;ON;UKE;WING LUNG BANK;CHI;永隆银行;TR;209
-212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHI;集友银行;TR;212
-212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHT;集友銀行;TR;212
-164;200;ON;UKE;Other speciality shops;CHI;其他专卖店;TR;164
-221;108;ON;UKE;Fire stations;CHT;消防局;TR;221
-54;194;ON;UKE;Other petrol stations;CHT;其他加油站;TR;54
-201;282;ON;UKE;Wing Hang Bank;CHT;永亨銀行;TR;201
-43;34;ON;UKE;Auto parts;CHT;汽車零件;ON;43
-224;157;ON;UKE;Libraries;CHI;图书馆;TR;224
-180;281;ON;UKE;Wing Hang Bank;CHI;永亨银行;ON;180
-137;125;ON;UKE;Home improvement & hardware shops;CHT;家裝五金鋪;TR;137
-150;285;ON;UKE;Wing Wah;CHT;永華;TR;150
-105;14;ON;UKE;All clothing shops;CHT;所有服裝店;TR;105
-127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHT;佳寶食品超市;ON;127
-286;208;ON;UKE;Photography studios;CHT;照相館;ON;286
-134;163;ON;UKE;MARKET PLACE by JASONS;CHT;MARKET PLACE by JASONS;ON;134
-213;111;ON;UKE;Fubon Bank;CHT;富邦銀行;ON;213
-111;82;ON;UKE;Computers & software;CHI;电脑和软件;TR;111
-230;193;ON;UKE;Other medical services;CHI;其他医疗服务;TR;230
-278;19;ON;UKE;All hair & beauty supplies shops;CHT;所有美容美髮店;TR;278
-258;101;ON;UKE;Entertainer management companies;CHT;演藝經紀公司;ON;258
-29;209;ON;UKE;Pizza;CHI;披萨;TR;29
-103;47;ON;UKE;Bookshops;CHI;书店;ON;103
-51;234;ON;UKE;Shell;CHT;殼牌;TR;51
-143;26;ON;UKE;All speciality food shops;CHT;所有食品專門店;ON;143
-175;39;ON;UKE;Bank of China;CHT;中國銀行;ON;175
-172;70;ON;UKE;Citibank;CHT;花旗銀行;ON;172
-176;41;ON;UKE;Bank of Communications;CHT;交通銀行;ON;176
-257;138;ON;UKE;Insurance companies;CHI;保险公司;ON;257
-37;265;ON;UKE;Toyota dealerships;CHT;豐田經銷商;ON;37
-149;224;ON;UKE;Saint Honore Cake Shop;CHT;聖安娜餅屋;TR;149
-138;124;ON;UKE;Home furnishings & supplies shops;CHI;家居专卖店;ON;138
-210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;ON;210
-232;207;ON;UKE;Pharmacies;CHT;藥房;TR;232
-74;116;ON;UKE;Golf practice ranges;CHT;高爾夫練習場;TR;74
-236;220;ON;UKE;Residential areas;CHI;居民区;ON;236
-134;163;ON;UKE;MARKET PLACE by JASONS;CHI;MARKET PLACE by JASONS;TR;134
-285;191;ON;UKE;Other hamlets;CHT;其他村鎮;ON;285
-237;227;ON;UKE;Schools;CHT;學校;ON;237
-262;231;ON;UKE;Securities firm;CHI;证券公司;ON;262
-287;177;ON;UKE;Non-vehicle repair services;CHI;非车辆维修服务;ON;287
-30;238;ON;UKE;Snacks & beverages;CHI;小吃和饮料;TR;30
-267;12;ON;UKE;All business services;CHI;所有商业服务;TR;267
-169;32;ON;UKE;ATM;CHT;自動櫃員機;TR;169
-99;192;ON;UKE;Other hotels/motels;CHT;其他酒店;ON;99
-21;287;ON;UKE;Yum!;CHI;百胜餐饮;ON;21
-80;45;ON;UKE;Bars/pubs/stube/biergarten;CHI;酒吧/俱乐部/餐厅/露天啤酒馆;ON;80
-155;123;ON;UKE;Hobby, toy & game stores;CHI;爱好、玩具和游戏店;TR;155
-3;65;ON;UKE;Chinese food;CHT;中式美食;TR;3
-223;126;ON;UKE;Hospitals/polyclinics;CHI;医院/联合诊所;ON;223
-165;243;ON;UKE;Sporting goods shops;CHT;體育用品店;ON;165
-221;108;ON;UKE;Fire stations;CHI;消防局;ON;221
-132;139;ON;UKE;International;CHI;国际超级市场;ON;132
-54;194;ON;UKE;Other petrol stations;CHI;其他加油站;ON;54
-231;93;ON;UKE;Dentists;CHI;牙医诊所;ON;231
-110;186;ON;UKE;Other clothing shops;CHT;其他服裝店;TR;110
-168;79;ON;UKE;Community;CHT;社區;ON;168
-279;240;ON;UKE;Spas;CHI;水疗中心;ON;279
-115;98;ON;UKE;Electrical appliances;CHT;家用電器;ON;115
-37;265;ON;UKE;Toyota dealerships;CHT;豐田經銷商;TR;37
-176;41;ON;UKE;Bank of Communications;CHT;交通銀行;TR;176
-257;138;ON;UKE;Insurance companies;CHI;保险公司;TR;257
-149;224;ON;UKE;Saint Honore Cake Shop;CHT;聖安娜餅屋;ON;149
-51;234;ON;UKE;Shell;CHT;殼牌;ON;51
-103;47;ON;UKE;Bookshops;CHI;书店;TR;103
-175;39;ON;UKE;Bank of China;CHT;中國銀行;TR;175
-172;70;ON;UKE;Citibank;CHT;花旗銀行;TR;172
-143;26;ON;UKE;All speciality food shops;CHT;所有食品專門店;TR;143
-111;82;ON;UKE;Computers & software;CHI;电脑和软件;ON;111
-230;193;ON;UKE;Other medical services;CHI;其他医疗服务;ON;230
-278;19;ON;UKE;All hair & beauty supplies shops;CHT;所有美容美髮店;ON;278
-258;101;ON;UKE;Entertainer management companies;CHT;演藝經紀公司;TR;258
-29;209;ON;UKE;Pizza;CHI;披萨;ON;29
-213;111;ON;UKE;Fubon Bank;CHT;富邦銀行;TR;213
-38;156;ON;UKE;Lexus repairs facilities;CHT;凌志維修處;ON;38
-134;163;ON;UKE;MARKET PLACE by JASONS;CHT;MARKET PLACE by JASONS;TR;134
-286;208;ON;UKE;Photography studios;CHT;照相館;TR;286
-105;14;ON;UKE;All clothing shops;CHT;所有服裝店;ON;105
-127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHT;佳寶食品超市;TR;127
-137;125;ON;UKE;Home improvement & hardware shops;CHT;家裝五金鋪;ON;137
-150;285;ON;UKE;Wing Wah;CHT;永華;ON;150
-43;34;ON;UKE;Auto parts;CHT;汽車零件;TR;43
-224;157;ON;UKE;Libraries;CHI;图书馆;ON;224
-180;281;ON;UKE;Wing Hang Bank;CHI;永亨银行;TR;180
-212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHI;集友银行;ON;212
-209;284;ON;UKE;WING LUNG BANK;CHI;永隆银行;ON;209
-221;108;ON;UKE;Fire stations;CHT;消防局;ON;221
-54;194;ON;UKE;Other petrol stations;CHT;其他加油站;ON;54
-201;282;ON;UKE;Wing Hang Bank;CHT;永亨銀行;ON;201
-212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHT;集友銀行;ON;212
-164;200;ON;UKE;Other speciality shops;CHI;其他专卖店;ON;164
-13;18;ON;UKE;All fast food;CHI;所有快餐;TR;13
-178;59;ON;UKE;Chartered;CHT;渣打銀行;TR;178
-27;239;ON;UKE;Southeast asian food;CHI;东南亚美食;ON;27
-17;8;ON;UKE;AJISEN RAMEN;CHT;味千拉麵;ON;17
-56;55;ON;UKE;Car rental facilities;CHT;租車行;ON;56
-41;10;ON;UKE;All auto services & maintenance facilities;CHT;所有汽車維修和保養處;ON;41
-229;222;ON;UKE;Retirement/nursing homes;CHT;護老院╱護養院;TR;229
-241;230;ON;UKE;Secondary schools;CHI;中学;ON;241
-61;107;ON;UKE;Ferry terminals;CHT;客輪碼頭;ON;61
-71;48;ON;UKE;Bowling alleys;CHT;保齡球場;TR;71
-220;100;ON;UKE;Embassies;CHT;領事館;ON;220
-20;165;ON;UKE;Maxim's MX;CHI;美心;TR;20
-99;192;ON;UKE;Other hotels/motels;CHI;其他旅馆/汽车旅馆;TR;99
-66;252;ON;UKE;Taxi stands;CHT;的士站;TR;66
-49;23;ON;UKE;All petrol stations;CHT;所有加油站;TR;49
-5;134;ON;UKE;Indian food;CHT;印度美食;ON;5
-160;85;ON;UKE;Cosmetics;CHI;化妆品;ON;160
-120;113;ON;UKE;Furniture shops;CHT;家俱店;TR;120
-101;235;ON;UKE;Shopping;CHT;購物;ON;101
-282;20;ON;UKE;All hamlets;CHI;所有村镇;ON;282
-84;217;ON;UKE;Race tracks;CHT;賽道;ON;84
-281;274;ON;UKE;Villages;CHT;村鎮;ON;281
-14;150;ON;UKE;KFC;CHT;肯德基;ON;14
-146;251;ON;UKE;TAIPAN;CHT;大班;ON;146
-91;169;ON;UKE;Monasteries/convents;CHI;寺院、道观;ON;91
-277;118;ON;UKE;Hair & beauty supplies shops;CHT;美容美髮店;ON;277
-189;36;ON;UKE;Banco Nacional Ultramarino;CHT;大西洋銀行;ON;189
-95;21;ON;UKE;All hotels;CHT;所有酒店;TR;95
-173;135;ON;UKE;Ind'l & Com'l Bank of China;CHI;中国工商银行;TR;173
-83;204;ON;UKE;Parks/recreation areas;CHT;公園╱遊樂區;ON;83
-37;265;ON;UKE;Toyota dealerships;CHI;丰田经销商;TR;37
-272;212;ON;UKE;Power offices;CHT;供電機構;ON;272
-243;276;ON;UKE;Vocational schools;CHI;职业学校;TR;243
-266;51;ON;UKE;Business service agencies;CHT;商務服務機構;ON;266
-250;58;ON;UKE;Cemeteries;CHI;墓地;TR;250
-83;204;ON;UKE;Parks/recreation areas;CHI;公园/游乐区;TR;83
-167;198;ON;UKE;Other shopping;CHI;其他购物;ON;167
-156;246;ON;UKE;Stationery;CHT;文具;ON;156
-107;114;ON;UKE;G2000;CHI;G2000;ON;107
-60;218;ON;UKE;Railway stations;CHT;通勤鐵路車站;ON;60
-198;42;ON;UKE;Bank of Communications;CHT;交通銀行;TR;198
-166;280;ON;UKE;Wines & liquors;CHT;酒類;ON;166
-161;254;ON;UKE;Tea shops;CHT;茶莊;ON;161
-255;49;ON;UKE;Broadcasting studios;CHT;播音室;TR;255
-20;165;ON;UKE;Maxim's MX;CHT;美心;TR;20
-171;129;ON;UKE;HSBC;CHT;匯豐銀行;ON;171
-253;15;ON;UKE;All companies;CHT;所有商務機構;ON;253
-149;224;ON;UKE;Saint Honore Cake Shop;CHI;圣安娜饼屋;TR;149
-13;18;ON;UKE;All fast food;CHT;所有快餐;TR;13
-244;187;ON;UKE;Other community;CHT;其他社區;ON;244
-59;52;ON;UKE;Bus stations;CHI;公共汽车站;TR;59
-200;120;ON;UKE;Hang Seng Bank;CHT;恆生銀行;TR;200
-14;150;ON;UKE;KFC;CHI;肯德基;ON;14
-96;3;ON;UKE;5 Star;CHI;五星级;ON;96
-168;79;ON;UKE;Community;CHI;社区;TR;168
-276;112;ON;UKE;Funeral directors;CHT;殯儀館;TR;276
-265;188;ON;UKE;Other companies;CHI;其他商业机构;ON;265
-119;146;ON;UKE;Jewellery shops;CHI;珠宝店;ON;119
-11;44;ON;UKE;Barbecue/southern food;CHI;烧烤/南部风味;TR;11
-49;23;ON;UKE;All petrol stations;CHI;所有加油站;TR;49
-5;134;ON;UKE;Indian food;CHI;印度美食;ON;5
-208;174;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;TR;208
-265;188;ON;UKE;Other companies;CHT;其他商務機構;ON;265
-95;21;ON;UKE;All hotels;CHI;所有酒店;TR;95
-271;4;ON;UKE;Agency offices;CHT;代表辦事處;ON;271
-127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHI;佳宝食品超级市场;TR;127
-177;61;ON;UKE;China CITIC Bank;CHI;中信银行;TR;177
-148;249;ON;UKE;Tai Cheong Bakery;CHI;泰昌饼家;ON;148
-146;251;ON;UKE;TAIPAN;CHI;大班;ON;146
-58;7;ON;UKE;Airports;CHT;機場;ON;58
-140;180;ON;UKE;Optical shops;CHT;眼鏡店;ON;140
-249;195;ON;UKE;Other places of worship;CHI;其他礼拜场所;ON;249
-39;266;ON;UKE;Toyota repairs facilities;CHT;豐田維修處;ON;39
-258;101;ON;UKE;Entertainer management companies;CHI;演艺经济公司;TR;258
-202;261;ON;UKE;The Bank of East Asia;CHI;东亚银行;TR;202
-107;114;ON;UKE;G2000;CHT;G2000;ON;107
-114;16;ON;UKE;All consumer electronics;CHT;所有消耗型電子產品;TR;114
-123;131;ON;UKE;Huarun Supermarket;CHT;華潤超市;ON;123
-252;81;ON;UKE;Companies;CHT;商務機構;TR;252
-277;118;ON;UKE;Hair & beauty supplies shops;CHI;美容美发店;ON;277
-234;211;ON;UKE;Post offices;CHT;郵局;ON;234
-235;215;ON;UKE;Public toilets;CHI;公共厕所;TR;235
-203;91;ON;UKE;DBS;CHT;星展銀行;ON;203
-257;138;ON;UKE;Insurance companies;CHT;保險公司;ON;257
-78;94;ON;UKE;Drinking establishments;CHI;夜生活;TR;78
-19;270;ON;UKE;Tsui Wah Restaurant;CHT;翠華餐廳;TR;19
-186;283;ON;UKE;WING LUNG BANK;CHT;永隆銀行;ON;186
-2;24;ON;UKE;All restaurants;CHT;所有餐廳;TR;2
-176;41;ON;UKE;Bank of Communications;CHI;交通银行;TR;176
-137;125;ON;UKE;Home improvement & hardware shops;CHI;家装五金用品店;TR;137
-217;13;ON;UKE;All civic/community centres;CHT;所有公民╱社區中心;ON;217
-55;159;ON;UKE;LPG stations;CHT;液化氣站;ON;55
-216;73;ON;UKE;Civic/community centres;CHT;公民╱社區中心;TR;216
-247;57;ON;UKE;Catholic churches;CHI;天主教会;TR;247
-223;126;ON;UKE;Hospitals/polyclinics;CHT;醫院╱診所;TR;223
-136;201;ON;UKE;Other supermarkets;CHI;其他超市;ON;136
-275;74;ON;UKE;Cleaning & laundry;CHT;清潔和洗衣店;TR;275
-111;82;ON;UKE;Computers & software;CHT;電腦和軟體;ON;111
-82;149;ON;UKE;Karaoke;CHI;卡拉OK;TR;82
-234;211;ON;UKE;Post offices;CHI;邮局;ON;234
-211;38;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;ON;211
-141;236;ON;UKE;Shopping malls/department stores;CHT;購物商場╱百貨公司;ON;141
-56;55;ON;UKE;Car rental facilities;CHI;租车行;ON;56
-191;43;ON;UKE;Banks;CHT;銀行;ON;191
-34;196;ON;UKE;Others;CHI;其他;TR;34
-245;219;ON;UKE;Religion;CHT;宗教;ON;245
-7;144;ON;UKE;Japanese food;CHI;日本美食;ON;7
-1;221;ON;UKE;Restaurants;CHI;餐馆;TR;1
-115;98;ON;UKE;Electrical appliances;CHI;电器;ON;115
-174;63;ON;UKE;China Construction Bank;CHT;中國建設銀行;TR;174
-227;75;ON;UKE;Clinics & medical centres;CHI;诊所/医疗中心;TR;227
-238;25;ON;UKE;All schools;CHI;所有学校;ON;238
-29;209;ON;UKE;Pizza;CHT;比薩;ON;29
-269;95;ON;UKE;Driving schools;CHT;駕駛學校;ON;269
-55;159;ON;UKE;LPG stations;CHI;液化气站;ON;55
-53;237;ON;UKE;Sinopec;CHT;中國石化;TR;53
-266;51;ON;UKE;Business service agencies;CHI;商业服务机构;TR;266
-9;258;ON;UKE;Thai food;CHT;泰國美食;ON;9
-144;179;ON;UKE;OKASHI LAND;CHT;食家物語;TR;144
-33;253;ON;UKE;Tea houses;CHI;茶馆;TR;33
-138;124;ON;UKE;Home furnishings & supplies shops;CHT;家居專門店;TR;138
-62;140;ON;UKE;International border crossings;CHT;邊境口岸;TR;62
-40;35;ON;UKE;Auto service & maintenance facilities;CHI;汽车服务和保养店;TR;40
-214;184;ON;UKE;Other banks;CHT;其他銀行;TR;214
-122;28;ON;UKE;All supermarkets;CHI;所有超市;ON;122
-118;109;ON;UKE;Flower shops;CHI;花店;ON;118
-81;175;ON;UKE;Night clubs;CHT;夜總會;ON;81
-46;202;ON;UKE;Outdoor car parks;CHT;室外停車場;TR;46
-195;136;ON;UKE;Ind'l Com'l Bank of China;CHT;中國工商銀行;TR;195
-45;103;ON;UKE;EV charging stations;CHT;電動車充電站;TR;45
-163;206;ON;UKE;Pet supplies;CHI;宠物用品;TR;163
-76;158;ON;UKE;Lottery booths;CHI;彩票站;ON;76
-170;9;ON;UKE;All ATMs;CHT;所有自動櫃員機;TR;170
-211;38;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;TR;211
-208;174;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;ON;208
-193;130;ON;UKE;HSBC;CHT;匯豐銀行;TR;193
-28;141;ON;UKE;International food;CHT;國際美食;ON;28
-192;11;ON;UKE;All banks;CHI;所有银行;ON;192
-250;58;ON;UKE;Cemeteries;CHT;墳場;ON;250
-167;198;ON;UKE;Other shopping;CHT;其他購物;TR;167
-123;131;ON;UKE;Huarun Supermarket;CHI;华润超市;ON;123
-237;227;ON;UKE;Schools;CHI;学校;ON;237
-220;100;ON;UKE;Embassies;CHI;大使馆;ON;220
-74;116;ON;UKE;Golf practice ranges;CHI;高尔夫练习场;ON;74
-194;71;ON;UKE;Citibank;CHI;花旗银行;ON;194
-218;213;ON;UKE;Professional organizations;CHI;专门机构协会;TR;218
-64;160;ON;UKE;Major hub railway stations;CHT;主要鐵路樞紐;ON;64
-270;255;ON;UKE;Technical training centres;CHT;技術訓練中心;ON;270
-104;76;ON;UKE;Clothing shops;CHT;服裝店;TR;104
-205;68;ON;UKE;Chong Hing Bank;CHI;创兴银行;TR;205
-81;175;ON;UKE;Night clubs;CHI;夜总会;TR;81
-4;110;ON;UKE;French food;CHI;法国美食;TR;4
-73;115;ON;UKE;Golf courses;CHI;高尔夫球场;TR;73
-26;225;ON;UKE;Sandwiches;CHI;三明治;TR;26
-267;12;ON;UKE;All business services;CHT;所有商務服務;ON;267
-274;72;ON;UKE;City centres;CHI;市中心;TR;274
-248;185;ON;UKE;Other Christian churches;CHI;基督教会;TR;248
-166;280;ON;UKE;Wines & liquors;CHI;酒类;TR;166
-104;76;ON;UKE;Clothing shops;CHI;服装店;ON;104
-87;259;ON;UKE;Theatres;CHI;剧院;ON;87
-124;161;ON;UKE;Mannings;CHT;萬寧;ON;124
+241;230;ON;UKE;Secondary schools;;;;
+51;234;ON;UKE;Shell;CHT;殼牌;;
+78;94;ON;UKE;Drinking establishments;CHI;夜生活;;
+127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHI;佳宝食品超级市场;;
+214;184;ON;UKE;Other banks;;;;
+200;120;ON;UKE;Hang Seng Bank;;;;
+192;11;ON;UKE;All banks;;;;
+286;208;ON;UKE;Photography studios;CHT;照相館;;
+87;259;ON;UKE;Theatres;CHT;劇院;;
+132;139;ON;UKE;International;CHI;国际超级市场;;
+150;285;ON;UKE;Wing Wah;;;;
+95;21;ON;UKE;All hotels;;;;
+10;273;ON;UKE;Vietnamese food;CHI;越南美食;;
+99;192;ON;UKE;Other hotels;CHT;其他酒店;;
+199;60;ON;UKE;Chartered;CHT;渣打銀行;;
+95;21;ON;UKE;All hotels;CHI;所有酒店;;
+78;94;ON;UKE;Drinking establishments;;;;
+164;200;ON;UKE;Other speciality shops;CHT;其他專門店;;
+142;241;ON;UKE;Speciality food shops;;;;
+157;277;ON;UKE;Watches & cameras;;;;
+16;286;ON;UKE;Yoshinoya;CHT;吉野家;;
+30;238;ON;UKE;Snacks & beverages;CHI;小吃和饮料;;
+88;263;ON;UKE;Tourist attractions;CHT;觀光點;;
+35;33;ON;UKE;Automobile facilities;CHI;汽车设施;;
+230;193;ON;UKE;Other medical services;CHT;其他醫療服務;;
+135;223;ON;UKE;ROYAL SUPERMARKET;;;;
+246;257;ON;UKE;Temples/wats;;;;
+170;9;ON;UKE;All ATMs;CHT;所有自動櫃員機;;
+57;268;ON;UKE;Transportations;CHI;交通运输;;
+26;225;ON;UKE;Sandwiches;CHT;三文治;;
+121;247;ON;UKE;Supermarkets;CHI;超市;;
+266;51;ON;UKE;Business service agencies;;;;
+131;145;ON;UKE;JAPAN HOME CENTRE;CHI;日本城;;
+249;195;ON;UKE;Other places of worship;CHI;其他礼拜场所;;
+18;53;ON;UKE;Café de Coral;;;;
+154;27;ON;UKE;All speciality shops;CHI;所有专卖店;;
+147;31;ON;UKE;AROME;CHT;東海堂;;
+203;91;ON;UKE;DBS;;;;
+22;104;ON;UKE;Fairwood;;;;
+123;131;ON;UKE;Huarun Supermarket;CHI;华润超市;;
+45;103;ON;UKE;EV charging stations;CHI;电动汽车充电站;;
+113;83;ON;UKE;Consumer electronics;CHT;消耗型電子產品;;
+19;270;ON;UKE;Tsui Wah Restaurant;CHT;翠華餐廳;;
+38;156;ON;UKE;Lexus repairs facilities;;;;
+248;185;ON;UKE;Other Christian churches;;;;
+244;187;ON;UKE;Other community;CHI;其他社区;;
+175;39;ON;UKE;Bank of China;CHT;中國銀行;;
+160;85;ON;UKE;Cosmetics;CHT;化妝品;;
+163;206;ON;UKE;Pet supplies;CHT;寵物用品;;
+113;83;ON;UKE;Consumer electronics;CHI;电器城;;
+68;153;ON;UKE;Leisure & tourism;CHT;休閒和旅遊;;
+114;16;ON;UKE;All consumer electronics;CHT;所有消耗型電子產品;;
+110;186;ON;UKE;Other clothing shops;CHT;其他服裝店;;
+84;217;ON;UKE;Race tracks;;;;
+210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;;
+276;112;ON;UKE;Funeral directors;CHI;葬仪社;;
+16;286;ON;UKE;Yoshinoya;CHI;吉野家;;
+29;209;ON;UKE;Pizza;CHI;披萨;;
+156;246;ON;UKE;Stationery;CHT;文具;;
+5;134;ON;UKE;Indian food;;;;
+180;281;ON;UKE;Wing Hang Bank;CHI;永亨银行;;
+55;159;ON;UKE;LPG stations;;;;
+247;57;ON;UKE;Catholic churches;;;;
+103;47;ON;UKE;Bookshops;CHT;書店;;
+131;145;ON;UKE;JAPAN HOME CENTRE;CHT;日本城;;
+127;148;ON;UKE;KAI BO FOOD SUPERMARKET;CHT;佳寶食品超市;;
+107;114;ON;UKE;G2000;;;;
+147;31;ON;UKE;AROME;;;;
+139;178;ON;UKE;Office supplies & services shops;CHI;办公用品服务;;
+236;220;ON;UKE;Residential areas;;;;
+153;242;ON;UKE;Speciality shops;CHT;專門店;;
+268;267;ON;UKE;Training centres;CHI;培训中心;;
+228;80;ON;UKE;Community medical treatment centres;;;;
+26;225;ON;UKE;Sandwiches;;;;
+218;213;ON;UKE;Professional organizations;;;;
+86;244;ON;UKE;Sports centres;CHI;体育中心;;
+134;163;ON;UKE;MARKET PLACE by JASONS;CHT;MARKET PLACE by JASONS;;
+153;242;ON;UKE;Speciality shops;CHI;专卖店;;
+209;284;ON;UKE;WING LUNG BANK;CHT;永隆銀行;;
+274;72;ON;UKE;City centres;CHI;市中心;;
+168;79;ON;UKE;Community;;;;
+218;213;ON;UKE;Professional organizations;CHT;專業機構和協會;;
+18;53;ON;UKE;Café de Coral;CHI;大家乐;;
+140;180;ON;UKE;Optical shops;CHI;眼镜店;;
+150;285;ON;UKE;Wing Wah;CHI;永华;;
+46;202;ON;UKE;Outdoor car parks;CHT;室外停車場;;
+211;38;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;;
+23;250;ON;UKE;TAI HING;;;;
+74;116;ON;UKE;Golf practice ranges;CHT;高爾夫練習場;;
+71;48;ON;UKE;Bowling alleys;;;;
+94;127;ON;UKE;Hotels;;;;
+197;40;ON;UKE;Bank of China;;;;
+120;113;ON;UKE;Furniture shops;;;;
+44;183;ON;UKE;Other auto service & maintenance facilities;CHT;其他汽車維修和保養處;;
+272;212;ON;UKE;Power offices;CHI;供电局;;
+53;237;ON;UKE;Sinopec;CHI;中国石化;;
+119;146;ON;UKE;Jewellery shops;CHT;珠寶店;;
+245;219;ON;UKE;Religion;CHI;宗教信仰;;
+191;43;ON;UKE;Banks;;;;
+22;104;ON;UKE;Fairwood;CHT;大快活;;
+262;231;ON;UKE;Securities firm;CHI;证券公司;;
+263;50;ON;UKE;Business centres;CHI;商业中心;;
+267;12;ON;UKE;All business services;CHI;所有商业服务;;
+80;45;ON;UKE;Bars/pubs/stube/biergarten;CHI;酒吧/俱乐部/餐厅/露天啤酒馆;;
+285;191;ON;UKE;Other hamlets;CHI;其他村镇;;
+274;72;ON;UKE;City centres;CHT;市中心;;
+103;47;ON;UKE;Bookshops;;;;
+134;163;ON;UKE;MARKET PLACE by JASONS;CHI;MARKET PLACE by JASONS;;
+240;99;ON;UKE;Elementary schools;CHI;小学;;
+102;5;ON;UKE;Agricultural product markets;CHI;农产品市场;;
+73;115;ON;UKE;Golf courses;;;;
+222;117;ON;UKE;Government offices;;;;
+239;151;ON;UKE;Kindergartens;CHT;幼稚園;;
+261;168;ON;UKE;Mining companies;CHI;矿产公司;;
+232;207;ON;UKE;Pharmacies;;;;
+228;80;ON;UKE;Community medical treatment centres;CHI;社区医疗中心;;
+22;104;ON;UKE;Fairwood;CHI;大快活;;
+245;219;ON;UKE;Religion;;;;
+275;74;ON;UKE;Cleaning & laundry;CHI;保洁和洗衣店;;
+154;27;ON;UKE;All speciality shops;;;;
+193;130;ON;UKE;HSBC;;;;
+31;132;ON;UKE;Ice cream;;;;
+178;59;ON;UKE;Chartered;CHI;渣打银行;;
+11;44;ON;UKE;Barbecue/southern food;;;;
+73;115;ON;UKE;Golf courses;CHI;高尔夫球场;;
+278;19;ON;UKE;All hair & beauty supplies shops;;;;
+40;35;ON;UKE;Auto service & maintenance facilities;;;;
+233;210;ON;UKE;Police stations;;;;
+225;167;ON;UKE;Medical service facilities;CHI;医疗服务机构;;
+86;244;ON;UKE;Sports centres;;;;
+59;52;ON;UKE;Bus stations;CHI;公共汽车站;;
+241;230;ON;UKE;Secondary schools;CHT;中學;;
+239;151;ON;UKE;Kindergartens;;;;
+202;261;ON;UKE;The Bank of East Asia;CHT;東亞銀行;;
+72;69;ON;UKE;Cinemas;CHI;电影院;;
+252;81;ON;UKE;Companies;CHI;商业机构;;
+64;160;ON;UKE;Major hub railway stations;CHI;主要铁路枢纽;;
+152;199;ON;UKE;Other speciality food shops;CHT;其他食品專門店;;
+27;239;ON;UKE;Southeast asian food;CHT;東南亞美食;;
+55;159;ON;UKE;LPG stations;CHT;液化氣站;;
+283;275;ON;UKE;Villages;CHT;村莊;;
+81;175;ON;UKE;Night clubs;;;;
+286;208;ON;UKE;Photography studios;;;;
+190;182;ON;UKE;Other ATMs;;;;
+1;221;ON;UKE;Restaurants;CHT;餐廳;;
+25;152;ON;UKE;Korean food;CHT;韓國美食;;
+38;156;ON;UKE;Lexus repairs facilities;CHI;雷克萨斯维修店;;
+190;182;ON;UKE;Other ATMs;CHT;其他自動櫃員機;;
+261;168;ON;UKE;Mining companies;;;;
+45;103;ON;UKE;EV charging stations;;;;
+36;155;ON;UKE;Lexus dealerships;CHI;雷克萨斯经销商;;
+102;5;ON;UKE;Agricultural product markets;CHT;農產品市場;;
+230;193;ON;UKE;Other medical services;;;;
+27;239;ON;UKE;Southeast asian food;;;;
+70;288;ON;UKE;Zoos;CHT;動物園;;
+106;154;ON;UKE;Levi's;CHI;李维斯;;
+40;35;ON;UKE;Auto service & maintenance facilities;CHI;汽车服务和保养店;;
+212;66;ON;UKE;Chiyu Banking Corporation Ltd.;;;;
+216;73;ON;UKE;Civic/community centres;;;;
+55;159;ON;UKE;LPG stations;CHI;液化气站;;
+268;267;ON;UKE;Training centres;CHT;訓練中心;;
+23;250;ON;UKE;TAI HING;CHI;太兴;;
+43;34;ON;UKE;Auto parts;;;;
+253;15;ON;UKE;All companies;CHI;所有商业机构;;
+145;164;ON;UKE;Maxim's;;;;
+109;162;ON;UKE;MARATHON Sport;CHT;馬拉松;;
+184;88;ON;UKE;DAHSING BANK;;;;
+70;288;ON;UKE;Zoos;CHI;动物园;;
+13;18;ON;UKE;All fast food;;;;
+151;86;ON;UKE;CRCare;CHT;華潤堂;;
+23;250;ON;UKE;TAI HING;CHT;太興;;
+215;105;ON;UKE;Famous landmark buildings;CHT;著名的標誌性建築;;
+39;266;ON;UKE;Toyota repairs facilities;;;;
+109;162;ON;UKE;MARATHON Sport;CHI;马拉松;;
+199;60;ON;UKE;Chartered;;;;
+256;256;ON;UKE;Telecom companies;CHT;電訊公司;;
+17;8;ON;UKE;AJISEN RAMEN;CHI;味千拉面;;
+189;36;ON;UKE;Banco Nacional Ultramarino;CHI;大西洋银行;;
+28;141;ON;UKE;International food;CHI;国际美食;;
+94;127;ON;UKE;Hotels;CHI;酒店;;
+272;212;ON;UKE;Power offices;CHT;供電機構;;
+49;23;ON;UKE;All petrol stations;;;;
+69;30;ON;UKE;Amusement parks;;;;
+160;85;ON;UKE;Cosmetics;;;;
+269;95;ON;UKE;Driving schools;CHI;驾驶学校;;
+16;286;ON;UKE;Yoshinoya;;;;
+210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;;
+108;147;ON;UKE;Joy&peace;CHT;真美詩;;
+142;241;ON;UKE;Speciality food shops;CHT;食品專門店;;
+79;17;ON;UKE;All drinking establishments;CHI;所有夜生活;;
+208;174;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;;
+257;138;ON;UKE;Insurance companies;;;;
+226;22;ON;UKE;All medical service facilities;CHI;所有医疗服务机构;;
+227;75;ON;UKE;Clinics/Medical centres;;;;
+2;24;ON;UKE;All restaurants;CHT;所有餐廳;;
+169;32;ON;UKE;ATM;;;;
+34;196;ON;UKE;Others;CHT;其他;;
+152;199;ON;UKE;Other speciality food shops;CHI;其他特产店;;
+201;282;ON;UKE;Wing Hang Bank;CHT;永亨銀行;;
+195;136;ON;UKE;Ind'l Com'l Bank of China;;;;
+94;127;ON;UKE;Hotels;CHT;酒店;;
+200;120;ON;UKE;Hang Seng Bank;CHT;恆生銀行;;
+100;181;ON;UKE;Other accommodations;;;;
+98;1;ON;UKE;3 Star;;;;
+195;136;ON;UKE;Ind'l Com'l Bank of China;CHI;中国工商银行;;
+48;205;ON;UKE;Petrol stations;;;;
+174;63;ON;UKE;China Construction Bank;;;;
+87;259;ON;UKE;Theatres;;;;
+89;29;ON;UKE;All tourist attractions;CHI;所有旅游胜地;;
+8;229;ON;UKE;Seafood;CHI;海鲜;;
+226;22;ON;UKE;All medical service facilities;CHT;所有醫療服務機構;;
+244;187;ON;UKE;Other community;;;;
+64;160;ON;UKE;Major hub railway stations;;;;
+182;90;ON;UKE;DBS;;;;
+65;170;ON;UKE;Motorway rest areas;;;;
+79;17;ON;UKE;All drinking establishments;CHT;所有夜生活;;
+71;48;ON;UKE;Bowling alleys;CHI;保龄球中心;;
+225;167;ON;UKE;Medical service facilities;;;;
+34;196;ON;UKE;Others;CHI;其他;;
+96;3;ON;UKE;5 Star;CHT;五星級;;
+119;146;ON;UKE;Jewellery shops;;;;
+141;236;ON;UKE;Shopping malls/department stores;;;;
+184;88;ON;UKE;DAHSING BANK;CHI;大新银行;;
+163;206;ON;UKE;Pet supplies;CHI;宠物用品;;
+198;42;ON;UKE;Bank of Communications;CHI;交通银行;;
+101;235;ON;UKE;Shopping;;;;
+248;185;ON;UKE;Other Christian churches;CHT;基督教會;;
+201;282;ON;UKE;Wing Hang Bank;;;;
+223;126;ON;UKE;Hospitals/polyclinics;CHI;医院/联合诊所;;
+144;179;ON;UKE;OKASHI LAND;;;;
+233;210;ON;UKE;Police stations;CHI;警察局;;
+192;11;ON;UKE;All banks;CHT;所有銀行;;
+231;93;ON;UKE;Dentists;CHI;牙医诊所;;
+30;238;ON;UKE;Snacks & beverages;CHT;小食和飲品;;
+156;246;ON;UKE;Stationery;;;;
+67;262;ON;UKE;Toll booths;CHT;收費亭;;
+166;280;ON;UKE;Wines & liquors;CHT;酒類;;
+100;181;ON;UKE;Other accommodations;CHI;其他住宿;;
+49;23;ON;UKE;All petrol stations;CHI;所有加油站;;
+128;92;ON;UKE;DCH FOOD;CHT;大昌食品;;
+103;47;ON;UKE;Bookshops;CHI;书店;;
+14;150;ON;UKE;KFC;CHT;肯德基;;
+240;99;ON;UKE;Elementary schools;;;;
+265;188;ON;UKE;Other companies;;;;
+229;222;ON;UKE;Retirement/nursing homes;CHT;護老院╱護養院;;
+129;248;ON;UKE;SUPERSTORE;;;;
+150;285;ON;UKE;Wing Wah;CHT;永華;;
+89;29;ON;UKE;All tourist attractions;CHT;所有觀光點;;
+286;208;ON;UKE;Photography studios;CHI;照相馆;;
+66;252;ON;UKE;Taxi stands;;;;
+226;22;ON;UKE;All medical service facilities;;;;
+61;107;ON;UKE;Ferry terminals;;;;
+20;165;ON;UKE;Maxim's MX;;;;
+104;76;ON;UKE;Clothing shops;CHT;服裝店;;
+46;202;ON;UKE;Outdoor car parks;;;;
+92;6;ON;UKE;Agricultural tours;;;;
+191;43;ON;UKE;Banks;CHI;银行;;
+61;107;ON;UKE;Ferry terminals;CHT;客輪碼頭;;
+56;55;ON;UKE;Car rental facilities;;;;
+167;198;ON;UKE;Other shopping;CHT;其他購物;;
+234;211;ON;UKE;Post offices;;;;
+158;272;ON;UKE;Video & audio shops;;;;
+222;117;ON;UKE;Government offices;CHT;政府辦事處;;
+67;262;ON;UKE;Toll booths;;;;
+187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHT;上海商業銀行;;
+107;114;ON;UKE;G2000;CHT;G2000;;
+284;264;ON;UKE;Towns;CHI;城镇;;
+198;42;ON;UKE;Bank of Communications;;;;
+211;38;ON;UKE;BANCO TAI FUNG;;;;
+257;138;ON;UKE;Insurance companies;CHI;保险公司;;
+140;180;ON;UKE;Optical shops;;;;
+161;254;ON;UKE;Tea shops;CHT;茶莊;;
+123;131;ON;UKE;Huarun Supermarket;;;;
+194;71;ON;UKE;Citibank;;;;
+7;144;ON;UKE;Japanese food;;;;
+285;191;ON;UKE;Other hamlets;;;;
+14;150;ON;UKE;KFC;CHI;肯德基;;
+106;154;ON;UKE;Levi's;CHT;李維斯;;
+204;214;ON;UKE;PUBLIC BANK (HONG KONG);;;;
+49;23;ON;UKE;All petrol stations;CHT;所有加油站;;
+128;92;ON;UKE;DCH FOOD;CHI;大昌食品;;
+177;61;ON;UKE;China CITIC Bank;;;;
+174;63;ON;UKE;China Construction Bank;CHI;中国建设银行;;
+276;112;ON;UKE;Funeral directors;;;;
+33;253;ON;UKE;Tea houses;CHI;茶馆;;
+270;255;ON;UKE;Technical training centres;;;;
+31;132;ON;UKE;Ice cream;CHI;冰淇淋;;
+100;181;ON;UKE;Other accommodations;CHT;其他住宿;;
+238;25;ON;UKE;All schools;CHI;所有学校;;
+212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHT;集友銀行;;
+173;135;ON;UKE;Ind'l & Com'l Bank of China;CHT;中國工商銀行;;
+212;66;ON;UKE;Chiyu Banking Corporation Ltd.;CHI;集友银行;;
+112;84;ON;UKE;Convenience stores;;;;
+260;176;ON;UKE;Non-profit organization;CHT;非營利機構;;
+264;228;ON;UKE;Science & research institutions;;;;
+279;240;ON;UKE;Spas;CHI;水疗中心;;
+11;44;ON;UKE;Barbecue/southern food;CHT;燒烤╱南部美食;;
+222;117;ON;UKE;Government offices;CHI;政府机构;;
+248;185;ON;UKE;Other Christian churches;CHI;基督教会;;
+193;130;ON;UKE;HSBC;CHT;匯豐銀行;;
+13;18;ON;UKE;All fast food;CHI;所有快餐;;
+220;100;ON;UKE;Embassies;CHT;領事館;;
+137;125;ON;UKE;Home improvement & hardware shops;;;;
+44;183;ON;UKE;Other auto service & maintenance facilities;;;;
+251;197;ON;UKE;Others;CHI;其他;;
+136;201;ON;UKE;Other supermarkets;CHI;其他超市;;
+3;65;ON;UKE;Chinese food;;;;
+249;195;ON;UKE;Other places of worship;;;;
+202;261;ON;UKE;The Bank of East Asia;;;;
+50;102;ON;UKE;Esso;;;;
+91;169;ON;UKE;Monasteries/convents;;;;
+237;227;ON;UKE;Schools;;;;
+270;255;ON;UKE;Technical training centres;CHT;技術訓練中心;;
+249;195;ON;UKE;Other places of worship;CHT;其他禮拜場所;;
+283;275;ON;UKE;Villages;;;;
+79;17;ON;UKE;All drinking establishments;;;;
+60;218;ON;UKE;Railway stations;CHI;铁路车站;;
+270;255;ON;UKE;Technical training centres;CHI;技能培训中心;;
+139;178;ON;UKE;Office supplies & services shops;;;;
+105;14;ON;UKE;All clothing shops;CHI;所有服装店;;
+269;95;ON;UKE;Driving schools;CHT;駕駛學校;;
+15;166;ON;UKE;McDonald's;;;;
+152;199;ON;UKE;Other speciality food shops;;;;
+178;59;ON;UKE;Chartered;;;;
+177;61;ON;UKE;China CITIC Bank;CHT;中信銀行;;
+98;1;ON;UKE;3 Star;CHI;三星级;;
+54;194;ON;UKE;Other petrol stations;;;;
+58;7;ON;UKE;Airports;CHT;機場;;
+203;91;ON;UKE;DBS;CHT;星展銀行;;
+221;108;ON;UKE;Fire stations;;;;
+256;256;ON;UKE;Telecom companies;;;;
+246;257;ON;UKE;Temples/wats;CHI;寺庙/泰国佛寺;;
+207;89;ON;UKE;DAHSING BANK;;;;
+264;228;ON;UKE;Science & research institutions;CHT;科研機構;;
+287;177;ON;UKE;Non-vehicle repair services;CHT;非車輛維修服務;;
+281;274;ON;UKE;Villages;CHT;村鎮;;
+280;46;ON;UKE;Beauty salons;CHI;美容院;;
+118;109;ON;UKE;Flower shops;;;;
+93;269;ON;UKE;Travel agencies;CHI;旅行社;;
+60;218;ON;UKE;Railway stations;CHT;通勤鐵路車站;;
+284;264;ON;UKE;Towns;CHT;城鎮;;
+5;134;ON;UKE;Indian food;CHT;印度美食;;
+62;140;ON;UKE;International border crossings;;;;
+127;148;ON;UKE;KAI BO FOOD SUPERMARKET;;;;
+8;229;ON;UKE;Seafood;CHT;海鮮;;
+142;241;ON;UKE;Speciality food shops;CHI;食品专门店;;
+37;265;ON;UKE;Toyota dealerships;CHI;丰田经销商;;
+21;287;ON;UKE;Yum!;;;;
+145;164;ON;UKE;Maxim's;CHT;美心;;
+136;201;ON;UKE;Other supermarkets;;;;
+24;190;ON;UKE;Other fast food;CHT;其他快餐;;
+77;171;ON;UKE;Museums;;;;
+196;64;ON;UKE;China Construction Bank;CHI;中国建设银行;;
+179;119;ON;UKE;Hang Seng Bank;CHI;恒生银行;;
+8;229;ON;UKE;Seafood;;;;
+181;260;ON;UKE;The Bank of East Asia;CHT;東亞銀行;;
+157;277;ON;UKE;Watches & cameras;CHI;手表、照相机;;
+96;3;ON;UKE;5 Star;;;;
+75;133;ON;UKE;Ice skating rinks;CHT;溜冰場;;
+54;194;ON;UKE;Other petrol stations;CHT;其他加油站;;
+183;67;ON;UKE;Chong Hing Bank;;;;
+35;33;ON;UKE;Automobile facilities;;;;
+219;87;ON;UKE;Cultural exchange activity centres;;;;
+175;39;ON;UKE;Bank of China;;;;
+187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;;;;
+172;70;ON;UKE;Citibank;CHT;花旗銀行;;
+253;15;ON;UKE;All companies;;;;
+149;224;ON;UKE;Saint Honore Cake Shop;;;;
+191;43;ON;UKE;Banks;CHT;銀行;;
+128;92;ON;UKE;DCH FOOD;;;;
+195;136;ON;UKE;Ind'l Com'l Bank of China;CHT;中國工商銀行;;
+263;50;ON;UKE;Business centres;CHT;商務中心;;
+98;1;ON;UKE;3 Star;CHT;三星級;;
+137;125;ON;UKE;Home improvement & hardware shops;CHI;家装五金用品店;;
+189;36;ON;UKE;Banco Nacional Ultramarino;CHT;大西洋銀行;;
+272;212;ON;UKE;Power offices;;;;
+236;220;ON;UKE;Residential areas;CHI;居民区;;
+135;223;ON;UKE;ROYAL SUPERMARKET;CHI;未来超级市场;;
+259;121;ON;UKE;High rise buildings;;;;
+145;164;ON;UKE;Maxim's;CHI;美心;;
+5;134;ON;UKE;Indian food;CHI;印度美食;;
+192;11;ON;UKE;All banks;CHI;所有银行;;
+104;76;ON;UKE;Clothing shops;CHI;服装店;;
+258;101;ON;UKE;Entertainer management companies;CHI;演艺经济公司;;
+93;269;ON;UKE;Travel agencies;CHT;旅行社;;
+180;281;ON;UKE;Wing Hang Bank;CHT;永亨銀行;;
+280;46;ON;UKE;Beauty salons;CHT;美容院;;
+255;49;ON;UKE;Broadcasting studios;CHI;广播室;;
+287;177;ON;UKE;Non-vehicle repair services;;;;
+51;234;ON;UKE;Shell;;;;
+74;116;ON;UKE;Golf practice ranges;CHI;高尔夫练习场;;
+54;194;ON;UKE;Other petrol stations;CHI;其他加油站;;
+229;222;ON;UKE;Retirement/nursing homes;;;;
+156;246;ON;UKE;Stationery;CHI;文具用品;;
+231;93;ON;UKE;Dentists;;;;
+64;160;ON;UKE;Major hub railway stations;CHT;主要鐵路樞紐;;
+153;242;ON;UKE;Speciality shops;;;;
+220;100;ON;UKE;Embassies;;;;
+281;274;ON;UKE;Villages;;;;
+82;149;ON;UKE;Karaoke;CHI;卡拉OK;;
+282;20;ON;UKE;All hamlets;CHT;所有村鎮;;
+138;124;ON;UKE;Home furnishings & supplies shops;CHI;家居专卖店;;
+280;46;ON;UKE;Beauty salons;;;;
+91;169;ON;UKE;Monasteries/convents;CHI;寺院、道观;;
+24;190;ON;UKE;Other fast food;CHI;其他快餐;;
+18;53;ON;UKE;Café de Coral;CHT;大家樂;;
+110;186;ON;UKE;Other clothing shops;;;;
+267;12;ON;UKE;All business services;CHT;所有商務服務;;
+59;52;ON;UKE;Bus stations;CHT;巴士站;;
+34;196;ON;UKE;Others;;;;
+42;56;ON;UKE;Car washes;CHT;汽車美容;;
+131;145;ON;UKE;JAPAN HOME CENTRE;;;;
+130;203;ON;UKE;PARKnSHOP;;;;
+236;220;ON;UKE;Residential areas;CHT;住宅區;;
+47;137;ON;UKE;Indoor car parks;CHT;室內停車場;;
+232;207;ON;UKE;Pharmacies;CHT;藥房;;
+205;68;ON;UKE;Chong Hing Bank;;;;
+90;226;ON;UKE;Scenic spots;CHT;景點;;
+186;283;ON;UKE;WING LUNG BANK;;;;
+250;58;ON;UKE;Cemeteries;CHT;墳場;;
+115;98;ON;UKE;Electrical appliances;CHT;家用電器;;
+10;273;ON;UKE;Vietnamese food;;;;
+6;143;ON;UKE;Italian food;CHT;意大利美食;;
+185;173;ON;UKE;Nanyang Commercial Bank;;;;
+234;211;ON;UKE;Post offices;CHT;郵局;;
+271;4;ON;UKE;Agency offices;;;;
+111;82;ON;UKE;Computers & software;CHI;电脑和软件;;
+1;221;ON;UKE;Restaurants;;;;
+93;269;ON;UKE;Travel agencies;;;;
+213;111;ON;UKE;Fubon Bank;;;;
+287;177;ON;UKE;Non-vehicle repair services;CHI;非车辆维修服务;;
+81;175;ON;UKE;Night clubs;CHT;夜總會;;
+217;13;ON;UKE;All civic/community centres;;;;
+204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHI;大众银行;;
+185;173;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;;
+190;182;ON;UKE;Other ATMs;CHI;其他自助取款机;;
+56;55;ON;UKE;Car rental facilities;CHT;租車行;;
+196;64;ON;UKE;China Construction Bank;;;;
+76;158;ON;UKE;Lottery booths;CHI;彩票站;;
+109;162;ON;UKE;MARATHON Sport;;;;
+186;283;ON;UKE;WING LUNG BANK;CHT;永隆銀行;;
+197;40;ON;UKE;Bank of China;CHI;中国银行;;
+50;102;ON;UKE;Esso;CHT;埃索;;
+83;204;ON;UKE;Parks/recreation areas;CHT;公園╱遊樂區;;
+233;210;ON;UKE;Police stations;CHT;警署;;
+231;93;ON;UKE;Dentists;CHT;牙醫;;
+115;98;ON;UKE;Electrical appliances;;;;
+273;128;ON;UKE;HR markets;;;;
+279;240;ON;UKE;Spas;CHT;水療中心;;
+216;73;ON;UKE;Civic/community centres;CHI;文娱/社区中心;;
+151;86;ON;UKE;CRCare;;;;
+46;202;ON;UKE;Outdoor car parks;CHI;室外停车场;;
+148;249;ON;UKE;Tai Cheong Bakery;CHT;泰昌餅家;;
+146;251;ON;UKE;TAIPAN;;;;
+69;30;ON;UKE;Amusement parks;CHT;遊樂場;;
+224;157;ON;UKE;Libraries;;;;
+165;243;ON;UKE;Sporting goods shops;CHT;體育用品店;;
+117;189;ON;UKE;Other consumer electronics;;;;
+204;214;ON;UKE;PUBLIC BANK (HONG KONG);CHT;大眾銀行;;
+217;13;ON;UKE;All civic/community centres;CHI;所有文娱/社区中心;;
+239;151;ON;UKE;Kindergartens;CHI;幼儿园;;
+170;9;ON;UKE;All ATMs;;;;
+72;69;ON;UKE;Cinemas;CHT;戲院;;
+139;178;ON;UKE;Office supplies & services shops;CHT;辦公用品服務;;
+183;67;ON;UKE;Chong Hing Bank;CHI;创兴银行;;
+36;155;ON;UKE;Lexus dealerships;;;;
+141;236;ON;UKE;Shopping malls/department stores;CHI;购物中心/百货商店;;
+148;249;ON;UKE;Tai Cheong Bakery;CHI;泰昌饼家;;
+163;206;ON;UKE;Pet supplies;;;;
+218;213;ON;UKE;Professional organizations;CHI;专门机构协会;;
+60;218;ON;UKE;Railway stations;;;;
+161;254;ON;UKE;Tea shops;;;;
+203;91;ON;UKE;DBS;CHI;星展银行;;
+171;129;ON;UKE;HSBC;CHT;匯豐銀行;;
+234;211;ON;UKE;Post offices;CHI;邮局;;
+186;283;ON;UKE;WING LUNG BANK;CHI;永隆银行;;
+194;71;ON;UKE;Citibank;CHI;花旗银行;;
+259;121;ON;UKE;High rise buildings;CHI;高层建筑物;;
+21;287;ON;UKE;Yum!;CHI;百胜餐饮;;
+43;34;ON;UKE;Auto parts;CHT;汽車零件;;
+155;123;ON;UKE;Hobby, toy & game stores;CHT;愛好、玩具和遊戲店;;
+176;41;ON;UKE;Bank of Communications;CHT;交通銀行;;
+277;118;ON;UKE;Hair & beauty supplies shops;CHT;美容美髮店;;
+26;225;ON;UKE;Sandwiches;CHI;三明治;;
+141;236;ON;UKE;Shopping malls/department stores;CHT;購物商場╱百貨公司;;
+155;123;ON;UKE;Hobby, toy & game stores;;;;
+80;45;ON;UKE;Bars/pubs/stube/biergarten;;;;
+238;25;ON;UKE;All schools;CHT;所有學校;;
+228;80;ON;UKE;Community medical treatment centres;CHT;社區醫療中心;;
+120;113;ON;UKE;Furniture shops;CHI;家具店;;
+235;215;ON;UKE;Public toilets;;;;
+237;227;ON;UKE;Schools;CHT;學校;;
+202;261;ON;UKE;The Bank of East Asia;CHI;东亚银行;;
+229;222;ON;UKE;Retirement/nursing homes;CHI;养老院/疗养院;;
+85;245;ON;UKE;Sports event facilities;CHT;體育活動設施;;
+3;65;ON;UKE;Chinese food;CHT;中式美食;;
+162;142;ON;UKE;Internet cafés;;;;
+6;143;ON;UKE;Italian food;CHI;意大利美食;;
+91;169;ON;UKE;Monasteries/convents;CHT;寺廟，道觀;;
+159;172;ON;UKE;Music instruments;CHT;樂器;;
+92;6;ON;UKE;Agricultural tours;CHI;农场旅游;;
+207;89;ON;UKE;DAHSING BANK;CHT;大新銀行;;
+75;133;ON;UKE;Ice skating rinks;CHI;溜冰场;;
+33;253;ON;UKE;Tea houses;CHT;茶餐廳;;
+284;264;ON;UKE;Towns;;;;
+116;78;ON;UKE;Communication equipment;CHT;通訊設備;;
+62;140;ON;UKE;International border crossings;CHI;边境口岸;;
+140;180;ON;UKE;Optical shops;CHT;眼鏡店;;
+235;215;ON;UKE;Public toilets;CHT;公共廁所;;
+243;276;ON;UKE;Vocational schools;CHT;專業學校;;
+151;86;ON;UKE;CRCare;CHI;华润堂;;
+50;102;ON;UKE;Esso;CHI;埃索;;
+179;119;ON;UKE;Hang Seng Bank;CHT;恆生銀行;;
+75;133;ON;UKE;Ice skating rinks;;;;
+62;140;ON;UKE;International border crossings;CHT;邊境口岸;;
+14;150;ON;UKE;KFC;;;;
+76;158;ON;UKE;Lottery booths;CHT;彩票站;;
+214;184;ON;UKE;Other banks;CHT;其他銀行;;
+68;153;ON;UKE;Leisure & tourism;;;;
+205;68;ON;UKE;Chong Hing Bank;CHI;创兴银行;;
+171;129;ON;UKE;HSBC;CHI;汇丰银行;;
+252;81;ON;UKE;Companies;;;;
+84;217;ON;UKE;Race tracks;CHI;赛道;;
+33;253;ON;UKE;Tea houses;;;;
+277;118;ON;UKE;Hair & beauty supplies shops;CHI;美容美发店;;
+123;131;ON;UKE;Huarun Supermarket;CHT;華潤超市;;
+173;135;ON;UKE;Ind'l & Com'l Bank of China;CHI;中国工商银行;;
+169;32;ON;UKE;ATM;CHT;自動櫃員機;;
+173;135;ON;UKE;Ind'l & Com'l Bank of China;;;;
+59;52;ON;UKE;Bus stations;;;;
+210;233;ON;UKE;SHANGHAI COMMERCIAL BANK;;;;
+57;268;ON;UKE;Transportations;CHT;交通運輸;;
+41;10;ON;UKE;All auto services & maintenance facilities;;;;
+134;163;ON;UKE;MARKET PLACE by JASONS;;;;
+42;56;ON;UKE;Car washes;CHI;洗车;;
+251;197;ON;UKE;Others;;;;
+37;265;ON;UKE;Toyota dealerships;CHT;豐田經銷商;;
+180;281;ON;UKE;Wing Hang Bank;;;;
+105;14;ON;UKE;All clothing shops;CHT;所有服裝店;;
+53;237;ON;UKE;Sinopec;;;;
+258;101;ON;UKE;Entertainer management companies;CHT;演藝經紀公司;;
+29;209;ON;UKE;Pizza;CHT;比薩;;
+47;137;ON;UKE;Indoor car parks;;;;
+215;105;ON;UKE;Famous landmark buildings;CHI;市政厅;;
+90;226;ON;UKE;Scenic spots;;;;
+254;216;ON;UKE;Publishers;CHT;出版社;;
+90;226;ON;UKE;Scenic spots;CHI;风景名胜;;
+146;251;ON;UKE;TAIPAN;CHI;大班;;
+213;111;ON;UKE;Fubon Bank;CHT;富邦銀行;;
+112;84;ON;UKE;Convenience stores;CHI;便利店;;
+48;205;ON;UKE;Petrol stations;CHI;加油站;;
+25;152;ON;UKE;Korean food;;;;
+115;98;ON;UKE;Electrical appliances;CHI;电器;;
+243;276;ON;UKE;Vocational schools;;;;
+165;243;ON;UKE;Sporting goods shops;CHI;体育用品店;;
+187;232;ON;UKE;SHANGHAI COMMERCIAL BANK;CHI;上海商业银行;;
+257;138;ON;UKE;Insurance companies;CHT;保險公司;;
+172;70;ON;UKE;Citibank;;;;
+276;112;ON;UKE;Funeral directors;CHT;殯儀館;;
+166;280;ON;UKE;Wines & liquors;CHI;酒类;;
+223;126;ON;UKE;Hospitals/polyclinics;CHT;醫院╱診所;;
+20;165;ON;UKE;Maxim's MX;CHI;美心;;
+273;128;ON;UKE;HR markets;CHT;人力資源市場;;
+261;168;ON;UKE;Mining companies;CHT;礦業公司;;
+255;49;ON;UKE;Broadcasting studios;;;;
+48;205;ON;UKE;Petrol stations;CHT;加油站;;
+112;84;ON;UKE;Convenience stores;CHT;便利店;;
+144;179;ON;UKE;OKASHI LAND;CHT;食家物語;;
+121;247;ON;UKE;Supermarkets;CHT;超級市場;;
+254;216;ON;UKE;Publishers;CHI;出版社;;
+146;251;ON;UKE;TAIPAN;CHT;大班;;
+19;270;ON;UKE;Tsui Wah Restaurant;;;;
+242;271;ON;UKE;Universities & colleges;;;;
+258;101;ON;UKE;Entertainer management companies;;;;
+181;260;ON;UKE;The Bank of East Asia;;;;
+188;37;ON;UKE;BANCO TAI FUNG;CHI;大丰银行;;
+120;113;ON;UKE;Furniture shops;CHT;家俱店;;
+162;142;ON;UKE;Internet cafés;CHT;網絡咖啡廳;;
+83;204;ON;UKE;Parks/recreation areas;;;;
+72;69;ON;UKE;Cinemas;;;;
+282;20;ON;UKE;All hamlets;CHI;所有村镇;;
+237;227;ON;UKE;Schools;CHI;学校;;
+67;262;ON;UKE;Toll booths;CHI;收费站;;
+65;170;ON;UKE;Motorway rest areas;CHT;高速公路休息區;;
+40;35;ON;UKE;Auto service & maintenance facilities;CHT;汽車維修和保養處;;
+207;89;ON;UKE;DAHSING BANK;CHI;大新银行;;
+108;147;ON;UKE;Joy&peace;;;;
+167;198;ON;UKE;Other shopping;CHI;其他购物;;
+263;50;ON;UKE;Business centres;;;;
+199;60;ON;UKE;Chartered;CHI;渣打银行;;
+20;165;ON;UKE;Maxim's MX;CHT;美心;;
+247;57;ON;UKE;Catholic churches;CHT;天主教會;;
+124;161;ON;UKE;Mannings;CHT;萬寧;;
+132;139;ON;UKE;International;;;;
+47;137;ON;UKE;Indoor car parks;CHI;室内停车场;;
+19;270;ON;UKE;Tsui Wah Restaurant;CHI;翠华餐厅;;
+158;272;ON;UKE;Video & audio shops;CHT;影音店;;
+206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;;;;
+227;75;ON;UKE;Clinics/Medical centres;CHI;诊所/医疗中心;;
+183;67;ON;UKE;Chong Hing Bank;CHT;創興銀行;;
+133;97;ON;UKE;eCosway;CHI;科士威;;
+242;271;ON;UKE;Universities & colleges;CHT;大學及學院;;
+28;141;ON;UKE;International food;;;;
+39;266;ON;UKE;Toyota repairs facilities;CHT;豐田維修處;;
+164;200;ON;UKE;Other speciality shops;;;;
+3;65;ON;UKE;Chinese food;CHI;中国美食;;
+32;77;ON;UKE;Coffee shops;CHI;咖啡店;;
+116;78;ON;UKE;Communication equipment;CHI;通信设备;;
+144;179;ON;UKE;OKASHI LAND;CHI;食家物语;;
+241;230;ON;UKE;Secondary schools;CHI;中学;;
+114;16;ON;UKE;All consumer electronics;;;;
+168;79;ON;UKE;Community;CHI;社区;;
+160;85;ON;UKE;Cosmetics;CHI;化妆品;;
+114;16;ON;UKE;All consumer electronics;CHI;所有消费性电子产品;;
+116;78;ON;UKE;Communication equipment;;;;
+245;219;ON;UKE;Religion;CHT;宗教;;
+17;8;ON;UKE;AJISEN RAMEN;CHT;味千拉麵;;
+176;41;ON;UKE;Bank of Communications;;;;
+158;272;ON;UKE;Video & audio shops;CHI;影音店;;
+256;256;ON;UKE;Telecom companies;CHI;电信企业;;
+269;95;ON;UKE;Driving schools;;;;
+9;258;ON;UKE;Thai food;;;;
+208;174;ON;UKE;Nanyang Commercial Bank;;;;
+74;116;ON;UKE;Golf practice ranges;;;;
+154;27;ON;UKE;All speciality shops;CHT;所有專門店;;
+133;97;ON;UKE;eCosway;CHT;科士威;;
+208;174;ON;UKE;Nanyang Commercial Bank;CHI;南洋商业银行;;
+205;68;ON;UKE;Chong Hing Bank;CHT;創興銀行;;
+65;170;ON;UKE;Motorway rest areas;CHI;高速公路服务区;;
+15;166;ON;UKE;McDonald's;CHI;麦当劳;;
+279;240;ON;UKE;Spas;;;;
+86;244;ON;UKE;Sports centres;CHT;運動中心;;
+176;41;ON;UKE;Bank of Communications;CHI;交通银行;;
+268;267;ON;UKE;Training centres;;;;
+4;110;ON;UKE;French food;CHT;法式美食;;
+149;224;ON;UKE;Saint Honore Cake Shop;CHI;圣安娜饼屋;;
+262;231;ON;UKE;Securities firm;;;;
+111;82;ON;UKE;Computers & software;CHT;電腦和軟體;;
+43;34;ON;UKE;Auto parts;CHI;汽车配件店;;
+273;128;ON;UKE;HR markets;CHI;人才市场;;
+32;77;ON;UKE;Coffee shops;CHT;咖啡店;;
+106;154;ON;UKE;Levi's;;;;
+11;44;ON;UKE;Barbecue/southern food;CHI;烧烤/南部风味;;
+170;9;ON;UKE;All ATMs;CHI;所有自助取款机;;
+122;28;ON;UKE;All supermarkets;CHT;所有超級市場;;
+117;189;ON;UKE;Other consumer electronics;CHI;其他消费性电子产品;;
+169;32;ON;UKE;ATM;CHI;自助取款机;;
+224;157;ON;UKE;Libraries;CHT;圖書館;;
+97;2;ON;UKE;4 Star;;;;
+1;221;ON;UKE;Restaurants;CHI;餐馆;;
+66;252;ON;UKE;Taxi stands;CHT;的士站;;
+69;30;ON;UKE;Amusement parks;CHI;游乐园;;
+143;26;ON;UKE;All speciality food shops;CHT;所有食品專門店;;
+99;192;ON;UKE;Other hotels;CHI;其他旅馆;;
+117;189;ON;UKE;Other consumer electronics;CHT;其他消耗型電子產品;;
+122;28;ON;UKE;All supermarkets;;;;
+167;198;ON;UKE;Other shopping;;;;
+232;207;ON;UKE;Pharmacies;CHI;药店;;
+184;88;ON;UKE;DAHSING BANK;CHT;大新銀行;;
+209;284;ON;UKE;WING LUNG BANK;CHI;永隆银行;;
+159;172;ON;UKE;Music instruments;CHI;乐器;;
+219;87;ON;UKE;Cultural exchange activity centres;CHT;文化交流中心;;
+77;171;ON;UKE;Museums;CHI;博物馆;;
+252;81;ON;UKE;Companies;CHT;商務機構;;
+129;248;ON;UKE;SUPERSTORE;CHI;SUPERSTORE;;
+265;188;ON;UKE;Other companies;CHT;其他商務機構;;
+27;239;ON;UKE;Southeast asian food;CHI;东南亚美食;;
+265;188;ON;UKE;Other companies;CHI;其他商业机构;;
+2;24;ON;UKE;All restaurants;;;;
+124;161;ON;UKE;Mannings;CHI;万宁;;
+182;90;ON;UKE;DBS;CHI;星展银行;;
+29;209;ON;UKE;Pizza;;;;
+188;37;ON;UKE;BANCO TAI FUNG;CHT;大豐銀行;;
+172;70;ON;UKE;Citibank;CHI;花旗银行;;
+113;83;ON;UKE;Consumer electronics;;;;
+132;139;ON;UKE;International;CHT;國際超級市場;;
+255;49;ON;UKE;Broadcasting studios;CHT;播音室;;
+111;82;ON;UKE;Computers & software;;;;
+32;77;ON;UKE;Coffee shops;;;;
+110;186;ON;UKE;Other clothing shops;CHI;其他服装店;;
+283;275;ON;UKE;Villages;CHI;村庄;;
+80;45;ON;UKE;Bars/pubs/stube/biergarten;CHT;酒吧╱酒館╱斯圖貝╱露天啤酒屋;;
+129;248;ON;UKE;SUPERSTORE;CHT;SUPERSTORE;;
+238;25;ON;UKE;All schools;;;;
+285;191;ON;UKE;Other hamlets;CHT;其他村鎮;;
+219;87;ON;UKE;Cultural exchange activity centres;CHI;文化交流中心;;
+223;126;ON;UKE;Hospitals/polyclinics;;;;
+37;265;ON;UKE;Toyota dealerships;;;;
+181;260;ON;UKE;The Bank of East Asia;CHI;东亚银行;;
+271;4;ON;UKE;Agency offices;CHI;代理机构;;
+35;33;ON;UKE;Automobile facilities;CHT;汽車設施;;
+185;173;ON;UKE;Nanyang Commercial Bank;CHT;南洋商業銀行;;
+97;2;ON;UKE;4 Star;CHT;四星級;;
+267;12;ON;UKE;All business services;;;;
+178;59;ON;UKE;Chartered;CHT;渣打銀行;;
+206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHI;中信银行国际;;
+254;216;ON;UKE;Publishers;;;;
+4;110;ON;UKE;French food;CHI;法国美食;;
+82;149;ON;UKE;Karaoke;;;;
+250;58;ON;UKE;Cemeteries;;;;
+30;238;ON;UKE;Snacks & beverages;;;;
+45;103;ON;UKE;EV charging stations;CHT;電動車充電站;;
+125;279;ON;UKE;Wellcome;;;;
+175;39;ON;UKE;Bank of China;CHI;中国银行;;
+275;74;ON;UKE;Cleaning & laundry;CHT;清潔和洗衣店;;
+137;125;ON;UKE;Home improvement & hardware shops;CHT;家裝五金鋪;;
+77;171;ON;UKE;Museums;CHT;博物館;;
+159;172;ON;UKE;Music instruments;;;;
+118;109;ON;UKE;Flower shops;CHT;花店;;
+7;144;ON;UKE;Japanese food;CHT;日本美食;;
+124;161;ON;UKE;Mannings;;;;
+101;235;ON;UKE;Shopping;CHT;購物;;
+126;278;ON;UKE;WATSONS;CHT;屈臣氏;;
+58;7;ON;UKE;Airports;;;;
+99;192;ON;UKE;Other hotels;;;;
+85;245;ON;UKE;Sports event facilities;CHI;体育活动设施;;
+71;48;ON;UKE;Bowling alleys;CHT;保齡球場;;
+24;190;ON;UKE;Other fast food;;;;
+89;29;ON;UKE;All tourist attractions;;;;
+52;54;ON;UKE;Caltex;CHI;加德士;;
+9;258;ON;UKE;Thai food;CHT;泰國美食;;
+85;245;ON;UKE;Sports event facilities;;;;
+138;124;ON;UKE;Home furnishings & supplies shops;CHT;家居專門店;;
+217;13;ON;UKE;All civic/community centres;CHT;所有公民╱社區中心;;
+201;282;ON;UKE;Wing Hang Bank;CHI;永亨银行;;
+215;105;ON;UKE;Famous landmark buildings;;;;
+87;259;ON;UKE;Theatres;CHI;剧院;;
+220;100;ON;UKE;Embassies;CHI;大使馆;;
+125;279;ON;UKE;Wellcome;CHT;惠康;;
+189;36;ON;UKE;Banco Nacional Ultramarino;;;;
+118;109;ON;UKE;Flower shops;CHI;花店;;
+7;144;ON;UKE;Japanese food;CHI;日本美食;;
+225;167;ON;UKE;Medical service facilities;CHT;醫療服務機構;;
+70;288;ON;UKE;Zoos;;;;
+53;237;ON;UKE;Sinopec;CHT;中國石化;;
+243;276;ON;UKE;Vocational schools;CHI;职业学校;;
+250;58;ON;UKE;Cemeteries;CHI;墓地;;
+194;71;ON;UKE;Citibank;CHT;花旗銀行;;
+260;176;ON;UKE;Non-profit organization;;;;
+198;42;ON;UKE;Bank of Communications;CHT;交通銀行;;
+174;63;ON;UKE;China Construction Bank;CHT;中國建設銀行;;
+275;74;ON;UKE;Cleaning & laundry;;;;
+177;61;ON;UKE;China CITIC Bank;CHI;中信银行;;
+21;287;ON;UKE;Yum!;CHT;百勝;;
+281;274;ON;UKE;Villages;CHI;村镇;;
+52;54;ON;UKE;Caltex;;;;
+149;224;ON;UKE;Saint Honore Cake Shop;CHT;聖安娜餅屋;;
+51;234;ON;UKE;Shell;CHI;壳牌;;
+126;278;ON;UKE;WATSONS;CHI;屈臣氏;;
+247;57;ON;UKE;Catholic churches;CHI;天主教会;;
+-1;96;ON;UKE;Dummy;;;;
+68;153;ON;UKE;Leisure & tourism;CHI;休闲和旅游;;
+52;54;ON;UKE;Caltex;CHT;加德士;;
+168;79;ON;UKE;Community;CHT;社區;;
+73;115;ON;UKE;Golf courses;CHT;高爾夫球場;;
+253;15;ON;UKE;All companies;CHT;所有商務機構;;
+230;193;ON;UKE;Other medical services;CHI;其他医疗服务;;
+209;284;ON;UKE;WING LUNG BANK;;;;
+119;146;ON;UKE;Jewellery shops;CHI;珠宝店;;
+125;279;ON;UKE;Wellcome;CHI;惠康;;
+278;19;ON;UKE;All hair & beauty supplies shops;CHI;所有美容美发店;;
+147;31;ON;UKE;AROME;CHI;东海堂;;
+182;90;ON;UKE;DBS;CHT;星展銀行;;
+41;10;ON;UKE;All auto services & maintenance facilities;CHI;所以汽车服务和保养店;;
+179;119;ON;UKE;Hang Seng Bank;;;;
+66;252;ON;UKE;Taxi stands;CHI;出租车站;;
+4;110;ON;UKE;French food;;;;
+162;142;ON;UKE;Internet cafés;CHI;网络咖啡厅;;
+97;2;ON;UKE;4 Star;CHI;四星级;;
+235;215;ON;UKE;Public toilets;CHI;公共厕所;;
+12;106;ON;UKE;Fast food;CHT;快餐;;
+31;132;ON;UKE;Ice cream;CHT;雪糕;;
+221;108;ON;UKE;Fire stations;CHI;消防局;;
+135;223;ON;UKE;ROYAL SUPERMARKET;CHT;來來超級市場;;
+157;277;ON;UKE;Watches & cameras;CHT;手錶和攝影器材;;
+143;26;ON;UKE;All speciality food shops;;;;
+63;122;ON;UKE;Highway exits;CHI;高速公路出口;;
+165;243;ON;UKE;Sporting goods shops;;;;
+121;247;ON;UKE;Supermarkets;;;;
+17;8;ON;UKE;AJISEN RAMEN;;;;
+83;204;ON;UKE;Parks/recreation areas;CHI;公园/游乐区;;
+143;26;ON;UKE;All speciality food shops;CHI;所有食品专门店;;
+227;75;ON;UKE;Clinics/Medical centres;CHT;醫務所╱醫療中心;;
+266;51;ON;UKE;Business service agencies;CHT;商務服務機構;;
+274;72;ON;UKE;City centres;;;;
+130;203;ON;UKE;PARKnSHOP;CHT;百佳超市;;
+6;143;ON;UKE;Italian food;;;;
+88;263;ON;UKE;Tourist attractions;CHI;旅游胜地;;
+126;278;ON;UKE;WATSONS;;;;
+12;106;ON;UKE;Fast food;;;;
+240;99;ON;UKE;Elementary schools;CHT;小學;;
+25;152;ON;UKE;Korean food;CHI;韩国美食;;
+2;24;ON;UKE;All restaurants;CHI;所有餐馆;;
+38;156;ON;UKE;Lexus repairs facilities;CHT;凌志維修處;;
+221;108;ON;UKE;Fire stations;CHT;消防局;;
+12;106;ON;UKE;Fast food;CHI;快餐;;
+277;118;ON;UKE;Hair & beauty supplies shops;;;;
+206;62;ON;UKE;CHINA CITIC BANK INTERNATIONAL;CHT;中信銀行國際;;
+63;122;ON;UKE;Highway exits;CHT;高速公路出口;;
+39;266;ON;UKE;Toyota repairs facilities;CHI;丰田维修店;;
+122;28;ON;UKE;All supermarkets;CHI;所有超市;;
+244;187;ON;UKE;Other community;CHT;其他社區;;
+92;6;ON;UKE;Agricultural tours;CHT;農場旅遊;;
+130;203;ON;UKE;PARKnSHOP;CHI;百佳超市;;
+262;231;ON;UKE;Securities firm;CHT;證券公司;;
+105;14;ON;UKE;All clothing shops;;;;
+214;184;ON;UKE;Other banks;CHI;其他银行;;
+264;228;ON;UKE;Science & research institutions;CHI;科研机构;;
+107;114;ON;UKE;G2000;CHI;G2000;;
+138;124;ON;UKE;Home furnishings & supplies shops;;;;
+102;5;ON;UKE;Agricultural product markets;;;;
+259;121;ON;UKE;High rise buildings;CHT;高層建築;;
+188;37;ON;UKE;BANCO TAI FUNG;;;;
+28;141;ON;UKE;International food;CHT;國際美食;;
+96;3;ON;UKE;5 Star;CHI;五星级;;
+57;268;ON;UKE;Transportations;;;;
+76;158;ON;UKE;Lottery booths;;;;
+282;20;ON;UKE;All hamlets;;;;
+246;257;ON;UKE;Temples/wats;CHT;寺廟╱佛寺;;
+164;200;ON;UKE;Other speciality shops;CHI;其他专卖店;;
+193;130;ON;UKE;HSBC;CHI;汇丰银行;;
+104;76;ON;UKE;Clothing shops;;;;
+197;40;ON;UKE;Bank of China;CHT;中國銀行;;
+42;56;ON;UKE;Car washes;;;;
+88;263;ON;UKE;Tourist attractions;;;;
+58;7;ON;UKE;Airports;CHI;机场;;
+81;175;ON;UKE;Night clubs;CHI;夜总会;;
+148;249;ON;UKE;Tai Cheong Bakery;;;;
+9;258;ON;UKE;Thai food;CHI;泰国美食;;
+278;19;ON;UKE;All hair & beauty supplies shops;CHT;所有美容美髮店;;
+200;120;ON;UKE;Hang Seng Bank;CHI;恒生银行;;
+61;107;ON;UKE;Ferry terminals;CHI;渡轮码头;;
+251;197;ON;UKE;Others;CHT;其他;;
+13;18;ON;UKE;All fast food;CHT;所有快餐;;
+161;254;ON;UKE;Tea shops;CHI;茶叶店;;

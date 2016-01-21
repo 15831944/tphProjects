@@ -7027,3 +7027,41 @@ BEGIN
 	end loop;
 END;
 $$;
+
+-----------------------------------------------------------------------------
+-- convert old link_id to rdb link id for passlid
+-----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION rdb_cvt_passlid_linkid(passlid character varying, ch character varying)
+RETURNS bigint[]
+  LANGUAGE plpgsql VOLATILE
+  AS
+$$ 
+DECLARE
+	new_passlid     bigint[];
+	passlid_array   bigint[];
+	lid_cnt         integer;
+	new_link_id     bigint;
+	pass_num        integer;
+	split_char      character varying;
+BEGIN
+	if passlid is null or passlid = '' then
+		return NULL;
+	end if;
+	lid_cnt = 1;
+	new_passlid = NULL::bigint[];
+	split_char =  E'\\' || ch || '+';
+	passlid_array = (regexp_split_to_array(passlid, E'\\,+'))::BIGINT[];
+	pass_num = array_upper(passlid_array, 1);
+	WHILE lid_cnt <= pass_num LOOP
+		SELECT tile_link_id into new_link_id
+		  FROM rdb_tile_link
+		  WHERE old_link_id = passlid_array[lid_cnt];
+		if new_link_id is null then
+			raise EXCEPTION 'No tile_link_id.' ;
+		end if;
+		new_passlid = array_append(new_passlid, new_link_id);
+		lid_cnt = lid_cnt + 1;
+	END LOOP;
+	return new_passlid;
+END;
+$$;

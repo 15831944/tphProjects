@@ -302,7 +302,7 @@ class CCheckRoadTypeValid_NI(platform.TestCase.CTestCase):
             """
 
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
-        return (rec_cnt != 0)
+        return (rec_cnt == 0)
         
 class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
     def _do(self):

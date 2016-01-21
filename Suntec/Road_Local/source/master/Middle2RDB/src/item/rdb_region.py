@@ -94,7 +94,7 @@ class rdb_region(ItemBase):
     def _makeOriginalRegionOnLevelX(self, 
                                     layer=4, level=10, 
                                     rdb_link='rdb_link', attr_filter={'function_code':[1,2,3]},
-                                    additional_links='temp_hierarchy_links_layerx'):
+                                    additional_links=[]):
         self.log.info('Make original region level%s...' % str(layer))
         
         #
@@ -106,13 +106,13 @@ class rdb_region(ItemBase):
             rdb_link_filter = 'and '.join(filter_list)
         
         union_additional_links = ''
-        if additional_links:
-            union_additional_links = """
+        for additional_table in additional_links:
+            union_additional_table = """
                                     union
                                     select link_id
-                                    from [additional_links]
+                                    from [additional_table]
                                     """
-            union_additional_links = union_additional_links.replace('[additional_links]', additional_links)
+            union_additional_links += union_additional_table.replace('[additional_table]', additional_table)
         
         #
         self.CreateFunction2('get_new_tile_id_by_zlevel')
@@ -1585,7 +1585,7 @@ class rdb_region_ni_china(rdb_region_axf_china):
                                                level=10,
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3]},
-                                               additional_links='temp_hierarchy_links_layer4')
+                                               additional_links=['temp_hierarchy_links_layer4'])
     
 class rdb_region_ta_europe(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
@@ -1604,7 +1604,7 @@ class rdb_region_ta_vietnam(rdb_region):
 class rdb_region_rdf_ap(rdb_region):
     def _makeOriginalRegionOnLevel4(self, zlevel=6, fc_array=[1,2,3,4]):
         rdb_region._makeOriginalRegionOnLevel4(self, zlevel, fc_array)
-        self._addFerryIntoRegion(layer=4, zlevel=6, fc_array=[1,2,3,4])
+        self._addFerryIntoRegion(layer=4, zlevel=zlevel, fc_array=fc_array)
     
     def _addFerryIntoRegion(self, 
                             layer=4, zlevel=6, fc_array=[1,2,3,4], 
@@ -1737,7 +1737,7 @@ class rdb_region_rdf_ap(rdb_region):
         sqlcmd = """
                     insert into temp_region_orglink_level[X]
                     (
-                        select c.*, get_new_tile_id_by_zlevel(c.link_id_t,[level]) as region_tile_id 
+                        select c.*, get_new_tile_id_by_zlevel(c.link_id_t,[level]) as region_tile_id, [X] as region_level
                         from temp_region_promote_link as a
                         left join temp_region_orglink_level[X] as b
                         on a.link_id = b.link_id
@@ -1802,7 +1802,7 @@ class rdb_region_rdf_ap(rdb_region):
 #        rdb_log.log('Region', 'Reset link function class end.', 'info')
 
 class rdb_region_rdf_sea(rdb_region_rdf_ap):
-    def _hierarchy_backup(self):
+    def _hierarchy(self):
         import rdb_region_algorithm
         objHierarchy = rdb_region_algorithm.CHierarchy()
         
@@ -1829,13 +1829,13 @@ class rdb_region_rdf_sea(rdb_region_rdf_ap):
                           mesh_road_limit=800,
                           overwrap=-1)
         
-        objHierarchy.make(org_link_table='temp_hierarchy_links_layer4',
-                          org_link_filter='true',
-                          target_link_table='temp_hierarchy_links_layer6',
-                          base_level=6,
-                          max_level=8,
-                          mesh_road_limit=1000,
-                          overwrap=-1)
+#        objHierarchy.make(org_link_table='temp_hierarchy_links_layer4',
+#                          org_link_filter='true',
+#                          target_link_table='temp_hierarchy_links_layer6',
+#                          base_level=6,
+#                          max_level=8,
+#                          mesh_road_limit=1000,
+#                          overwrap=-1)
     
     def _makeOriginalRegionOnLevel4(self):
         rdb_region._makeOriginalRegionOnLevelX(self, 
@@ -1843,7 +1843,7 @@ class rdb_region_rdf_sea(rdb_region_rdf_ap):
                                                level=6, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3,4]},
-                                               additional_links='temp_region_links')
+                                               additional_links=['temp_region_links', 'temp_hierarchy_links_layer4'])
         rdb_region_rdf_ap._addFerryIntoRegion(self, layer=4, zlevel=6, fc_array=[1,2,3,4])
     
     def _makeOriginalRegionOnLevel6(self):
@@ -1852,8 +1852,8 @@ class rdb_region_rdf_sea(rdb_region_rdf_ap):
                                                level=2, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3]},
-                                               additional_links=None)
-        rdb_region_rdf_ap._addFerryIntoRegion(self, layer=6, zlevel=2, fc_array=[1,2,3], max_region_distance=10000)
+                                               additional_links=[])
+        rdb_region_rdf_ap._addFerryIntoRegion(self, layer=6, zlevel=2, fc_array=[1,2,3])
 
 class rdb_region_taiwan(rdb_region_rdf_ap):
     def _makeOriginalRegionOnLevel4(self):
@@ -2107,7 +2107,7 @@ class rdb_region_ta_aus(rdb_region_three_layers):
                                                level=10, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2,3]},
-                                               additional_links='temp_hierarchy_links_layer4')
+                                               additional_links=['temp_hierarchy_links_layer4'])
     
     def _makeOriginalRegionOnLevel6(self):
         #rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2,3])
@@ -2116,14 +2116,14 @@ class rdb_region_ta_aus(rdb_region_three_layers):
                                                level=6, 
                                                rdb_link='rdb_link', 
                                                attr_filter={'function_code':[1,2]},
-                                               additional_links='temp_hierarchy_links_layer6')
+                                               additional_links=['temp_hierarchy_links_layer6'])
     
     def _makeOriginalRegionOnLevel8(self):
         rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])
 
 class rdb_region_rdf_brazil(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
-        rdb_region._makeOriginalRegionOnLevel4(self, 8, [1,2,3])
+        rdb_region._makeOriginalRegionOnLevel4(self, 8, [1,2,3,4])
     
     def _makeOriginalRegionOnLevel6(self):
         rdb_region._makeOriginalRegionOnLevel6(self, 4, [1])

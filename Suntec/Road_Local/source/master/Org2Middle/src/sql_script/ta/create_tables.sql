@@ -1170,7 +1170,8 @@ create table temp_poi_category_code
   org_code   bigint,
   sub_category        integer,
   brand_name varchar,
-  filename varchar
+  country     varchar,
+  file varchar
 );
 
 create table temp_poi_category

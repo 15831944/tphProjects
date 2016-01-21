@@ -267,17 +267,22 @@ as
 			deliveries= 'N' and emergency_vehicles= 'N'
 );
 
-create table temp_link_under_construction
-as 
-(
-	select a.link_id from temp_rdf_nav_link a
-	inner join (
-		select distinct t3.link_id from rdf_condition as t2 
-		left join rdf_nav_strand as t3 
-		on t2.nav_strand_id = t3.nav_strand_id    
-		where t2.condition_type = 3
-	) b
-	on a.link_id = b.link_id
+CREATE TABLE temp_link_under_construction
+AS (
+	SELECT e.link_id
+	FROM temp_rdf_nav_link e
+	INNER JOIN (
+		SELECT DISTINCT d.link_id
+		FROM rdf_condition a
+		LEFT JOIN rdf_condition_dt b
+			ON a.condition_id = b.condition_id
+		LEFT JOIN rdf_date_time c
+			ON b.dt_id = c.dt_id
+		LEFT JOIN rdf_nav_strand d
+			ON a.nav_strand_id = d.nav_strand_id
+		WHERE a.condition_type in (3, 41) and b.dt_id is null
+	) f
+		ON e.link_id = f.link_id
 );
 
 create table temp_link_public 

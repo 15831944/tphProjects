@@ -24,6 +24,8 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
+        self.AddComponent(self.comp_factory.CreateOneComponent('spotguide_tbl'))
+        return
         if self.comp_factory:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('Dictionary'))
@@ -35,10 +37,11 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
-            # update sapa link
-            #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
+            # update sapa link
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_DisplayClass'))
             
             # guide
@@ -65,12 +68,13 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('GuidePoint_Adjust'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_redundance_regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
             #self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))
             
             # highway
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
+            #slope
+            self.AddComponent(self.comp_factory.CreateOneComponent('slope'))
             
             pass

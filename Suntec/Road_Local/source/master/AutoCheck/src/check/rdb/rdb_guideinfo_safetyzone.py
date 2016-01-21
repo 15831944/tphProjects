@@ -81,6 +81,12 @@ class CCheckLinkSequence(platform.TestCase.CTestCase):
             from rdb_guideinfo_safety_zone a 
             join rdb_link b using(link_id)
             where safety_type<>3
+            and safetyzone_id not in (
+                select distinct safetyzone_id
+                from rdb_guideinfo_safety_zone
+                group by safetyzone_id,link_id
+                having count(*) >  1
+            )
             group by safetyzone_id
             order by safetyzone_id
                 '''

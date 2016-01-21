@@ -877,10 +877,10 @@ class comp_link_split(component.component_base.comp_base):
         self.CreateTable2('safety_zone_tbl')
         sqlcmd = '''
                 insert into safety_zone_tbl(
-                    safetyzone_id,linkid, speedlimit, speedunit_code, direction, safety_type)
-                select safetyzone_id,link_id,speedlimit,speedunit_code,direction,safety_type 
+                    safetyzone_id,featid,linkid, speedlimit, speedunit_code, direction, safety_type)
+                select safetyzone_id,featid,link_id,speedlimit,speedunit_code,direction,safety_type 
                 from (
-                    select a.safetyzone_id, a.linkid, a.gid, b.link_id, b.sub_count,
+                    select a.safetyzone_id, a.featid, a.linkid, a.gid, b.link_id, b.sub_count,
                         b.sub_index, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
                     from safety_zone_tbl_bak_splitting as a
                     inner join temp_split_newlink as b
@@ -888,14 +888,14 @@ class comp_link_split(component.component_base.comp_base):
                     
                     union all
                     
-                    select a.safetyzone_id, a.linkid, a.gid, a.linkid as link_id, 1 as sub_count,
+                    select a.safetyzone_id, a.featid, a.linkid, a.gid, a.linkid as link_id, 1 as sub_count,
                         1 as sub_index, a.speedlimit, a.speedunit_code, a.direction, a.safety_type
                     from safety_zone_tbl_bak_splitting as a
                     left join temp_split_newlink as b
                     on a.linkid = b.old_link_id
                     where b.link_id is null
                 ) m
-                order by safetyzone_id, gid, sub_count, sub_index
+                order by safetyzone_id, featid, gid, sub_count, sub_index
         ''' 
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
@@ -920,7 +920,7 @@ class comp_link_split(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, const_st, the_geom
                     )
                     (
                         select  a.link_id, a.iso_country_code, c.tile_id, a.s_node, a.e_node, link_type, road_type, toll, speed_class, a.length, 
@@ -932,7 +932,7 @@ class comp_link_split(component.component_base.comp_base):
                                 erp, rodizio, soi, display_class,
                                 mid_cal_zm(a.the_geom, 1) as fazm,
                                 mid_cal_zm(a.the_geom, -1) as tazm,
-                                feature_string, feature_key, 
+                                feature_string, feature_key, a.const_st, 
                                 (
                                  case 
                                       when e.link_id is not null then e.the_geom 
@@ -965,7 +965,7 @@ class comp_link_split(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, const_st, the_geom
                     )
                     (
                         select  b.link_id, a.iso_country_code, b.tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, 
@@ -977,7 +977,7 @@ class comp_link_split(component.component_base.comp_base):
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, display_class,
                                 (case when b.sub_index = 1 then mid_cal_zm(a.the_geom, 1) else mid_cal_zm(b.the_geom, 1) end) as fazm,
                                 (case when b.sub_index = b.sub_count then mid_cal_zm(a.the_geom, -1) else mid_cal_zm(b.the_geom, -1) end) as tazm,
-                                a.feature_string, a.feature_key, 
+                                a.feature_string, a.feature_key, a.const_st,
                                 b.the_geom
                         from link_tbl_bak_splitting as a
                         inner join temp_split_newlink as b
@@ -991,7 +991,7 @@ class comp_link_split(component.component_base.comp_base):
         # Update link with electronic tollgate flag (column of 'erp').
         sqlcmd = """ 
                     update link_tbl a
-                    set erp = 1
+                    set erp = b.erp_flag
                     from temp_tollgate_electronic b
                     where a.link_id = b.new_link_id;
                 """
@@ -1379,9 +1379,12 @@ class comp_link_split(component.component_base.comp_base):
         
         # Get all electronic tollgate.
         sqlcmd = '''
-            insert into temp_tollgate_electronic(old_link_id, s_node, e_node, sum, index, tile_id, new_link_id, one_way_code, etc_only_flag, erp_flag)
+            insert into temp_tollgate_electronic(
+                old_link_id, s_node, e_node, sum, index, tile_id, new_link_id, one_way_code, 
+                etc_only_flag, erp_flag)
             select * from (
-                SELECT a.*,b.one_way_code,b.etc_only_flag
+                  SELECT a.old_link_id,a.s_node,a.e_node,a.sum,a.index,a.tile_id,a.new_link_id
+                        ,b.one_way_code,b.etc_only_flag
                         ,case when b.one_way_code = 2 and index < sum then 3
                             when b.one_way_code = 3 and index > 1 then 2
                             when b.one_way_code = 1 and index = 1 then 3
@@ -1389,17 +1392,23 @@ class comp_link_split(component.component_base.comp_base):
                             when b.one_way_code = 1 and index not in (1,sum) then 1
                             else null
                         end as erp_flag
-                  FROM (
-                        select old_link_id,s_node,e_node,sum,index,tile_id,new_link_id
-                        from temp_tollgate_split_link
-                        union
-                        select old_link_id,s_node,e_node,sub_count as sum,sub_index as index
-                            ,tile_id,link_id as new_link_id
-                        from temp_tollgate_not_split
-                  ) a
+                  FROM temp_tollgate_split_link a
                   left join link_tbl_bak_splitting b
-                  on a.old_link_id = b.link_id
-                  where b.etc_only_flag = 1
+                  on a.old_link_id = b.link_id   
+                  where b.etc_only_flag = 1 
+
+                  union
+        
+                  select a.old_link_id,a.s_node,a.e_node,1 as sum,1 as index,a.tile_id,a.old_link_id as new_link_id
+                    ,b.one_way_code,b.etc_only_flag
+                    ,case when a.node_id = a.s_node then 2
+                        when a.node_id = a.e_node then 3
+                        else null
+                    end as erp_flag
+                  from temp_tollgate_not_split a
+                  left join link_tbl_bak_splitting b
+                  on a.old_link_id = b.link_id   
+                  where b.etc_only_flag = 1  
             ) c 
             where erp_flag is not null
             order by old_link_id,index;
@@ -1449,7 +1458,7 @@ class comp_link_split(component.component_base.comp_base):
                                 on a1.featid=b2.featid and a1.link_id=b2.link_id and a1.type = b2.type
                                 where a1.dist=b2.min
                             )
-                            select a.featid,a.link_id,b.newlink_id,
+                            select a.featid,a.type,a.link_id,b.newlink_id,
                                 (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*mid_get_fraction(c.the_geom,a.the_geom))::int as s_dis,
                                 (ST_Length_Spheroid(c.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')*(1-mid_get_fraction(c.the_geom,a.the_geom)))::int as e_dis
                             from safety_alert_tbl_bak_splitting a
@@ -1458,7 +1467,7 @@ class comp_link_split(component.component_base.comp_base):
                             left join link_tbl c
                             on c.link_id=b.newlink_id
                         )b
-                        where a.featid=b.featid and a.link_id=b.link_id
+                        where a.featid=b.featid and a.link_id=b.link_id and a.type = b.type
 
             '''
 
@@ -1472,8 +1481,8 @@ class comp_link_split(component.component_base.comp_base):
                 (
                     with a1 as
                     (
-                        select a.featid,a.orglink_id as link_id,b.link_id as newlink_id,st_distance(a.the_geom,c.the_geom) as dist
-                        from safety_alert_tbl a
+                        select a.featid,a.type,a.orglink_id as link_id,b.link_id as newlink_id,st_distance(a.the_geom,c.the_geom) as dist
+                        from safety_alert_tbl_bak_splitting a
                         left join
                         temp_split_newlink b
                         on a.orglink_id=b.old_link_id
@@ -1487,18 +1496,18 @@ class comp_link_split(component.component_base.comp_base):
                     ),
                     b2 as
                     (
-                        select featid,link_id,min(dist)
+                        select featid,type,link_id,min(dist)
                         from a1
-                        group by featid,link_id
+                        group by featid,link_id,type
                     )
-                    select a1.featid,a1.link_id,a1.newlink_id
+                    select a1.featid,a1.type,a1.link_id,a1.newlink_id
                     from a1 
                     left join b2
-                    on a1.featid=b2.featid and a1.link_id=b2.link_id
-                    where a1.dist=b2.min
+                    on a1.featid=b2.featid and a1.link_id=b2.link_id and a1.type = b2.type
+                    where a1.dist=b2.min 
                 ) b
                 where 
-                a.featid=b.featid and a.orglink_id=b.link_id
+                a.featid=b.featid and a.orglink_id=b.link_id and a.type = b.type
                '''
 
         self.pg.execute2(sqlcmd)

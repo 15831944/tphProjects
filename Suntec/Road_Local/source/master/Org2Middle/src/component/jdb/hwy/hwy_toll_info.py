@@ -74,6 +74,26 @@ class HwyTollInfo(object):
         self.path_type = path_type
         self.conn_facil = conn_facil
 
+    def __eq__(self, obj):
+        if(self.toll_no == obj.toll_no and
+           self.ic_no == obj.ic_no and
+           self.conn_ic_no == obj.conn_ic_no and
+           self.toll_class == obj.toll_class and
+           self.class_name == obj.class_name and
+           self.tollgate_count == obj.tollgate_count and
+           self.toll_type == obj.toll_type and
+           self.updown == obj.updown and
+           self.facility_id == obj.facility_id and
+           self.name_kanji == obj.name_kanji and
+           self.name_yomi == obj.name_yomi and
+           self.road_code == obj.road_code and
+           self.road_seq == obj.road_seq and
+           self.node_id == obj.node_id and
+           self.dummy_toll_node == obj.dummy_toll_node and
+           self.path_type == obj.path_type):
+            return True
+        return False
+
     def set_toll_info(self):
         self._set_toll_class()
         self._set_updown()
@@ -126,7 +146,8 @@ class HwyTollType(object):
         self.enter = IC_DEFAULT_VAL
         self.exit = IC_DEFAULT_VAL
         self.jct = IC_DEFAULT_VAL
-        self.sa_pa = IC_DEFAULT_VAL
+        self.sa = IC_DEFAULT_VAL
+        self.pa = IC_DEFAULT_VAL
         self.gate = IC_DEFAULT_VAL  # ゲート/バリア
         self.unopen = IC_DEFAULT_VAL  # 未開通施設フラグ
         self.dummy_facil = IC_DEFAULT_VAL  # 架空施設フラグ
@@ -144,6 +165,31 @@ class HwyTollType(object):
         self.etc_section = IC_DEFAULT_VAL  # ETC料金区間フラグ
         self.toll_info = toll_info
 
+    def __eq__(self, obj):
+        if(self.etc_antenna == obj.etc_antenna and
+           self.enter == obj.enter and
+           self.exit == obj.exit and
+           self.jct == obj.jct and
+           self.sa == obj.sa and
+           self.pa == obj.pa and
+           self.gate == obj.gate and
+           self.unopen == obj.unopen and
+           self.dummy_facil == obj.dummy_facil and
+           self.non_ticket_gate == obj.non_ticket_gate and
+           self.check_gate == obj.check_gate and
+           self.single_gate == obj.single_gate and
+           self.cal_gate == obj.cal_gate and
+           self.ticket_gate == obj.ticket_gate and
+           self.nest == obj.nest and
+           self.uturn == obj.uturn and
+           self.not_guide == obj.not_guide and
+           self.normal_toll == obj.normal_toll and
+           self.etc_toll == obj.etc_toll and
+           self.etc_section == obj.etc_section and
+           self.toll_info == obj.toll_info):
+            return True
+        return False
+
     def set_type_info(self):
         self._set_toll_class()
         self._set_toll_function()
@@ -151,8 +197,10 @@ class HwyTollType(object):
         self._set_nest_kind()
 
     def set_facil_type(self, facilcls, inout):
-        if facilcls in (IC_TYPE_SA, IC_TYPE_PA):
-            self.sa_pa = IC_TYPE_TRUE
+        if facilcls in (IC_TYPE_SA, ):
+            self.sa = IC_TYPE_TRUE
+        elif facilcls in (IC_TYPE_PA, ):
+            self.pa = IC_TYPE_TRUE
         elif facilcls == IC_TYPE_JCT:
             self.jct = IC_TYPE_TRUE
         elif facilcls in (IC_TYPE_RAMP, IC_TYPE_IC, IC_TYPE_SMART_IC):
@@ -164,7 +212,8 @@ class HwyTollType(object):
                 self.enter = None
                 self.exit = None
         else:
-            self.sa_pa = None
+            self.sa = None
+            self.pa = None
             self.jct = None
             self.enter = None
             self.exit = None

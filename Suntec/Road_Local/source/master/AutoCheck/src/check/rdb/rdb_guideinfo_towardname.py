@@ -173,8 +173,47 @@ class CCheckGuideinfoNodeid_ni(platform.TestCase.CTestCase):
         
         return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )          
     
+class CCheckName_kind_Name_attr_ni(platform.TestCase.CTestCase): 
+    def _do(self):
+        sqlcmd = '''
+            select count(*)
+            from
+            (
+                select name_kind,array_agg(name_attr) as name_attr_array
+                from
+                (
+                        select distinct name_kind, name_attr
+                        from rdb_guideinfo_towardname
+                        where name_kind = 2 
+                        order by name_kind,name_attr
+                ) as a
+                group by name_kind
+            ) as b
+            where b.name_attr_array = array[1,4,5,7]::smallint[]
+        
+        ''' 
+        
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 1 ) 
     
-    
-
+class CCheckUniqueRecord(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+            select count(*)
+            from
+            (
+                select  distinct in_link_id,node_id,out_link_id,name_attr,name_kind,toward_name
+                from rdb_guideinfo_towardname
+            ) as a
+             
+        ''' 
+        distinct_count = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = '''
+            select count(*) from rdb_guideinfo_towardname
+     
+         '''
+        count = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        return distinct_count == count
 
         

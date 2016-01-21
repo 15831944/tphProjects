@@ -25,10 +25,10 @@ class HwyTollgateRDF(component.component_base.comp_base):
     def _Do(self):
         self.CreateTable2('hwy_tollgate')
         self._make_main_toll()  # 本线上收费站
-        self._make_temp_ic_toll()  # IC上收费站
-        self._del_uturn_toll()
-        self._make_ic_toll()
-        self._update_tollgate_name()
+        # self._make_temp_ic_toll()  # IC上收费站
+        # self._del_uturn_toll()
+        # self._make_ic_toll()
+        # self._update_tollgate_name()
         self.CreateIndex2('hwy_tollgate_node_id_idx')
         self.CreateIndex2('hwy_tollgate_the_geom_idx')
 
@@ -44,8 +44,8 @@ class HwyTollgateRDF(component.component_base.comp_base):
         SELECT a.road_code, a.road_seq, updown_c,
                facilcls_c, inout_c, a.node_id,
                tollcls_c, facil_name, NULL as path_type,
-               (case when b.link_id is not null then b.link_id -- out link
-                     else c.link_id -- In link
+               (case when c.link_id is not null then c.link_id -- out link
+                     else b.link_id -- In link
                 end ) as link_id,
                a.the_geom
           FROM hwy_node as a
@@ -58,6 +58,7 @@ class HwyTollgateRDF(component.component_base.comp_base):
              b.updown = c.updown and
              b.seq_nm + 1 = c.seq_nm
           where facilcls_c = 6
+          order by a.road_code, updown_c, a.road_seq
         );
         """
         self.pg.execute2(sqlcmd)
@@ -221,6 +222,7 @@ class HwyTollgateRDF(component.component_base.comp_base):
         """
         self.pg.execute2(sqlcmd, (HWY_TRUE, ))
         self.pg.commit2()
+        return 0
         # 2. 收费站没有名称，且设施番号唯一时，设施名称==>收费站站名称
         sqlcmd = """
         UPDATE hwy_tollgate SET facil_name = d.facil_name

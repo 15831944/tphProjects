@@ -106,7 +106,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
                 for i in range(lens):
                     if fields[i] in ('','null') :
                         fields[i]= None
-                
+
                 string = '%s,'*(lens-1)+'%s'
                 sqlcmd = '''
                           insert into  %s  values(%s);

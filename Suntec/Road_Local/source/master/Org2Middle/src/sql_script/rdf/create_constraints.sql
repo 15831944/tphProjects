@@ -649,16 +649,6 @@ CREATE INDEX adas_link_geometry_link_id_idx
   ON adas_link_geometry
   USING btree
   (link_id);
-  
-CREATE INDEX grad_link_id_idx
-  ON grad
-  USING btree
-  (link_id);
-  
-CREATE INDEX grad_objectid_idx
-  ON grad
-  USING btree
-  (objectid);
 --------------------------------------------------------------
 CREATE INDEX mid_temp_hwy_sapa_info_road_code_road_seq_idx
   ON mid_temp_hwy_sapa_info

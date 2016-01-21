@@ -56,7 +56,8 @@ CREATE TABLE link_tbl
   fazm integer,
   tazm integer,
   feature_string character varying,
-  feature_key character varying(32)
+  feature_key character varying(32),
+  const_st boolean default False
 ); SELECT AddGeometryColumn('','link_tbl','the_geom','4326','LINESTRING',2);
 
 -- node_tbl
@@ -260,7 +261,8 @@ CREATE TABLE force_guide_tbl
   passlid character varying(1024),
   passlink_cnt smallint,
   guide_type smallint,
-  position_type smallint
+  position_type smallint,
+  is_patch_data boolean default False
 );
 
 CREATE TABLE caution_tbl
@@ -1614,13 +1616,14 @@ CREATE TABLE highway_node_add_info
   up_down          SMALLINT not null,
   facility_id      INTEGER not null,
   seq_num          SMALLINT not null DEFAULT 0,
-  dir_s_node       BIGINT not null,
-  dir_e_node       BIGINT not null,
+  dir_s_node       BIGINT,
+  dir_e_node       BIGINT,
   etc_antenna      SMALLINT not null DEFAULT 0,
   enter            SMALLINT not null DEFAULT 0,
   exit             SMALLINT not null DEFAULT 0,
   jct              SMALLINT not null DEFAULT 0,
-  sapa             SMALLINT not null DEFAULT 0,
+  sa               SMALLINT not null DEFAULT 0,
+  pa               SMALLINT not null DEFAULT 0,
   gate             SMALLINT not null DEFAULT 0,
   un_open          SMALLINT not null DEFAULT 0,
   dummy            SMALLINT not null DEFAULT 0,
@@ -1639,7 +1642,8 @@ CREATE TABLE highway_node_add_info
   etc_section      smallint not null DEFAULT 0,
   name             CHARACTER VARYING(4096),
   tile_id          INTEGER not null,
-  no_toll_flag     smallint not null  -- 1: no toll, 0: toll
+  no_toll_flag     smallint not null,  -- 1: no toll, 0: toll
+  link_lid         CHARACTER VARYING
 );
 
 ------------------------------------------------------------------------
@@ -1783,7 +1787,10 @@ CREATE TABLE mid_hwy_node_add_info
   name_yomi      character varying(4096),
   pos_type       integer not null,
   pos_type_name  character varying(32),
-  toll_flag      smallint not null     -- 1: toll, 0: No Toll
+  toll_flag      smallint not null,     -- 1: toll, 0: No Toll
+  path_type      character varying(10),
+  in_linkid      bigint not null,
+  ic_num         integer
 );
 
 ------------------------------------------------------------------------
@@ -1803,7 +1810,10 @@ CREATE TABLE mid_hwy_node_add_info_merged
   facil_name     character varying(4096),
   pos_type       integer not null,
   pos_type_name  character varying(32),
-  toll_flag      smallint not null     -- 1: toll, 0: No Toll
+  toll_flag      smallint not null,      -- 1: toll, 0: No Toll
+  in_linkid      bigint not null,
+  ic_num         integer not null,
+  path_type      character varying(10)
 );
 
 ------------------------------------------------------------------------
@@ -2080,6 +2090,7 @@ CREATE TABLE safety_zone_tbl
 (
   gid serial NOT NULL,
   safetyzone_id integer,
+  featid bigint,
   linkid bigint,
   speedlimit smallint,
   speedunit_code smallint,
@@ -2425,6 +2436,23 @@ CREATE TABLE road_code_info
 );
 
 ------------------------------------------------------------------------
+CREATE TABLE road_code_the_geom
+(
+ road_code        integer not null, 
+ updown           integer not null,
+ length           float not null
+);SELECT AddGeometryColumn('','road_code_the_geom', 'the_geom', '4326', 'LINESTRING', 2);
+
+------------------------------------------------------------------------
+CREATE TABLE hwy_parallel_road_code
+(
+ road_code        integer not null, 
+ p_road_code      integer not null,  -- parallel_road_code
+ s_dist           float not null,
+ e_dist           float not null,
+ hausdorff_dist   float not null
+);
+------------------------------------------------------------------------
 --
 CREATE TABLE hwy_link_road_code_info
 (
@@ -2487,8 +2515,56 @@ CREATE TABLE mid_temp_hwy_ic_del
 );
 
 ------------------------------------------------------------------------
+-- 
+CREATE TABLE mid_temp_hwy_urban_path_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  updown_c        integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+
+------------------------------------------------------------------------
 --
 CREATE TABLE mid_temp_hwy_sapa_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_sapa_no_org_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_reenter_tollgate_sapa_del
 (
   gid             integer NOT NULL primary key,
   road_code       integer,
@@ -2536,6 +2612,25 @@ CREATE TABLE mid_temp_hwy_service_road_path_del
 (
 gid        integer not null primary key,
 node_lid   character varying
+);
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_service_road_path_del_by_passnode
+(
+gid        integer not null primary key,
+node_lid   character varying
+);
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_service_road_path_del_by_toll
+(
+ gid        integer not null primary key,
+ node_lid   character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_service_road_path_del_by_inout
+(
+ gid        integer not null primary key,
+ node_lid   character varying
 );
 
 ------------------------------------------------------------------------
@@ -2702,7 +2797,7 @@ CREATE TABLE hwy_store
   road_code         INTEGER NOT NULL,
   road_seq          INTEGER NOT NULL,
   updown_c          INTEGER NOT NULL,
-  store_cat_id      character varying(4) DEFAULT '' NOT NULL,  -- '': No category
+  store_cat_id      character varying(6) DEFAULT '' NOT NULL,  -- '': No category
   sub_cat           character varying(8) DEFAULT '' NOT NULL,  -- '': No sub category
   store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
   chain_name        character varying(254) DEFAULT '',
@@ -2716,7 +2811,7 @@ CREATE TABLE hwy_chain_name
 (
   gid               serial not null primary key,
   u_code            bigint,
-  cat_id            character varying(4) DEFAULT '' NOT NULL,   -- '': No category
+  cat_id            character varying(6) DEFAULT '' NOT NULL,   -- '': No category
   sub_cat           character varying(8) DEFAULT '' NOT NULL,   -- '': No sub category
   chain_id          character varying(13) DEFAULT '' NOT NULL,  -- '': No chain id
   chain_name        character varying(254),
@@ -3140,3 +3235,13 @@ create table temp_jct_path_both_end_same
 (path bigint[],
 link_type smallint
 );
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_building_road
+(
+  link_id   bigint not null primary key
+);
+
+CREATE TABLE temp_org_link_under_construction
+(
+	link_id bigint not null primary key
+); SELECT AddGeometryColumn('','temp_org_link_under_construction','the_geom','4326','LINESTRING',2);

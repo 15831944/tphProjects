@@ -254,9 +254,9 @@ class comp_guideinfo_safety_zone_ta(comp_base):
            
                 
                 INSERT INTO safety_zone_tbl(
-                    safetyzone_id,linkid, speedlimit, speedunit_code, direction, safety_type)
+                    safetyzone_id, featid, linkid, speedlimit, speedunit_code, direction, safety_type)
  
-                select c.safetyzone_id,b.shape_line_id::bigint as linkid,case when a.speedrestriction='' then 0 else a.speedrestriction::smallint end as speedlimit,
+                select c.safetyzone_id,c.featid::bigint,b.shape_line_id::bigint as linkid,case when a.speedrestriction='' then 0 else a.speedrestriction::smallint end as speedlimit,
                     3-a.speedunitofmeasurement::smallint as speedunit_code,b.dir+1 as direction,
                     case when a.cameratype='8' then 1 when a.cameratype='11' then 2 end as safety_type
                     from mid_temp_safetyzone a

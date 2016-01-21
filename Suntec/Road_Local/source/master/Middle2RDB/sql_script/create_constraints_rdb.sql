@@ -1589,3 +1589,19 @@ CREATE INDEX rdb_forecast_time_time_slot_idx1
   ON rdb_forecast_time
   USING btree
   (time_slot);
+
+-------------------------------------------------------------
+CREATE UNIQUE INDEX rdb_highway_node_add_info_link_link_id_add_info_id_idx
+  ON rdb_highway_node_add_info_link
+  USING btree
+  (link_id, add_info_id);
+-------------------------------------------------------------
+CREATE UNIQUE INDEX rdb_highway_node_add_info_facility_add_info_id_idx
+  ON rdb_highway_node_add_info_facility
+  USING btree
+  (add_info_id);
+-------------------------------------------------------------
+CREATE UNIQUE INDEX rdb_highway_node_add_info_toll_add_info_id_seq_num_idx
+  ON rdb_highway_node_add_info_toll
+  USING btree
+  (add_info_id, seq_num);

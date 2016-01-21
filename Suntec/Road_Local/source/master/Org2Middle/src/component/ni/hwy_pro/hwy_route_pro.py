@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 '''
-Created on 2015��10��26��
+Created on 2015-10-26
 
 @author: hcz
 '''
@@ -298,4 +298,9 @@ class HwyRouteNiPro(HwyRouteRDF_HKG):
         if row:
             if not row[0]:
                 return True
+        return False
+
+    def _check_side_road_name(self, road_name, other_road_name):
+        if road_name == other_road_name:
+            return True
         return False

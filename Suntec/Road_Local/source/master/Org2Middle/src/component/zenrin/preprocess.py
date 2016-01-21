@@ -141,18 +141,26 @@ class comp_proprocess_zenrin(component.component_base.comp_base):
         
         # 
         sqlcmd = """
-                select gid, 'BPMF', %s
-                from %s
-                where %s is not null;
-                """ % (column, table, column)
+                select  array_agg(gid) as gid_array, 'BPMF', [column]
+                from
+                (
+                    select gid, [column]
+                    from [table]
+                    where [column] is not null
+                )as t
+                group by [column];
+                """
+        sqlcmd = sqlcmd.replace('[table]', table)
+        sqlcmd = sqlcmd.replace('[column]', column)
         phlist = self.get_batch_data(sqlcmd)
         for ph in phlist:
-            gid = ph[0]
+            gid_array = ph[0]
             language = ph[1]
             phoneme = ph[2]
             phoneme_pym = common.ntsamp_to_lhplus.ntsamapa2lhplus(language, phoneme)
             phoneme_pym = phoneme_pym.replace('\\', '\\\\')
-            temp_file_obj.write('%s\t%s\n' % (str(gid), phoneme_pym))
+            for gid in gid_array:
+                temp_file_obj.write('%s\t%s\n' % (str(gid), phoneme_pym))
         
         #
         temp_file_obj.seek(0)

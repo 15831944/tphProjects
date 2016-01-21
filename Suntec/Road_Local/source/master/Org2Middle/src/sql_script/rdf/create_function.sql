@@ -558,7 +558,7 @@ BEGIN
 	        from
 	        (
 		        select x.access_id, y.dt_id
-		        from (select * from rdf_condition where condition_type in (7,5,8,39)) as x
+		        from (select * from rdf_condition where condition_type in (7,5,8,39,3,41)) as x
 		        left join rdf_condition_dt as y
 		        on x.condition_id = y.condition_id
 				
@@ -1085,6 +1085,87 @@ BEGIN
 					--pass
 				end if;
 			end if;
+    		nIndex := nIndex + 1;
+    	END LOOP;
+    END LOOP;
+    return 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_convert_regulation_undcon_link()
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cur_regulation_id integer;
+	nCount integer;
+	nIndex integer;
+BEGIN
+	-- regulation_id
+	SELECT (CASE WHEN max(regulation_id) IS NULL THEN 0 ELSE max(regulation_id) END)
+	FROM regulation_relation_tbl
+	INTO cur_regulation_id;
+	
+    FOR rec IN
+    	SELECT i.link_id, i.array_condid, j.travel_direction
+		FROM (
+			SELECT link_id, array_agg(cond_id) AS array_condid
+			FROM (
+				SELECT DISTINCT link_id, cond_id
+				FROM (
+					SELECT c.condition_id, c.access_id, c.dt_id, d.link_id
+					FROM (
+						SELECT a.condition_id, a.nav_strand_id, a.access_id, b.dt_id
+						FROM (
+							SELECT *
+							FROM rdf_condition
+							WHERE condition_type IN (3, 41)
+						) a
+						LEFT JOIN rdf_condition_dt b
+							ON a.condition_id = b.condition_id
+					) c
+					inner join (
+						SELECT *
+						FROM rdf_nav_strand
+						WHERE seq_num = 0
+					) d
+						ON c.nav_strand_id = d.nav_strand_id
+				) e
+				LEFT JOIN temp_condition_regulation_tbl f
+					ON e.access_id = f.access_id AND (e.dt_id IS NOT DISTINCT FROM f.dt_id)
+				WHERE f.cond_id IS NULL OR f.cond_id > 0
+				ORDER BY link_id, cond_id
+			) g
+			GROUP BY link_id
+		) i
+		LEFT JOIN temp_rdf_nav_link j
+			ON i.link_id = j.link_id
+		ORDER BY i.link_id
+    LOOP
+		-- current regulation id
+    	cur_regulation_id := cur_regulation_id + 1;
+    	
+    	-- insert into regulation_item_tbl
+    	INSERT INTO regulation_item_tbl ("regulation_id", "linkid", "nodeid", "seq_num") 
+			VALUES (cur_regulation_id, rec.link_id, null, 1);
+		
+		-- insert into regulation_relation_tbl
+		nCount := array_upper(rec.array_condid, 1);
+		nIndex := 1;
+		-- bearing(linkdir): 1-From Reference Node/ 2-To Reference Node/ 3-Both Directions
+		-- travel_direction: B-Both Directions/ F-From Reference Node/ T-To Reference Node
+		WHILE nIndex <= nCount LOOP
+			IF rec.travel_direction = 'F' THEN
+				INSERT INTO regulation_relation_tbl ("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+					VALUES (cur_regulation_id, NULL, rec.link_id, NULL, 42, rec.array_condid[nIndex]);
+			ELSEIF rec.travel_direction = 'T' THEN
+				INSERT INTO regulation_relation_tbl ("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+					VALUES (cur_regulation_id, NULL, rec.link_id, NULL, 43, rec.array_condid[nIndex]);
+			ELSE--if rec.travel_direction = 'B' then
+				INSERT INTO regulation_relation_tbl ("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+					VALUES (cur_regulation_id, NULL, rec.link_id, NULL, 4, rec.array_condid[nIndex]);
+			END IF;
     		nIndex := nIndex + 1;
     	END LOOP;
     END LOOP;
@@ -3055,7 +3136,7 @@ BEGIN
 	
 	select count(*)
 	into temp_count
-	from link_tbl
+	from link_tbl_bak_splitting
 	where link_id in (nfromlink,ntolink) and one_way_code = 4;
 	
 	if temp_count <> 0 then
@@ -3064,7 +3145,7 @@ BEGIN
 
 	SELECT s_node, e_node, one_way_code
         into temp_snode,temp_enode,oneway_c
-        FROM link_tbl
+        FROM link_tbl_bak_splitting
         where link_id = nfromlink;
                 
 	if dir = 1 then
@@ -3115,13 +3196,13 @@ BEGIN
                                 from
 				(
 				   SELECT a.link_id as nextroad,'(2)' as dir,a.e_node as nextnode
-                                    FROM link_tbl as a
+                                    FROM link_tbl_bak_splitting as a
                                     where a.s_node = tmpLastNodeArray[tmpPathIndex] and a.one_way_code in (1,2)
 
                                     union
 
                                     SELECT b.link_id as nextroad,'(3)' as dir,b.s_node as nextnode
-                                    FROM link_tbl as b
+                                    FROM link_tbl_bak_splitting as b
                                     where b.e_node = tmpLastNodeArray[tmpPathIndex] and b.one_way_code in (1,3)
                                 ) as e
 				loop

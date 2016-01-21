@@ -6,11 +6,11 @@ reo_star = re.compile(r"\*|\*$")
 reo_left_enm = re.compile("\(")
 reo_right_enm = re.compile("\)")
 
-strpyt = "\x1b\\\\toi=pyt\\\\"
-strorth = "\x1b\\\\toi=orth\\\\"
+strorth = "</TTS_PYT>"
+strorthend = "<TTS_PYT>"
 
-strbegin = "\x1b\\toi=pyt\\"
-strend = "\x1b\\toi=orth\\"
+strbegin = "<TTS_PYT>"
+strend = "</TTS_PYT>"
 
 #define variable that check during change phoneme
 #check_word = re.compile("\([A-Za-z]+\)")
@@ -19,9 +19,9 @@ strend = "\x1b\\toi=orth\\"
 
 
 #define variable that check after change phoneme
-after_check_head = re.compile("\x1b\\\\toi=pyt\\\\")
-after_check_tail = re.compile("\x1b\\\\toi=orth\\\\")
-after_check_eng = re.compile("\x1b\\\\toi=orth\\\\[A-Za-z]+\x1b\\\\toi=pyt\\\\")
+after_check_head = re.compile("<TTS_PYT>")
+after_check_tail = re.compile("</TTS_PYT>")
+after_check_eng = re.compile("</TTS_PYT>[A-Za-z]+<TTS_PYT>")
 after_check_pinyin_madarin = re.compile("[A-Za-z]+[1-5]")
 after_check_pinyin_cantonese = re.compile("[A-Za-z]+[1-6]")
 after_check_continous_madarin = re.compile("[A-Za-z]+[1-5][A-Za-z]+[1-5]")
@@ -49,11 +49,11 @@ def pym_pyt_2_pinyintone_check(language, pinyin_phoneme):
 
     len_of_phoneme = len(pinyin_phoneme)
     if len_of_phoneme == 0:
-        return False
+        return "True"
 
     list_continous = after_check_continous.findall(pinyin_phoneme)
     if list_continous:
-        print "not null"
+        print "have continuous: "+pinyin_phoneme
         return "False"+pinyin_phoneme
     result = re.sub(after_check_eng, "", pinyin_phoneme)
     result = re.sub(after_check_head, "", result)
@@ -64,6 +64,7 @@ def pym_pyt_2_pinyintone_check(language, pinyin_phoneme):
     if len(result) == 0:
         return "True"
     else:
+        print "Wrong phoneme:"+pinyin_phoneme
         return "False"+pinyin_phoneme
 
 def pinyin2pyt(pinyin_phoneme):
@@ -77,11 +78,10 @@ def pinyin2pyt(pinyin_phoneme):
     # tranfer the phoneme
     result = re.sub(reo_star, "", pinyin_phoneme)
     result = re.sub(reo_left_enm, strorth, result)
-    result = re.sub(reo_right_enm, strpyt, result)
+    result = re.sub(reo_right_enm, strorthend, result)
 
     # add the start / end mark
     result = strbegin + result + strend
-
 
     return result
 
@@ -93,7 +93,7 @@ def readpytfile(filename):
     line = f.readline()
     line = line.strip('\n')
 
-    rd =  file('./test_pyt_result.txt','a+')
+    rd =  file('./Voice_PYT_Result.txt','a+')
     while line:
         rd.write(pinyin2pyt(line))
         rd.write('\n')
@@ -101,15 +101,19 @@ def readpytfile(filename):
         line = line.strip('\n')
     rd.close()
 
-def readresultfile(filename):
+def readresultfile(filename, language):
     len_of_filename = len(filename)
     if len_of_filename == 0:
         raise ValueError("filename is EMPTY")
     f = open(filename)
     line = f.readline()
     line = line.strip('\n')
-    rd =  file('./test_pyt_check.txt','a+')
-    lang = "PYT"
+    if language == "PYM":
+        rd =  file('./Voice_PYM_check.txt','a+')
+        lang = "PYM"
+    elif language == 'PYT':
+        rd =  file('./Voice_PYT_check.txt','a+')
+        lang = "PYT"
     while line:
         #return line
         rd.write(pym_pyt_2_pinyintone_check(lang, line))
@@ -137,12 +141,9 @@ class pinyincheck :
         return readpytfile(filename)
 
 if __name__ == "__main__":
-    #readpytfile("./test_pym.txt")
-    #readresultfile("./test_pym_result.txt")
-    #readpytfile("./test_pyt.txt")
-    readresultfile("./test_pyt_result.txt")
-    #readresultfile("./test_pym.txt")
-    #readresultfile("./pym_result.txt")
-    #readresultfile("./pyt_result.txt")
+    #readpytfile("./Voice_HK_PYM.csv")
+    #readpytfile("./Voice_HK_PYT.csv")
+    readresultfile("./Voice_PYM_Result.txt", "PYM")
+    #readresultfile("./Voice_PYT_Result.txt", "PYT")
     #pinyin2pyt("zung1 gwok3 ngan4 hong4 * hoeng1 gong2 *lok6 fu3 fan1 hong4")
     #print ntsamapa2lhplus("Transatlantic * Reinsurance * Company")

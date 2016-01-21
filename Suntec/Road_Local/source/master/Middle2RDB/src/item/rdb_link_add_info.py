@@ -42,9 +42,19 @@ class rdb_link_add_info(ItemBase):
                                  erp, rodizio, soi, b.linkid is not null, 0::smallint, c.link_id is not null
                              ) AS link_add_info2
                           from link_tbl a
-                          left join safety_zone_tbl b
+                          left join (
+                            select distinct linkid from safety_zone_tbl a
+                                left join rdb_tile_link b
+                                on a.linkid = b.old_link_id
+                                left join rdb_guideinfo_safety_zone c
+                                on b.tile_link_id = c.link_id
+                                where c.link_id is not null
+                          ) b
                           on a.link_id = b.linkid
-                          left join safety_alert_tbl c
+                          left join (
+                              select distinct link_id from safety_alert_tbl 
+                              where type not in (10,11)
+                          ) c
                           on a.link_id = c.link_id
                           where erp != 0 or rodizio != 0 
                           or soi != 0

@@ -217,7 +217,13 @@ class HwyGraphZenrin(HwyGraphNi):
             if(road_type == HWY_ROAD_TYPE_HWY1 and
                link_type in (HWY_LINK_TYPE_JCT,
                              HWY_LINK_TYPE_RAMP,
-                             HWY_LINK_TYPE_SAPA)):
+                             HWY_LINK_TYPE_SAPA,
+                             HWY_LINK_TYPE_MAIN1,
+                             HWY_LINK_TYPE_MAIN2)):
+#             if(road_type == HWY_ROAD_TYPE_HWY1 and
+#                link_type in (HWY_LINK_TYPE_JCT,
+#                              HWY_LINK_TYPE_RAMP,
+#                              HWY_LINK_TYPE_SAPA)):
                 return True
         return False
 

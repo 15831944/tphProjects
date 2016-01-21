@@ -59,8 +59,10 @@ class rdb_cond_speed(ItemBase):
                             A.speed_limit_e2s, 
                             A.speed_source_s2e & 7,
                             A.speed_source_e2s & 7,
-                            A.speed_source_s2e >> 3
-                     from link_tbl as A 
+                            case when A.speed_source_s2e != 0 then A.speed_source_s2e >> 3
+                                else A.speed_source_e2s >> 3
+                            end
+                     from link_tbl as A
                      left join rdb_tile_link as B 
                      on A.link_id = B.old_link_id
                      WHERE not (speed_limit_s2e = 0 and speed_limit_e2s = 0) 

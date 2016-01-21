@@ -13,7 +13,9 @@ trfcsign_type2data_kind=..\docs\caution\trfcsign_type2data_kind.txt
 #forceguide_patch_full_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\NI\force_guide_patch\temp_patch_force_guide_tbl.csv
 category_priority=..\docs\poi\category_priority_ni.xls
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_chn.xls
+hwy_extend_sapa_poi=..\docs\poi\hwy\my_extend_sapa_poi_ni.txt
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\CHN\NI\15Summer\China\illust
 pointlist=\\idata.storm\Private\Data_Authoring\DB_ExtendSource\1_Asia\CHN\NI\15Summer\China\illust\pointlist
+mdps_pic_list=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\CHN\NI\15Summer\China\illust\mdps_pic_list.csv
 support_rtic_id_unify=True
 #################################################################

@@ -5,7 +5,8 @@ Created on 2015-3-3
 @author: hcz
 '''
 import common
-from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
+from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY,\
+    HWY_IC_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
@@ -37,7 +38,6 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
-from Tix import Tree
 
 
 # ==============================================================================
@@ -59,8 +59,22 @@ class HwyICInfoRDF(HwyICInfo):
         self.main_in_node = None  # 本线进入node
 
     def set_ic_info(self):
-        HwyICInfo.set_ic_info(self)
+        self.get_path_info()  # 获取路径情报
+        self._set_ic_type()
+        self._set_updown()
+        self._set_distance()
+        self._set_enter_direction()
+        self._set_direction_flag()  # 順逆方向継続有無フラグ
+        # self._set_vics_info()
+        self._set_road_no()
+        # self._store_info()
+        self._set_tile_id()
+        self._set_conn_tile_id()
+        self._set_conn_info()
+        self._set_path_point_info()
+        self._set_toll_info()
         self._set_jct_dummy_flg()
+        self.set_node_add_info()
 
     def _set_jct_dummy_flg(self):
         '''17Cy专用'''
@@ -683,7 +697,7 @@ class HwyICInfoRDF(HwyICInfo):
                 for (node, link) in self._get_2_main_link_of_jct(node_lid,
                                                                  inout):
                     if (node, link) not in node_link_list:
-                        node_link_list.append((node, link))
+                        node_link_list.append((node_lid[0], link))
                 continue
             node = node_lid[1]
             link = link_lid[0]
@@ -705,7 +719,7 @@ class HwyICInfoRDF(HwyICInfo):
                 for (node, link) in self._get_2_main_link_of_jct(node_lid,
                                                                  inout):
                     if (node, link) not in node_link_list:
-                        node_link_list.append((node, link))
+                        node_link_list.append((node_lid[0], link))
                 continue
             node = node_lid[1]
             link = link_lid[0]
@@ -764,6 +778,10 @@ class HwyICInfoRDF(HwyICInfo):
             main_node = self.first_facil.node_id
         inlinks = G.get_main_outlinkids(main_node, self.first_facil.road_code)
         if inlinks:
+            if self._is_last_ic_node(self.ic_no, main_node,
+                                     self.first_facil.road_code,
+                                     self.first_facil.updown):
+                return []
             point = HwyPathPoint(self, inlinks[0], main_node)
             point.main_flag = HWY_TRUE
             return [point]
@@ -782,6 +800,27 @@ class HwyICInfoRDF(HwyICInfo):
         else:
             return []
 
+    def _is_last_ic_node(self, ic_no, node, road_code, updown):
+        # is not second node of current IC.
+        facil_info = self.data_mng.get_ic(ic_no)
+        facil_list = facil_info[2]
+        if facil_list[-1].node_id != node:
+            return False
+        # last IC node for current road
+        while True:
+            ic_no += 1
+            ic_facil_info = self.data_mng.get_ic(ic_no)
+            if not ic_facil_info:
+                break
+            facil_list = ic_facil_info[2]
+            if(facil_list[0].road_code != road_code or
+               facil_list[0].updown != updown):
+                break
+            for facil in facil_list:
+                if facil.node_id != node:
+                    return False
+        return True
+
     def _get_facil_inlink(self):
         '''取得设施本线进入link'''
         node_id = self.first_facil.node_id
@@ -792,6 +831,21 @@ class HwyICInfoRDF(HwyICInfo):
             if len(inlinks) > 1:
                 self.log.error('InLink Number > 1. node=%s' % node_id)
             return inlinks[0]
+        return None
+
+    def _get_facil_outlink(self):
+        '''取得设施本线退出link'''
+        if self.second_facil:
+            node_id = self.second_facil.node_id
+        else:
+            node_id = self.first_facil.node_id
+        road_code = self.first_facil.road_code
+        G = self.data_mng.get_graph()
+        outlinks = G.get_main_outlinkids(node_id, road_code)
+        if outlinks:
+            if len(outlinks) > 1:
+                self.log.error('InLink Number > 1. node=%s' % node_id)
+            return outlinks[0]
         return None
 
     def _get_position_path_point(self):
@@ -816,7 +870,8 @@ class HwyICInfoRDF(HwyICInfo):
     def _set_add_info(self, add_link, add_node, inout,
                       link_pos, pos_type, facilcls,
                       link_lid, node_lid, dir_s_node,
-                      dir_e_node):
+                      dir_e_node, path_type, in_link,
+                      ic_num=0):
         add_info = {}
         add_info['add_link'] = add_link
         add_info['add_node'] = add_node
@@ -830,6 +885,9 @@ class HwyICInfoRDF(HwyICInfo):
         add_info['node_lid'] = ','.join([str(n) for n in node_lid])
         add_info['dir_s_node'] = dir_s_node
         add_info['dir_e_node'] = dir_e_node
+        add_info['path_type'] = path_type
+        add_info['in_linkid'] = in_link
+        add_info['ic_num'] = ic_num
         return add_info
 
     def _get_special_out_node_add_info(self, node_lid, link_lid):
@@ -839,8 +897,14 @@ class HwyICInfoRDF(HwyICInfo):
         add_node_link = []
         ic_node = self.first_facil.node_id
         facilcls = self.first_facil.facilcls
+        inout = self.first_facil.inout
         if facilcls == HWY_IC_TYPE_JCT:  # 点JCT, 取out_link
-            return []
+            add_node = ic_node
+            for (node, link) in self._get_2_main_link_of_jct(node_lid,
+                                                             inout):
+                add_link, dis_s, dir_e = link, ic_node, node
+                add_node_link.append((add_node, add_link, dis_s, dir_e))
+            return add_node_link
         elif facilcls == HWY_IC_TYPE_IC:
             main_in_node = self._get_main_in_node(ic_node)
             if not main_in_node:
@@ -1064,54 +1128,130 @@ class HwyICInfoRDF(HwyICInfo):
                                                       in_v, in_u))
         return well_flag, add_link_node
 
-    def _get_add_info_link_pos(self, link_lid, end_pos,
+    def _get_add_info_link_pos(self, link_lid, node_lid, end_pos,
                                ic_node, inout, path_type):
         '''附加情报link的位置
            Out(出口): 后方设施要唯一
            In(入口): 前方设施要唯一
         '''
+        pos = end_pos
+        # facilcls = self.first_facil.facilcls
+        if inout == HWY_INOUT_TYPE_OUT:
+            pos, num = self._search_add_info_link_pos_out(link_lid, node_lid,
+                                                          end_pos, ic_node,
+                                                          inout, path_type)
+            return pos, num
+        else:
+            pos, num = self._search_add_info_link_pos_in(link_lid, node_lid,
+                                                         end_pos, ic_node,
+                                                         inout, path_type)
+        return pos, num
+
+    def _search_add_info_link_pos_out(self, link_lid, node_lid, end_pos,
+                                      ic_node, inout, path_type):
+        '''寻找出口的附加情报所在link: 后方设施要唯一'''
+        if inout != HWY_INOUT_TYPE_OUT:  # 出口
+            self.log.error('')
+            return -1
+        ic_num = 1
         link_idx = 0
+        G = self.data_mng.get_graph()
+        facilcls = self.first_facil.facilcls
         while link_idx < end_pos:
             link_id = link_lid[link_idx]
-            next_idx = link_idx
-            if inout == HWY_INOUT_TYPE_OUT:  # 出口
-                # 取得link的后方所有设施
-                ic_num = self._get_bwd_facil_num(None, link_id, path_type)
-                if ic_num == 1:  # link后方就一个facility_id
-                    break
-                    if self._all_link_is_ic_path(link_lid[next_idx:]):
-                        break
+            # 取得link的后方所有设施
+            ic_num = self._get_bwd_facil_num(None, link_id, path_type)
+            if ic_num <= 1:  # link后方就一个facility_id
+                if(path_type == HWY_PATH_TYPE_IC and
+                   facilcls not in HWY_IC_TYPE_SAPA):
+                    ic_num2 = self._get_fwd_facil_num(None, link_id,
+                                                      path_type)
+                    if ic_num2 <= 1:
+                        u, v = node_lid[link_idx], node_lid[link_idx + 1]
+                        # 双方通行
+                        if G.has_edge(u, v) and G.has_edge(v, u):
+                            pass
+                        else:
+                            break
                 else:
-                    ic_num = self._get_bwd_facil_num(ic_node, link_id,
-                                                     path_type)
-                    if ic_num == 1:
+                    break
+            else:
+                # JCT后方同点的设施数唯一
+                if path_type == HWY_PATH_TYPE_JCT:
+                    # 后方同点的设施数
+                    ignore_none = True
+                    ic_num2 = self._get_bwd_facil_num(ic_node, link_id,
+                                                      path_type, ignore_none)
+                    if ic_num2 <= 1:
                         # 判断前方设施在同个HWY点上
                         if self._is_fwd_facil_same_node(link_id):
                             break
-                            if self._all_link_is_ic_path(link_lid[next_idx:]):
+                elif path_type == HWY_PATH_TYPE_IC:
+                    ignore_none = True
+                    ic_num2 = self._get_bwd_facil_num(ic_node, link_id,
+                                                      path_type)
+                    if ic_num2 <= 1:
+                        # 前方设施为空(不考虑Uturn)
+                        if self._get_fwd_facil_num(None, link_id, path_type,
+                                                   ignore_none) < 1:
+                            u, v = node_lid[link_idx], node_lid[link_idx + 1]
+                            # 双方通行
+                            if G.has_edge(u, v) and G.has_edge(v, u):
+                                pass
+                            else:
                                 break
-                    # if self._is_fwd_facil_None(link_id):  # 前方设施为空
-                    #    break
-            else:  # 入口
-                ic_num = self._get_fwd_facil_num(None, link_id, path_type)
-                if ic_num == 1:  # link前方就一个facility_id
-                    break
-                    if self._all_link_is_ic_path(link_lid[next_idx:]):
-                        break
-                else:
-                    pass
-                    # 取得link的前方所有设施(并列)
-                    ic_num = self._get_fwd_facil_num(ic_node, link_id,
-                                                     path_type)
-                    if ic_num == 1:  # 无并列
-                        if self._is_bwd_ic_same_node(link_id):
-                            break
-                            if self._all_link_is_ic_path(link_lid[next_idx:]):
-                                break
-                    # if self._is_bwd_facil_None(link_id):  # 后方设施为空
-                    #    break
             link_idx += 1
-        return link_idx
+        if path_type == HWY_PATH_TYPE_IC:
+            ic_num = self.data_mng.get_exit_facil_num(link_id)
+        return link_idx, ic_num
+
+    def _search_add_info_link_pos_in(self, link_lid, node_lid, end_pos,
+                                     ic_node, inout, path_type):
+        '''寻找出口的附加情报所在link: 前方设施要唯一'''
+        if inout != HWY_INOUT_TYPE_IN:  # 出口
+            self.log.error('inout=%s' % inout)
+            return -1, 1
+        if not link_lid:
+            return -1, 1
+        link_idx = 0
+        ic_num = 1
+        G = self.data_mng.get_graph()
+        while link_idx < end_pos:
+            link_id = link_lid[link_idx]
+            ic_num = self._get_fwd_facil_num(None, link_id, path_type)
+            if ic_num == 1:  # link前方就一个facility_id
+                if path_type == HWY_PATH_TYPE_IC:
+                    ic_num2 = self._get_bwd_facil_num(None, link_id,
+                                                      path_type)
+                    if ic_num2 <= 1:
+                        u, v = node_lid[link_idx], node_lid[link_idx + 1]
+                        # 双方通行
+                        if G.has_edge(u, v) and G.has_edge(v, u):
+                            pass
+                        else:
+                            break
+                else:
+                    break
+            else:
+                # 取得link的前方所有设施(并列)
+                ignore_none = True
+                ic_num2 = self._get_fwd_facil_num(ic_node, link_id,
+                                                  path_type)
+                if ic_num2 <= 1:
+                    # 后设施为空(不考虑Uturn)
+                    if self._get_bwd_facil_num(None, link_id, path_type,
+                                               ignore_none) < 1:
+                        u, v = node_lid[link_idx], node_lid[link_idx + 1]
+                        # 双方通行
+                        if G.has_edge(u, v) and G.has_edge(v, u):
+                            pass
+                        else:
+                            break
+            link_idx += 1
+        if link_id in (91168918, 15175125):
+            pass
+        ic_num = self.data_mng.get_enter_facil_num(link_id)
+        return link_idx, ic_num
 
     def _all_link_is_ic_path(self, link_lid):
         ic_type = set([HWY_PATH_TYPE_IC])
@@ -1225,7 +1365,8 @@ class HwyICInfoRDF(HwyICInfo):
         return len(fwd_ic_node) == 1
 
     def _get_bwd_facil_num(self, ic_node, link_id,
-                           path_type=HWY_PATH_TYPE_IC):
+                           path_type=HWY_PATH_TYPE_IC,
+                           ignore_none=False):
         '''后方设施数
            ic_node: 设施的HighWay Node点,
                     ic_node无指定，link后方所有设施数目;
@@ -1237,13 +1378,15 @@ class HwyICInfoRDF(HwyICInfo):
         hwy_data = self.data_mng
         bwd_fwd_list = hwy_data.get_link_fwd_bwd_facil(link_id)
         bwd_list = bwd_fwd_list[0]
-        if len(bwd_list) == 1:
-            return 1
         # 后方设施数
         for bwd in bwd_list:
             temp_node_id = bwd.get('node_id')
             temp_path_type = bwd.get('path_type')
             temp_facil_id = bwd.get('facility_id')
+            ic_no = bwd.get('ic_no')
+            # 忽略空设施
+            if ignore_none and not temp_node_id:
+                continue
             if ic_node:  # node指定
                 if ic_node != temp_node_id and temp_node_id:
                     continue
@@ -1252,34 +1395,22 @@ class HwyICInfoRDF(HwyICInfo):
                 else:
                     if temp_path_type != HWY_PATH_TYPE_UTURN:
                         facil_id_set.add(temp_facil_id)
+                    else:
+                        if self._get_facil_cls(ic_no) == HWY_IC_TYPE_JCT:
+                            facil_id_set.add(temp_facil_id)
             else:  # node无指定
                 if path_type in (HWY_PATH_TYPE_JCT,):
                     facil_id_set.add(temp_facil_id)
                 else:
                     if temp_path_type != HWY_PATH_TYPE_UTURN:
                         facil_id_set.add(temp_facil_id)
-        # ## 测试用代码
-#         if bwd_facil_num == 1:
-#             temp_num = 0
-#             facility_ic_diff = False
-#             temp_facility_id = bwd_list[0].get('facility_id')
-#             for bwd in bwd_list:
-#                 other_facility_id = bwd.get('facility_id')
-#                 other_path_type = bwd.get('path_type')
-#                 if other_path_type != HWY_PATH_TYPE_UTURN:
-#                     temp_num += 1
-#                 if temp_facility_id != bwd.get('facility_id'):
-#                     facility_ic_diff = True
-#             if temp_num > 1 and ic_no_diff:
-#                 print ('后方HwyNode点不、番号不同的设施数 > 1. ic_node=%s,link_id=%s'
-#                        % (ic_node, link_id))
-#             if temp_num > 1 and not facility_ic_diff:  # 这种case没有
-#                 print ('后方HwyNode点不同、番号相同的设施数 > 1. ic_node=%s,link_id=%s'
-#                        % (facil_id, link_id))
+                    else:
+                        if self._get_facil_cls(ic_no) == HWY_IC_TYPE_JCT:
+                            facil_id_set.add(temp_facil_id)
         return len(facil_id_set)
 
     def _get_fwd_facil_num(self, ic_node, link_id,
-                           path_type=HWY_PATH_TYPE_IC):
+                           path_type=HWY_PATH_TYPE_IC, ignore_none=False):
         '''前方设施数
            ic_node: 设施的HighWay Node点
            link_id: Path路径上的某一条link
@@ -1290,13 +1421,15 @@ class HwyICInfoRDF(HwyICInfo):
         hwy_data = self.data_mng
         bwd_fwd_list = hwy_data.get_link_fwd_bwd_facil(link_id)
         fwd_list = bwd_fwd_list[1]
-        if len(fwd_list) == 1:
-            return 1
         # 后方设施数
         for fwd in fwd_list:
             temp_node_id = fwd.get('node_id')
             temp_path_type = fwd.get('path_type')
             temp_facil_id = fwd.get('facility_id')
+            ic_no = fwd.get('ic_no')
+            # 忽略空设施
+            if ignore_none and not temp_node_id:
+                continue
             if ic_node:  # node指定
                 if ic_node != temp_node_id and temp_node_id:
                     continue
@@ -1305,12 +1438,18 @@ class HwyICInfoRDF(HwyICInfo):
                 else:
                     if temp_path_type != HWY_PATH_TYPE_UTURN:
                         facil_id_set.add(temp_facil_id)
+                    else:
+                        if self._get_facil_cls(ic_no) == HWY_IC_TYPE_JCT:
+                            facil_id_set.add(temp_facil_id)
             else:  # node无指定
                 if path_type in (HWY_IC_TYPE_JCT,):
                     facil_id_set.add(temp_facil_id)
                 else:
                     if temp_path_type != HWY_PATH_TYPE_UTURN:
                         facil_id_set.add(temp_facil_id)
+                    else:
+                        if self._get_facil_cls(ic_no) == HWY_IC_TYPE_JCT:
+                            facil_id_set.add(temp_facil_id)
         return len(facil_id_set)
 
     def get_sapa_pos(self, node_list, link_list):
@@ -1329,6 +1468,11 @@ class HwyICInfoRDF(HwyICInfo):
                 return pos, sapa_link, sapa_node
         return -1, None, None
 
+    def _get_facil_cls(self, ic_no):
+        facil_info = self.data_mng.get_ic(ic_no)
+        # ic_no, facility_id, facil_list
+        facil_list = facil_info[2]
+        return facil_list[0].facilcls
 
 # =============================================================================
 # 边界出口点（离开当前Tile）

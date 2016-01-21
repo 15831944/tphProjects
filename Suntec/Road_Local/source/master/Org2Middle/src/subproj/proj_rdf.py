@@ -20,6 +20,9 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
+        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+        return
+            
         if self.comp_factory != None:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('rawdata'))    #revise the rawdata about phoneme
@@ -39,11 +42,13 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
-            #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_regulation'))
+            
             # Ramp RoadType
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # Node Height
             self.AddComponent(self.comp_factory.CreateOneComponent('Node_Height'))            
             #park
@@ -71,7 +76,6 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_redundance_regulation'))
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge

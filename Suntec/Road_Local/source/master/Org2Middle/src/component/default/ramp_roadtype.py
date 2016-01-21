@@ -52,6 +52,8 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return -1
         if self.CreateFunction2('mid_find_roundabout') == -1:
             return -1
+        if self.CreateFunction2('mid_get_angle_sequence_temp') == -1:
+            return -1
         return 0
         
     def _DoCreateIndex(self): 

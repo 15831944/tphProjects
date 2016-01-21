@@ -34,6 +34,21 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         self.log.info('make temp_poi_category_mapping ...')
         
         sqlcmd = '''
+            drop table if exists temp_poi_category_bak;
+            create table temp_poi_category_bak
+            as
+            select * from temp_poi_category;
+            
+            drop table if exists temp_poi_category;
+            create table temp_poi_category
+            as
+            select a.*, b.brandname as filename
+            from temp_poi_category_bak as a
+            left join temp_brand_icon as b
+            on a.brand_name = b.brandname
+            order by a.per_code;
+        
+        
             drop table if exists temp_poi_category_mapping;
             
             create table temp_poi_category_mapping

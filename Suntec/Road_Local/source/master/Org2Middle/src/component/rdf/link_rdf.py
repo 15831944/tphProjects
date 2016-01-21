@@ -30,8 +30,26 @@ class comp_link_rdf(component.component_base.comp_base):
         # create temp table for walkway.   
         self.CreateTable2('temp_link_pedestrians')                 
 
-        # create temp table for under construction link.   
+        # create temp table for under construction link and have no effective time limit   
         self.CreateTable2('temp_link_under_construction') 
+        
+        # create temp table for under construction origin link
+        self.CreateTable2('temp_org_link_under_construction')
+        sqlcmd = """
+                INSERT INTO temp_org_link_under_construction (link_id, the_geom)
+                SELECT a.link_id, b.the_geom
+                FROM (
+                    SELECT DISTINCT link_id
+                    FROM rdf_condition c
+                    LEFT JOIN rdf_nav_strand d
+                        ON c.nav_strand_id = d.nav_strand_id
+                    WHERE c.condition_type in (3, 41)
+                ) a
+                LEFT JOIN temp_rdf_nav_link b
+                    ON a.link_id = b.link_id
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         
         # create temp table for pulic lane road. 
         self.CreateTable2('temp_link_public')        
@@ -141,7 +159,7 @@ class comp_link_rdf(component.component_base.comp_base):
                 left join rdf_road_name_trans c
                 on a.road_name_id = c.road_name_id
                 where b.street_type = 'ซอย' or lower(c.street_type) = 'soi'                       
-            """)            
+            """)          
             
         return 0
 
@@ -207,7 +225,7 @@ class comp_link_rdf(component.component_base.comp_base):
             pass_code, pass_code_condition, road_name, road_number, name_type,
             ownership, car_only, slope_code, slope_angle, disobey_flag, 
             up_down_distinguish, access, extend_flag, etc_only_flag, ipd, urban,
-            erp, rodizio, soi, the_geom, feature_string, feature_key
+            erp, rodizio, soi, const_st, the_geom, feature_string, feature_key
         ) 
         SELECT    link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, toll, 
                   speed_class, length, function_class, lane_dir
@@ -243,7 +261,7 @@ class comp_link_rdf(component.component_base.comp_base):
                 , one_way_code, one_way_condition, pass_code, pass_code_condition, 
                   road_name, road_number, name_type, ownership, car_only, slope_code, 
                   slope_angle, disobey_flag, up_down_distinguish, access, extend_flag, 
-                  etc_only_flag, ipd, urban, erp, rodizio, soi, the_geom                                 
+                  etc_only_flag, ipd, urban, erp, rodizio, soi, const_st, the_geom                                 
                 , a.link_id::varchar as feature_string
                 , md5(a.link_id::varchar) as feature_key
         from (                
@@ -401,8 +419,9 @@ class comp_link_rdf(component.component_base.comp_base):
                      end as rodizio                                   --rodizio 
                    , case when soi.link_id is not null then 1
                           else 0
-                     end as soi                                       --soi                                                                                 
-                   , a.the_geom as the_geom                           --the_geom
+                     end as soi                                       --soi
+                   , CASE WHEN const_link.link_id IS NOT NULL THEN True ELSE False END AS const_st,                                                                                 
+                   a.the_geom as the_geom                           --the_geom
                 from temp_rdf_nav_link as a 
                 left join rdf_country b
                     on a.iso_country_code = b.iso_country_code
@@ -460,7 +479,9 @@ class comp_link_rdf(component.component_base.comp_base):
                 left join temp_link_buslane as bus
                     on a.link_id = bus.link_id
                 left join temp_link_soi as soi
-                    on a.link_id = soi.link_id                                         
+                    on a.link_id = soi.link_id
+                LEFT JOIN temp_org_link_under_construction const_link
+                    ON a.link_id = const_link.link_id
         ) a;
         """
         

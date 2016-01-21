@@ -61,6 +61,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         return 0
 
     def _Do(self):
+        self.proj_country = common.common_func.getProjCountry().lower()
         self.CreateIndex2('nw_f_jnctid_idx')
         self.CreateIndex2('nw_t_jnctid_idx')
         self._GenerateNaviLinkFromSignpost()
@@ -102,7 +103,8 @@ from
         b.carriage,
         b.nthrutraf,
         b.sliprd,
-        b.stubble) = 0)
+        b.stubble,
+        '%X') = 0)
         order by a.id
     )as c
     left join org_sp as d
@@ -112,7 +114,7 @@ from
     order by d.id, d.seqnr
 ) as t
 group by id;"""
-                    
+        sqlcmd = sqlcmd.replace('%X', self.proj_country)
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
     
@@ -150,7 +152,8 @@ where a.jncttyp=2
         b.carriage,
         b.nthrutraf,
         b.sliprd,
-        b.stubble) = 0
+        b.stubble,
+        '%X') = 0
     or
     mid_cnv_road_type(c.freeway,
         c.frc,
@@ -162,7 +165,8 @@ where a.jncttyp=2
         c.carriage,
         c.nthrutraf,
         c.sliprd,
-        c.stubble) = 0)
+        c.stubble,
+        '%X') = 0)
 union
 select a.id as nodeid, 
     array[b.id, c.id] as trpelid_list, 
@@ -190,7 +194,8 @@ where a.jncttyp=2
         b.carriage,
         b.nthrutraf,
         b.sliprd,
-        b.stubble) = 0
+        b.stubble,
+        '%X') = 0
     or
     mid_cnv_road_type(c.freeway,
         c.frc,
@@ -202,7 +207,8 @@ where a.jncttyp=2
         c.carriage,
         c.nthrutraf,
         c.sliprd,
-        c.stubble) = 0)
+        c.stubble,
+        '%X') = 0)
 union
 select a.id as nodeid, 
     array[b.id, c.id] as trpelid_list, 
@@ -230,7 +236,8 @@ where a.jncttyp=2
         b.carriage,
         b.nthrutraf,
         b.sliprd,
-        b.stubble) = 0
+        b.stubble,
+        '%X') = 0
     or
     mid_cnv_road_type(c.freeway,
         c.frc,
@@ -242,7 +249,8 @@ where a.jncttyp=2
         c.carriage,
         c.nthrutraf,
         c.sliprd,
-        c.stubble) = 0)
+        c.stubble,
+        '%X') = 0)
 union
 select a.id as nodeid, 
     array[b.id, c.id] as trpelid_list, 
@@ -270,7 +278,8 @@ where a.jncttyp=2
         b.carriage,
         b.nthrutraf,
         b.sliprd,
-        b.stubble) = 0
+        b.stubble,
+        '%X') = 0
     or
     mid_cnv_road_type(c.freeway,
         c.frc,
@@ -282,9 +291,11 @@ where a.jncttyp=2
         c.carriage,
         c.nthrutraf,
         c.sliprd,
-        c.stubble) = 0)
+        c.stubble,
+        '%X') = 0)
 ) as t;
         """
+        sqlcmd = sqlcmd.replace('%X', self.proj_country)
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         return 0

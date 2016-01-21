@@ -81,6 +81,7 @@ class HwyDataMngZenrin(HwyDataMngRDF):
           FROM link_tbl
           where (road_type in (0, 1) and
                  link_type not in (1, 2))-- not main link
+                and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)

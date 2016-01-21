@@ -14,6 +14,8 @@ from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
 from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.jdb.hwy.hwy_graph import HwyGraph
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NUM
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY0
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY1
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NAME
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NO_NUM_NAME
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_LINK_TYPE
@@ -67,6 +69,7 @@ HWY_ROAD_NAMES = "names"
 HWY_S_NODE = "start_node"
 HWY_E_NODE = "end_node"
 HWY_REGULATION = "regulation"
+HWY_EXTEND_FLAG = "extend_flag"
 
 
 # ==============================================================================
@@ -1443,14 +1446,16 @@ class HwyGraphRDF(HwyGraph):
         visited = path[:]
         if source not in self:
             return
+        if self.is_hwy_inout(path, reverse):
+            yield path
         nodes = self._get_not_main_link(visited[-1], code_field, reverse, True)
         if not nodes:
             # 直接和高速本线相连
-            main_node = self.get_main_link(visited[-1], None, code_field,
-                                           False, reverse)
-            for node in main_node:
-                if self.check_regulation(visited + [node], reverse):
-                    yield visited + [node]
+#             main_node = self.get_main_link(visited[-1], None, code_field,
+#                                            False, reverse)
+#             for node in main_node:
+#                 if self.check_regulation(visited + [node], reverse):
+#                     yield visited + [node]
             return
         stack = [iter(nodes)]
         while stack:
@@ -1465,8 +1470,8 @@ class HwyGraphRDF(HwyGraph):
                 continue
             elif not self.check_regulation(temp_path, reverse):
                 continue
-            elif self.is_jct(temp_path, None, code_field, reverse):  # 到本线
-                continue
+            # elif self.is_jct(temp_path, None, code_field, reverse):  # 到本线
+            #    continue
             elif len(visited) <= cutoff:
                 if len(visited) < cutoff:
                     # 和一般道交汇
@@ -1567,9 +1572,21 @@ class HwyGraphRDF(HwyGraph):
         for u, v in link_list:
             data = self[u][v]
             link_type = data.get(HWY_LINK_TYPE)
+            road_type = data.get(HWY_ROAD_TYPE)
             if link_type == HWY_LINK_TYPE_SAPA:
-                has_sapa_link = True
-                continue
+                if(road_type == HWY_ROAD_TYPE_HWY0 and
+                   not self.has_edge(v, u)):
+                    # 前面经过普通/双向的SAPA
+                    if has_sapa_link:
+                        has_sapa_link = True
+                        # print 'Normal SAPA:', path
+                        continue
+                    else:
+                        # self.log.info('%s' % path)
+                        return True
+                else:
+                    has_sapa_link = True
+                    continue
             if self.has_edge(v, u):  # 双向
                 if has_sapa_link:
                     # 先经过SAPA link，再到到双向 link (Ramp link)
@@ -1577,9 +1594,13 @@ class HwyGraphRDF(HwyGraph):
                 else:
                     continue
             if link_type in (HWY_LINK_TYPE_RAMP,
-                             HWY_LINK_TYPE_JCT,
-                             ):
-                return True
+                             HWY_LINK_TYPE_JCT,):
+                # 先经过一般道SAPA link/高速双向SAPA link
+                if has_sapa_link:
+                    # print path
+                    pass
+                else:
+                    return True
         return False
 
     def exist_ramp_link(self, path, reverse=False):
@@ -1679,6 +1700,21 @@ class HwyGraphRDF(HwyGraph):
                 del sub
                 return True
         del sub
+        return False
+
+    def is_urban_link(self, u, v):
+        '''都市高速link
+        '''
+        if self.has_edge(u, v):
+            data = self[u][v]
+        elif self.has_edge(v, u):
+            data = self[v][u]
+        else:
+            return False
+        road_type = data.get(HWY_ROAD_TYPE)
+        # 都市高速
+        if(road_type == HWY_ROAD_TYPE_HWY1):
+            return True
         return False
 
 

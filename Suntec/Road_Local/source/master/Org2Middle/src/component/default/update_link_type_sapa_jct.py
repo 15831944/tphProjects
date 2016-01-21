@@ -101,6 +101,7 @@ class comp_update_link_type_sapa_jct(component.component_base.comp_base):
         self.CreateFunction2('mid_filter_the_large_angle_jct')
         self.CreateFunction2('mid_jct_linktype_modify')
         self.CreateFunction2('mid_jct_change_to_ic_connect_to_highway_end')
+
         self.CreateTable2('temp_jct_change_to_ic')
         
         sqlcmd = '''
@@ -324,6 +325,7 @@ class comp_update_link_type_sapa_jct(component.component_base.comp_base):
         self.log.info('get sapa links ...')
         self.CreateFunction2('mid_regulation_exist_on_path')
         self.CreateFunction2('mid_large_steering_angle_on_sapa_path_connect_highway')
+        self.CreateFunction2('mid_calc_the_largest_angle_path')
         
         sqlcmd = '''
         drop table if exists temp_the_final_sapa_link;
@@ -343,7 +345,12 @@ class comp_update_link_type_sapa_jct(component.component_base.comp_base):
                         from 
                         (
                             select mid_regulation_exist_on_path(a.link_path,a.direction) as regulation , a.*  
-                            from temp_suspect_jct_paths_link as a
+                            from
+                            ( 
+                                select mid_calc_the_largest_angle_path(kk.link_path,45) as sapa_angle, kk.*
+                                from temp_suspect_jct_paths_link as kk
+                            )as  a
+                            where a.sapa_angle = 0
                         ) as b
                         where b.regulation = 0
                     ) as c
@@ -372,7 +379,7 @@ class comp_update_link_type_sapa_jct(component.component_base.comp_base):
         
     def __get_ic_change_to_sapa(self):
         self.log.info('update ic link to sapa link, which both end connect to sapa ...')
-        self.CreateFunction2('mid_find_ic_surround_by_sapa')
+        self.CreateFunction2('mid_find_ic_surround_by_sapa_rec2')
         self.CreateFunction2('mid_find_ic_surround_by_sapa_exec')
         self.CreateTable2('temp_ic_surround_by_sapa_link')
         

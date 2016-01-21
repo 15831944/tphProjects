@@ -494,7 +494,8 @@ create table temp_poi_category_code
     genre_type varchar,
     org_code   bigint,
     series      varchar,
-    lang        varchar,
+    --lang        varchar,
+    poi_name    varchar,
     filename    varchar
 
 );

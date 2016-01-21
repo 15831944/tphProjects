@@ -29,12 +29,14 @@ class HwyDataMngMMi(HwyDataMngRDF):
         self.log.info('Start Loading Highway Main Link.')
         self.pg.connect2()
         sqlcmd = """
-        SELECT link_id, s_node, e_node, one_way_code,
-               link_type, road_type, display_class, toll,
-               fazm, tazm, tile_id, length,
-               road_name, road_number
-          FROM mid_temp_hwy_main_link
-        """
+                SELECT a.link_id, a.s_node, a.e_node, a.one_way_code, a.link_type, 
+                    a.road_type, a.display_class, a.toll, a.fazm, a.tazm, a.tile_id, 
+                    a.length, a.road_name, a.road_number, b.extend_flag
+                FROM mid_temp_hwy_main_link a
+                LEFT JOIN link_tbl b
+                    ON a.link_id = b.link_id
+                where const_st = false
+            """
         # sqlcmd += New_Delhi_BOX
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,

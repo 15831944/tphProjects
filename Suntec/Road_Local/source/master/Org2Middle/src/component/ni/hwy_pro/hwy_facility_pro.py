@@ -7,6 +7,7 @@ Created on 2015-5-27
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_facility_rdf import ROAD_SEQ_MARGIN
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_UTURN
 from component.rdf.hwy.hwy_facility_rdf import IC_PATH_TYPE_DICT
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 from component.ni.hwy_pro.hwy_poi_category_pro import HwyPoiCategoryPro
@@ -19,12 +20,14 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_URBAN_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
-from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RAMP
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_SAPA
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_JCT
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_IC
 from component.jdb.hwy.hwy_graph import get_simple_cycle
+from component.rdf.hwy.hwy_def_rdf import ANGLE_10
 from component.rdf.hwy.hwy_def_rdf import ANGLE_45
 from component.rdf.hwy.hwy_def_rdf import ANGLE_100
 from component.rdf.hwy.hwy_def_rdf import ANGLE_360
@@ -55,7 +58,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
     '''生成设施情报(中国四维)
     '''
 
-    def __init__(self, data_mng, ItemName='HwyFacilityNi'):
+    def __init__(self, data_mng, ItemName='HwyFacilityNiPro'):
         '''
         Constructor
         '''
@@ -70,8 +73,10 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self._make_inout_join_node()
         # 过滤假JCT/UTurn/SAPA:下了高速又转弯回来的径路
         self._filter_JCT_UTurn_SAPA()
-        # 过滤SAPA: 其实只是JCT
+        # 过滤不匹配专用数据的SAPA设施路径
         self._filter_sapa()
+        # 过滤经过同一个收费点多次的sapa路径
+        self._filter_reenter_tollgate_sapa()
         # 过滤双向SAPA: SAPA Link是双向的，SAPA出口同时也是入口，SAPA的入口同时也是出口
         # 把SAPA出口处的SAPA入口删除，同理把SAPA入口处的SAPA出口删除
         self._filter_both_dir_sapa()
@@ -81,12 +86,22 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self._convert_service_road_2_jct()
         # 过滤掉高速和一般直接相连的出入口设施
         self._filter_ic()
+        # 过滤与SAPA同路径的IC并设
+        self._filter_sapa_ic()
         # SAPA对应的Rest Area POI情报
         self._make_sapa_first_node()
         self._make_sapa_info()
         self._make_sapa_link()
-        self._deal_with_uturn()  # 处理U-Turn
+        # 1.更新SA/PA的facilcls_c值, 2.更新URBAN_JCT为IC
         self._update_facil()
+        # 把设施路径link展开(包含UTurn设放施)
+        self._expand_ics_path_link(ignore_uturn=False)
+        # 辅路经过多个收站
+        self._filter_service_road_by_tollgate()
+        self._filter_urban_path()
+        # 辅路经过出入口(Ramp和一道的交点)
+        self._filter_service_road_by_inout()
+        self._deal_with_uturn()  # 处理U-Turn
         # 148.11217,-35.00432
         # self._del_sapa_node()
         self._make_facil_name()  # 设施名称
@@ -95,8 +110,9 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self._load_poi_category()
         self._make_hwy_store()  # 店铺情报
         self._make_hwy_service()  # 服务情报
-        self._make_facil_postion()
-        self._expand_ics_path_link()  # 把设施路径link展开
+        # 把设施路径link展开(注：不包含UTurn设放施)
+        self._expand_ics_path_link()
+        self._make_facil_position()
         self._make_ic_out_info()  # IC出口服务情报/店铺情报
 
     def _make_sapa_first_node(self):
@@ -115,8 +131,131 @@ class HwyFacilityNiPro(HwyFacilityRDF):
     def _get_max_org_facil_id(self, road_code):
         return NI_SEQ
 
+    def _store_del_sapa_ic(self, del_path):
+        '''备份被删除的IC'''
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_sapa_ic_del(gid)
+        VALUES(%s)
+        '''
+        for gid in del_path:
+            self.pg.execute2(sqlcmd, (gid,))
+        self.pg.commit2()
+        # ## 备份路径情报
+        sqlcmd = """
+        UPDATE mid_temp_hwy_sapa_ic_del AS a
+           SET road_code=b.road_code, road_seq = b.road_seq,
+               facilcls_c = b.facilcls_c, inout_c = b.inout_c,
+               node_id = b.node_id, to_node_id = b.to_node_id,
+               node_lid = b.node_lid, link_lid = b.link_lid,
+               path_type = b.path_type
+          FROM mid_temp_hwy_ic_path as b
+          where a.gid = b.gid;
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # ## 路径从mid_temp_hwy_ic_path表中删去
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid in (
+          SELECT gid
+            FROM mid_temp_hwy_sapa_ic_del
+          )
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _filter_sapa_ic(self):
+        '''过滤转化为sapa设施的IC设施路径(实际为IC路径，其facilcls因为road_Seq被更新为'1')'''
+        self.log.info('Start filter ic shared path with sapa ')
+        self.CreateTable2('mid_temp_hwy_sapa_ic_del')
+        sqlcmd = '''
+        select gids, path_types
+        from(
+            select node_id, link_lid, array_agg(path_type) as path_types, array_agg(gid) as gids
+            from mid_temp_hwy_ic_path
+            group by road_code, updown_c, road_seq, node_id, link_lid
+        )as m
+        where  'IC'=any(path_types) and
+               'SAPA' = any(path_types)
+        '''
+        del_path = list()
+        for row in self.pg.get_batch_data2(sqlcmd):
+            gids = row[0]
+            path_types = row[1]
+            gid_path_type_list = zip(gids, path_types)
+            for info in gid_path_type_list:
+                gid, path_type = info
+                if path_type == HWY_PATH_TYPE_IC:
+                    del_path.append(gid)
+        self._store_del_sapa_ic(del_path)
+        self.log.info('End filter ic shared path with sapa')
+
+    def _store_del_reenter_tollgate_sapa(self, del_path):
+        '''备份被删除的sapa'''
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_reenter_tollgate_sapa_del(gid)
+        VALUES(%s)
+        '''
+        for gid in del_path:
+            self.pg.execute2(sqlcmd, (gid,))
+        self.pg.commit2()
+        # ## 备份路径情报
+        sqlcmd = """
+        UPDATE mid_temp_hwy_reenter_tollgate_sapa_del AS a
+           SET road_code=b.road_code, road_seq = b.road_seq,
+               facilcls_c = b.facilcls_c, inout_c = b.inout_c,
+               node_id = b.node_id, to_node_id = b.to_node_id,
+               node_lid = b.node_lid, link_lid = b.link_lid,
+               path_type = b.path_type
+          FROM mid_temp_hwy_ic_path as b
+          where a.gid = b.gid;
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # ## 路径从mid_temp_hwy_ic_path表中删去
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid in (
+          SELECT gid
+            FROM mid_temp_hwy_reenter_tollgate_sapa_del
+          )
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _filter_reenter_tollgate_sapa(self):
+        '''过滤经过同一个收费点多次的sapa路径'''
+        self.log.info('Start filter reenter tollgate sapa')
+        self.CreateTable2('mid_temp_hwy_reenter_tollgate_sapa_del')
+        sqlcmd = '''
+        select gid, string_to_array(node_lid,',')::bigint[] as node_lid
+        from mid_temp_hwy_ic_path
+        where facilcls_c in (1, 2)
+        '''
+        del_path = list()
+        for row in self.pg.get_batch_data2(sqlcmd):
+            gid = row[0]
+            path = row[1]
+            path_set = set(path[1:-1])
+            for node in path_set:
+                if self.G.is_tollgate(node):
+                    if path.count(node) > 1:
+                        del_path.append(gid)
+                        break
+        self._store_del_reenter_tollgate_sapa(del_path)
+        self.log.info('End filter reenter tollgate sapa')
+
+    def _matched_org_ic(self, node_id, inout):
+        if self.G.get_org_facil_id(node_id):
+            for facil_info in self.G.get_org_facil_id(node_id):
+                facil_c, inout_c = facil_info[1:3]
+                if facil_c in (HWY_ORG_IC_TYPE_IC,) and inout_c == inout:
+                    return True
+        return False
+
     def _filter_ic(self):
         '''过滤掉高速和一般直接相连的出入口设施。'''
+        self.log.info('Start filter ic')
         self.CreateTable2('mid_temp_hwy_ic_del')
         sqlcmd = """
         SELECT gid, road_code, updown_c, inout_c, node_id, node_lid
@@ -126,7 +265,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         del_list = []
         for row in self.get_batch_data(sqlcmd):
             gid, road_code, updown, inout, node_id, node_lid = row
-            if self.G.get_org_facil_id(node_id):
+            if self._matched_org_ic(node_id, inout):
                 continue
             reverse = False
             if inout == HWY_INOUT_TYPE_IN:
@@ -144,6 +283,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                 del_list.append(gid)
                 continue
         self._store_del_ic(del_list)
+        self.log.info('End filter ic')
 
     def _update_facil(self):
         '''1.更新SA/PA的facilcls_c值
@@ -161,7 +301,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self.pg.commit2()
         # 保存urban jct
         self._backup_urban_jct()
-        # 把urban jct番号改为IC的番号
+        # 把Urban JCT番号改为IC的番号: Urban JCT没有匹配番号or名称和IC名称相同时
         sqlcmd = """
         UPDATE mid_temp_hwy_ic_path as a
           set facilcls_c = 5, road_seq = ic_road_seq
@@ -179,7 +319,26 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        # 修改uban jct设施种别
+        # IC没有匹配的番号时，用该点Urban JCT的番号
+        sqlcmd = """
+        UPDATE mid_temp_hwy_ic_path as a set road_seq = b.road_seq
+          from (
+            SELECT distinct road_code, road_seq, inout_c,
+               updown_c, facilcls_c, node_id
+              FROM mid_temp_hwy_ic_path
+              where facilcls_c = 12 and road_seq <> %s
+          ) as b
+          where a.facilcls_c = 5 and
+                a.road_seq = %s and
+                a.road_code = b.road_code and
+                a.inout_c = b.inout_c and
+                a.updown_c = b.updown_c and
+                a.node_id = b.node_id and
+                b.road_seq is not null
+        """
+        self.pg.execute2(sqlcmd, (HWY_UNKOWN_ID_NI, HWY_UNKOWN_ID_NI))
+        self.pg.commit2()
+        # 修改Urban JCT设施种别
         sqlcmd = '''
         update mid_temp_hwy_ic_path
         set facilcls_c = 5  --IC
@@ -194,8 +353,8 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self.log.info("Backup urban jct.")
         self.CreateTable2('mid_temp_hwy_urban_jct_bak')
         sqlcmd = """
-        INSERT INTO mid_temp_hwy_urban_jct_bak(road_code, road_seq, inout_c, updown_c,
-                                               node_id, node_lid, ic_road_seq)
+        INSERT INTO mid_temp_hwy_urban_jct_bak(road_code, road_seq, inout_c,
+                                     updown_c, node_id, node_lid, ic_road_seq)
         (
         SELECT c.road_code, c.road_seq, c.inout_c,
                c.updown_c, c.node_id, node_lid, d.road_seq as ic_road_seq
@@ -253,12 +412,15 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                     road_seq = road_seq_dict.get(temp_key)
                     if road_seq:
                         facilcls = HWY_IC_TYPE_JCT
-                if not road_seq:
+                if road_seq:  # UTurn有匹配的JCT
+                    # 设施种别依然是JCT，路径种别做出成UTurn
+                    path_type = IC_PATH_TYPE_DICT.get(HWY_IC_TYPE_UTURN)
+                else:  # UTurn没有匹配的JCT
                     temp_key = (facilcls, inout_c, inout_link,
                                 to_node, tuple(path))
                     road_seq = road_seq_dict.get(temp_key)
+                    path_type = IC_PATH_TYPE_DICT.get(facilcls)
                 facil_key = facilcls, inout_c
-                path_type = IC_PATH_TYPE_DICT.get(facilcls)
                 if not road_seq and facilcls == HWY_IC_TYPE_IC:
                     for temp_cls in [HWY_IC_TYPE_SA, HWY_IC_TYPE_PA]:
                         temp_key = (temp_cls, inout_c, inout_link,
@@ -294,7 +456,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                         facil_key = facilcls, inout_c
                         if facil_key in matched_facil:
                             road_seq = min(matched_facil.get(facil_key))
-                        else:
+                        else:  # 匹配不到原始IC，则匹配SAPA。
                             for temp_cls in [HWY_IC_TYPE_SA, HWY_IC_TYPE_PA]:
                                 facil_key = temp_cls, inout_c
                                 road_seqs = matched_facil.get(facil_key)
@@ -363,12 +525,14 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                             self.log.warning('more than one node-jct on node')
                         for out_node in out_nodes:
                             in_out_link = self.G.get_linkid(node, out_node)
-                        facil_key = (facilcls, inout_c, in_out_link, to_node, path)
+                        facil_key = (facilcls, inout_c, in_out_link,
+                                     to_node, path)
                         if facil_key not in one_node_jct:
                             out_facil_types.append(facil_key)
                             one_node_jct.append(facil_key)
                     else:
-                        self.log.warning('only one node on path')
+                        self.log.warning('only one node on path.node=%s'
+                                         % node)
                 else:
                     (u, v) = path[0], path[1]
                     if self.G.has_edge(u, v):
@@ -390,13 +554,15 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                             self.log.warning('more than one node-jct on node')
                         for in_node in in_nodes:
                             in_out_link = self.G.get_linkid(in_node, node)
-                        facil_key = (facilcls, inout_c, in_out_link, to_node, path)
+                        facil_key = (facilcls, inout_c, in_out_link,
+                                     to_node, path)
                         if facil_key not in one_node_jct:
                             in_facil_types.append(facil_key)
                             one_node_jct.append(facil_key)
                     else:
                         in_out_link = None
-                        self.log.warning('only one node on path')
+                        self.log.warning('only one node on path.node=%s'
+                                         % node)
                 else:
                     (u, v) = path[1], path[0]
                     if self.G.has_edge(u, v):
@@ -483,9 +649,9 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         if not org_facils_dict:
             return None
         for key in org_facils_dict.keys():
-            (facilcls_c, inout_c, inout_link, to_node) = key
-            if (facilcls_c == FACIL_TYPE_DICT[HWY_IC_TYPE_JCT] and
-                inout_c == inout):
+            facilcls_c, inout_c = key[0:2]
+            if(facilcls_c == FACIL_TYPE_DICT[HWY_IC_TYPE_JCT] and
+               inout_c == inout):
                 return org_facils_dict[key]
         return None
 
@@ -570,7 +736,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                                 org_facility_id = org_id
                                 road_seq_key = (facilcls, inout, inout_link,
                                                 to_node, tuple(path))
-                                print 'IC:', node
+                                # print 'IC:', node
                     if org_facility_id:
                         road_seq_dict[road_seq_key] = org_facility_id
                         continue
@@ -768,6 +934,28 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         """
         return self.get_batch_data(sqlcmd)
 
+    def _matched_org_path(self, node_lid, inout, org_jct_paths):
+        '''判断JCT是否有与之匹配的路径'''
+        if inout == HWY_INOUT_TYPE_IN:
+            node_lid = node_lid[::-1]
+        str_node_lid = '|'.join(map(str, node_lid))
+        if str_node_lid in org_jct_paths:
+            return True
+        return False
+
+    def _get_org_jct_path(self):
+        sqlcmd = '''
+        select distinct passlid
+        from mid_hwy_org_hw_jct_merged
+        where passlid <>'' and
+              passlid is not null
+        '''
+        list_path = {}
+        for row in self.pg.get_batch_data2(sqlcmd):
+            passlid = row[0]
+            list_path[passlid] = None
+        return list_path
+
     def _filter_JCT_UTurn_SAPA(self):
         '''过滤假JCT/UTurn/SAPA:下了高速、到了出口又转弯回来的径路'''
         self.log.info('Start Filtering JCT/UTurn Path.')
@@ -775,6 +963,8 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self.pg.connect2()
         self.CreateTable2('mid_temp_hwy_jct_uturn_del')
         del_pathes = set()
+        # 取所有专用数据JCT路径
+        org_jct_pathes = self._get_org_jct_path()
         for jct_uturn in self._get_jct_uturn():
             gid_array, join_node, path_type = jct_uturn[0:3]
             node_lids, inout = jct_uturn[3:5]
@@ -782,12 +972,33 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                          for n_lid in node_lids]
             for gid, node_lid in zip(gid_array, node_lids):
                 if join_node in node_lid:
+                    if path_type not in (HWY_PATH_TYPE_SAPA,):
+                        # 原数据有匹配的路径
+                        if self._matched_org_path(node_lid, inout,
+                                                  org_jct_pathes):
+                            continue
+                        # 对某条link来说这是唯一路径, 则不过滤
+                        if self._is_only_one_path(node_lid, inout, join_node):
+                            continue
+                        if self._exist_maintain_link(node_lid):
+                            continue
+                        # 角度<=170度
+                        # if self._is_straight(node_lid, inout,
+                        #                     join_node, ANGLE_10):
+                        #    print 'straight:', join_node, node_lid
+                        #    continue
                     # 所有SAPA路径都经过该汇合点
                     if(path_type == HWY_PATH_TYPE_SAPA and
                        self._all_path_pass_join_node(node_lids, join_node) and
                        not self._pass_inout(node_lid, inout, join_node)):
                         continue
+#                     if path_type not in (HWY_PATH_TYPE_SAPA,
+#                                          HWY_PATH_TYPE_JCT,
+#                                          HWY_PATH_TYPE_UTURN
+#                                          ):
+#                         print node_lid
                     del_pathes.add(gid)
+        del org_jct_pathes
         ic_pathes = self._get_filter_ic_by_join_node()
         del_pathes = del_pathes.union(ic_pathes)
         # 删除错误的JCT/UTurn/SAPA
@@ -817,6 +1028,12 @@ class HwyFacilityNiPro(HwyFacilityRDF):
             else:
                 reverse = False
             if self.G.is_hwy_inout(node_lid[:join_idx + 1], reverse):
+                return True
+        return False
+
+    def _exist_maintain_link(self, node_lid):
+        for u, v in zip(node_lid[:-1], node_lid[1:]):
+            if (u, v) in MAINTAIN_LINK_DICT:
                 return True
         return False
 
@@ -882,11 +1099,50 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                             break
         return del_pathes
 
+    def _filter_service_road_by_pass_node(self):
+        '''过滤经过其他高速本线的辅路路径'''
+        self.CreateTable2('mid_temp_hwy_service_road_path_del_by_passnode')
+        # 备份删除的辅路路径
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_service_road_path_del_by_passnode(gid,
+                                                                   node_lid)
+        (
+        select distinct a.gid, a.node_lid
+        from(
+          select distinct gid, road_code, updown_c,
+                 node_lid, unnest(pass_nodes[2:array_upper(pass_nodes,1)-1])as pass_node
+          from(
+            select distinct gid, road_code, updown_c, node_lid,
+                   string_to_array(node_lid,',')::bigint[] as pass_nodes
+            from mid_temp_hwy_service_road_path1
+            ) as path
+        )as a
+        inner join hwy_link_road_code_info as b
+        on a.pass_node = b.node_id and
+           (a.road_code <> b.road_code or a.updown_c <> b.updown)
+        order by a.gid
+        );
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # 从辅路表中删除路径
+        sqlcmd = '''
+        delete from mid_temp_hwy_service_road_path1
+          where gid in (
+              select distinct gid
+              from mid_temp_hwy_service_road_path_del_by_passnode
+          );
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
     def _filter_service_road(self):
         '''过滤辅路、类辅路， 从辅路路径选出SAPA路径(路径两头都有SAPA设施)'''
         self.CreateTable2('mid_temp_hwy_service_road_path2')
         # 1. 删除经过 出入口汇合点的 类辅路
         self._filter_service_road_by_join_node()
+        # 删除经过其他高速本线的辅路路径
+        self._filter_service_road_by_pass_node()
         self.pg.connect1()
         for sr_info in self._get_service_road():
             road_code, inout = sr_info[0:2]
@@ -1038,11 +1294,225 @@ class HwyFacilityNiPro(HwyFacilityRDF):
             t_set = t_set.union(node_lid[s_idx:])
         return f_set.intersection(t_set)
 
+    def _only_uturn_path(self, node_id, road_code, updown, inout_c):
+        ''' 除了SAPA路径只剩下UTURN路径'''
+        sqlcmd = '''
+        select array_agg(path_type)
+        from mid_temp_hwy_ic_path
+        where road_code = %s and
+              updown_c = %s and
+              node_id = %s and
+              inout_c = %s and
+              facilcls_c not in (1, 2)
+        group by road_code, updown_c, node_id, inout_c
+        '''
+        for row in self.pg.get_batch_data2(sqlcmd, (road_code,
+                                                    updown,
+                                                    node_id,
+                                                    inout_c)):
+            path_type_list = row[0]
+            if set(path_type_list) == set([HWY_PATH_TYPE_UTURN]):
+                return True
+        return False
+
+    def _pre_filter_sapa(self):
+        '''过滤SAPA: '''
+        self.CreateTable2('mid_temp_hwy_sapa_del')
+        self.pg.connect1()
+        del_sapa_list = []
+        for info in self._get_filter_sapa():
+            array_gid, road_code, node_id = info[0:3]
+            to_node_id = info[3]
+            # node_lids, link_lids = info[4:6]
+            inout_c, path_type, updown = info[6:9]
+            # 同侧有配对SAPA HWY Node
+            if self._match_sapa_node(node_id, road_code, updown, inout_c):
+                continue  # 保留SAPA设施
+            else:
+                # 出口，路的终点
+                if(inout_c == HWY_INOUT_TYPE_OUT and
+                   self.hwy_data.is_road_end_node(road_code, updown,
+                                                  node_id)):
+                    if path_type == HWY_PATH_TYPE_UTURN:
+                        continue  # 保留SAPA设施
+                # 入口，路的起点
+                elif(inout_c == HWY_INOUT_TYPE_IN and
+                     self.hwy_data.is_road_start_node(road_code, updown,
+                                                      node_id)):
+                    if path_type == HWY_PATH_TYPE_UTURN:
+                        continue  # 保留SAPA设施
+                # ## to_node_id同侧是否有配对SAPA HWY Node
+                t_sapa_flag = False
+                t_inout_c = HWY_INOUT_TYPE_OUT
+                if inout_c == HWY_INOUT_TYPE_OUT:
+                    t_inout_c = HWY_INOUT_TYPE_IN
+                for t_roadinfo in self._get_roadcode_by_node(to_node_id,
+                                                             t_inout_c):
+                    t_roadcode, t_updwon = t_roadinfo[0:2]
+                    if self._match_sapa_node(to_node_id, t_roadcode,
+                                             t_updwon, t_inout_c):
+                        t_sapa_flag = True
+                        break
+                # 若当前点除了SAPA路径只剩下UTURN路径，则不过滤
+                if self._only_uturn_path(node_id, road_code, updown, inout_c):
+                    continue
+                # to_node_id同侧有配对SAPA HWY Node
+                if t_sapa_flag:
+                    del_sapa_list += array_gid
+                else:
+                    # 两边都没有 配对SAPA HWY Node
+                    if path_type == HWY_PATH_TYPE_JCT:
+                        self.log.info('No SAPA HWY Node in Both Side.'
+                                      'node=%s,to_node=%s' %
+                                      (node_id, to_node_id))
+        self._store_del_sapa(del_sapa_list)
+
+    def _store_no_org_sapa_del(self, del_sapa_list):
+        '''备份删除的sapa设施'''
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_sapa_no_org_del(gid, road_code, road_seq,
+                                                 facilcls_c, inout_c,
+                                                 node_id, to_node_id,
+                                                 node_lid, link_lid,
+                                                 path_type)
+        (
+            select gid, road_code, road_seq, facilcls_c, inout_c, node_id,
+                   to_node_id, node_lid, link_lid, path_type
+            from mid_temp_hwy_ic_path
+            where gid = %s
+        )
+        '''
+        for gid in del_sapa_list:
+            self.pg.execute2(sqlcmd, (gid,))
+        self.pg.commit2()
+        # 从mid_temp_hwy_ic_path中删除设施
+        sqlcmd = '''
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid in (
+          SELECT gid
+            FROM mid_temp_hwy_sapa_no_org_del
+          )
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _store_sapa_to_service_route(self, service_sapa_list):
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_service_road_path1(
+                                              inout_c, node_id, to_node_id,
+                                              node_lid, link_lid, road_code,
+                                              updown_c)
+        (
+            select inout_c, node_id, to_node_id, node_lid,
+                   link_lid, road_code, updown_c
+              from mid_temp_hwy_ic_path
+              where gid = %s
+        );
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid = %s
+        '''
+        for gid in service_sapa_list:
+            self.pg.execute2(sqlcmd, (gid, gid))
+        self.pg.commit2()
+
+    def _get_matched_sapa(self, link_lid_str, inout_c, node):
+        matched_gid = None
+        sqlcmd = '''
+        select gid
+        from mid_temp_hwy_ic_path
+        where path_type = 'SAPA' and
+              link_lid = %s and inout_c = %s
+        '''
+        link_lid = link_lid_str.split(',')
+        link_lid.reverse()
+        link_lid_reverse = ','.join(link_lid)
+        if inout_c == HWY_INOUT_TYPE_IN:
+            matched_inout = HWY_INOUT_TYPE_OUT
+        elif inout_c == HWY_INOUT_TYPE_OUT:
+            matched_inout = HWY_INOUT_TYPE_IN
+        else:
+            self.log.error('no matched inout')
+            return matched_gid
+        gid_list = list()
+        for row in self.pg.get_batch_data2(sqlcmd, (link_lid_reverse,
+                                                    matched_inout)):
+            gid = row[0]
+            gid_list.append(gid)
+        if len(gid_list) > 1:
+            self.log.error('more than one matched sapa')
+            return None
+        elif len(gid_list) < 1:
+            self.log.error('no matched sapa.node:%s' % node)
+            return None
+        matched_gid = gid_list[0]
+        return matched_gid
+
+    def _filter_no_org_sapa(self):
+        '''过滤匹配不上专用数据的sapa设施 '''
+        self.CreateTable2('mid_temp_hwy_sapa_no_org_del')
+        del_sapa_list = list()
+        service_sapa_list = list()
+        sqlcmd = '''
+        select distinct gid, a.road_code, a.inout_c,
+               a.node_id, a.to_node_id, a.link_lid
+        from
+        (
+              select distinct gid, road_code, updown_c, road_seq,
+                     facilcls_c, inout_c, node_id, to_node_id,
+                     node_lid, link_lid, path_type
+              from mid_temp_hwy_ic_path
+              where path_type = 'SAPA'
+        )  AS a
+        LEFT JOIN
+        (
+               select hw_pid, accesstype, nodeid
+               from mid_hwy_org_hw_junction_mid_linkid
+               where attr in (1, 2)
+        )as b
+        on a.node_id = b.nodeid and
+           a.road_code = b.hw_pid and
+           a.inout_c = b.accesstype
+        where b.nodeid is null
+        '''
+        for row in self.pg.get_batch_data2(sqlcmd):
+            (gid, road_code, inout_c, node_id, to_node_id, link_lid) = row
+            if inout_c == HWY_INOUT_TYPE_IN:
+                edges_iter = self.G.in_edges_iter(to_node_id, True)
+            elif inout_c == HWY_INOUT_TYPE_OUT:
+                edges_iter = self.G.out_edges_iter(to_node_id, True)
+            else:
+                self.log.error('no inout_c,node=%s' % node_id)
+                continue
+            same_road_flag = False
+            for u, v, data in edges_iter:
+                to_road_code = data.get(HWY_ROAD_CODE)
+                if to_road_code and road_code == to_road_code:
+                    same_road_flag = True
+                    break
+            matched_gid = self._get_matched_sapa(link_lid, inout_c, node_id)
+            if same_road_flag:       
+                service_sapa_list.append(gid)
+                if matched_gid:
+                    service_sapa_list.append(matched_gid)
+            else:
+                del_sapa_list.append(gid)
+                if matched_gid:
+                    del_sapa_list.append(matched_gid)
+        self._store_no_org_sapa_del(del_sapa_list)
+        self._store_sapa_to_service_route(service_sapa_list)
+        self.pg.commit2()
+
     def _filter_sapa(self):
         '''过滤SAPA: '''
         self.log.info('Start Filter SAPA.')
-        self.CreateTable2('mid_temp_hwy_sapa_del')
+        self.CreateTable2('mid_temp_hwy_sapa_no_org_del')
+        # self.CreateTable2('mid_temp_hwy_sapa_del')
+        self._pre_filter_sapa()
         self.pg.connect1()
+        # 过滤匹配不上专用数据的sapa设施
+        # 若是同侧设施则做成辅路，若是异侧则删除。
+        self._filter_no_org_sapa()
+        # 备份要删除的路径
         # ## 备份路径情报
         sqlcmd = """
         INSERT INTO mid_temp_hwy_sapa_del(gid, road_code, road_seq,
@@ -1148,7 +1618,8 @@ class HwyFacilityNiPro(HwyFacilityRDF):
             SELECT array_agg(gid) as gids, road_code, road_seq, path_type,
                    node_id, inout_c, array_agg(node_lid) as node_lids
               FROM mid_temp_hwy_ic_path
-              WHERE  path_type in ('JCT', 'UTURN', 'SAPA')
+              WHERE  path_type in ('JCT', 'UTURN', 'SAPA') or
+                     facilcls_c = 12
               group by road_code, road_seq, node_id, inout_c, path_type
           ) as c
           ON b.road_code = c.road_code and
@@ -1257,6 +1728,23 @@ class HwyFacilityNiPro(HwyFacilityRDF):
           where b.name is not null
           )
         """
+        self.pg.execute1(sqlcmd)
+        self.pg.commit1()
+        # 插入收费站名称
+        sqlcmd = '''
+        INSERT INTO mid_temp_hwy_facil_name(road_code, updown_c,
+                                            road_seq, facil_name)
+        (
+            select road_code, updown_c, road_seq, t.toward_name as facil_name
+            from mid_temp_hwy_ic_path as ic
+            left join towardname_tbl as t
+            on ic.node_id = t.nodeid
+            where facilcls_c = 6 and
+                  t.guideattr = 7 and
+                  t.namekind = 2 and
+                  t.toward_name is not null
+        )
+        '''
         self.pg.execute1(sqlcmd)
         self.pg.commit1()
         self.CreateIndex2('mid_temp_hwy_facil_name_road_code_road_seq_idx')
@@ -1370,12 +1858,335 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         self.pg.commit1()
         self.log.info('End Make Facility Service.')
 
+    def _filter_service_road_by_tollgate(self):
+        '''辅路经过多个收费站，且link都已经在IC Path里。'''
+        self.log.info('Filter Service Road by Tollgate.')
+        self.CreateTable2('mid_temp_hwy_service_road_path_del_by_toll')
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_service_road_path_del_by_toll(gid, node_lid)
+        (
+        SELECT d.gid, d.node_lid
+          FROM (
+            SELECT gid, node_lid,
+                   array_agg(pass_node_id) AS toll_nodes, array_agg(toll_flag)
+              FROM (
+                SELECT distinct a.gid, pass_node_id, toll_flag, a.node_lid
+                  FROM (
+                    SELECT gid, node_id, to_node_id, node_lid,
+                           regexp_split_to_table(node_lid, E'\\\\,+'
+                                                 )::bigint as pass_node_id
+                      FROM mid_temp_hwy_service_road_path2
+                 ) as a
+                 INNER JOIN node_tbl as b
+                 ON pass_node_id = b.node_id and toll_flag = 1
+                 where a.node_id <> pass_node_id AND
+                       a.to_node_id <> pass_node_id
+                 ORDER BY a.gid, pass_node_id, toll_flag
+              ) AS c
+              group by gid, node_lid
+              having count(*) > 1
+         ) AS d
+         LEFT JOIN (
+            SELECT distinct a.gid
+             FROM (
+                SELECT gid, regexp_split_to_table(link_lid, E'\\\\,+'
+                                                  )::bigint as pass_link_id
+                  FROM mid_temp_hwy_service_road_path2
+             ) as a
+             LEFT JOIN mid_temp_hwy_ic_path_expand_link AS b
+             ON a.pass_link_id = b.pass_link_id
+             where b.pass_link_id is null
+          ) AS e
+          ON d.gid = e.gid
+          WHERE e.gid is null
+          order by d.gid
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # 从原来的辅路表中删除
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_service_road_path2
+          where gid in (
+            SELECT gid
+              from mid_temp_hwy_service_road_path_del_by_toll
+          );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
-GAS_CHAIN_DICT = {'4081': ('4081', '2001'),  # 中国石油
-                  '4082': ('4082', '2002'),  # 中国石化
-                  '4083': ('4083', '2009'),  # 壳牌
-                  '4084': ('4084', '2004'),  # 美孚
-                  '4085': (None, None)  # 英国石油
+    def _filter_service_road_by_inout(self):
+        '''辅路经过出入口(Ramp和一道的交点)'''
+        self.CreateTable2('mid_temp_hwy_service_road_path_del_by_inout')
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_service_road_path_del_by_inout(gid, node_lid)
+        (
+        SELECT c.gid, c.node_lid
+          FROM (--辅路经过出入口
+            SELECT distinct a.gid, a.node_lid
+              FROM (
+                SELECT gid, node_lid,
+                       regexp_split_to_table(node_lid, E'\\\\,+'
+                                             )::bigint as pass_node_id
+                  FROM mid_temp_hwy_service_road_path2
+             ) as a
+             INNER JOIN (
+                SELECT distinct to_node_id
+                  FROM mid_temp_hwy_ic_path
+                  WHERE path_type = 'IC'
+             ) as b
+             ON pass_node_id = b.to_node_id
+             ORDER BY a.gid
+          ) AS c
+          LEFT JOIN (--有link未出现在IC link
+            SELECT distinct a.gid
+             FROM (
+                SELECT gid, regexp_split_to_table(link_lid, E'\\\\,+'
+                                                  )::bigint as pass_link_id
+                  FROM mid_temp_hwy_service_road_path2
+             ) as a
+             LEFT JOIN mid_temp_hwy_ic_path_expand_link AS b
+             ON a.pass_link_id = b.pass_link_id
+             where b.pass_link_id is null
+          ) AS d
+          ON c.gid = d.gid
+          LEFT JOIN ( -- 经过都市link
+            SELECT distinct a.gid
+             FROM (
+                SELECT gid, regexp_split_to_table(link_lid, E'\\\\,+'
+                                                  )::bigint as pass_link_id
+                  FROM mid_temp_hwy_service_road_path2
+             ) as a
+             INNER JOIN link_tbl as b
+             ON a.pass_link_id = b.link_id and road_type = 1
+          ) as e
+          ON c.gid = e.gid
+          where d.gid is null or e.gid is not null
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit()
+        # 从原来的辅路表中删除
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_service_road_path2
+          where gid in (
+            SELECT gid
+              from mid_temp_hwy_service_road_path_del_by_inout
+          );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _filter_urban_path(self):
+        '''过滤经过都市高速的设施路径'''
+        del_pathes = set()
+        self.pg.connect1()
+        for urban_facil in self._get_urban_facil():
+            road_code, road_seq, updown = urban_facil[0:3]
+            facilcls, inout, node_id = urban_facil[3:6]
+            urban_links, path_types, gids = urban_facil[6:9]
+            node_lids, link_lids, other_road_seqs = urban_facil[9:12]
+            other_facilclss, other_node_lids = urban_facil[12:14]
+            urban_links = set(urban_links)
+            for(gid, node_lid,
+                link_lid, path_type) in zip(gids, node_lids,
+                                            link_lids, path_types):
+                node_lid = map(int, node_lid.split(','))
+                link_lid = map(int, link_lid.split(','))
+                urban_pos = self._get_urban_link_pos(link_lid, urban_links)
+                if urban_pos < 0:
+                    continue
+                if urban_pos == 0:
+                    del_pathes.add(gid)
+                    continue
+                new_node_lid = node_lid[0:urban_pos+1]
+                if path_type == HWY_PATH_TYPE_IC:
+                    del_pathes.add(gid)
+                    self._store_facil_path(road_code, road_seq, facilcls,
+                                           inout, new_node_lid, path_type,
+                                           updown)
+                elif path_type == HWY_PATH_TYPE_UTURN:
+                    facil = self._match_facil_for_urban(other_road_seqs,
+                                                        other_facilclss,
+                                                        other_node_lids,
+                                                        new_node_lid)
+                    if facil:
+                        temp_road_seq, temp_facilcls = facil
+                        # 强制使用IC Path Type
+                        temp_path_type = IC_PATH_TYPE_DICT.get(HWY_IC_TYPE_IC)
+                        self._store_facil_path(road_code, temp_road_seq,
+                                               temp_facilcls, inout,
+                                               new_node_lid, temp_path_type,
+                                               updown)
+                    else:
+                        temp_facilcls = HWY_IC_TYPE_IC
+                        temp_road_seq = HWY_UNKOWN_ID_NI
+                        temp_path_type = IC_PATH_TYPE_DICT.get(temp_facilcls)
+                        self._store_facil_path(road_code, temp_road_seq,
+                                               temp_facilcls, inout,
+                                               new_node_lid, temp_path_type,
+                                               updown)
+                    del_pathes.add(gid)
+                elif path_type == HWY_PATH_TYPE_SAPA:
+                    self.log.warning('Urban link in SAPA. node=%s, link_lid=%s'
+                                     % (node_id, link_lid))
+                elif path_type == HWY_PATH_TYPE_JCT:
+                    self.log.error('Urban link in JCT. node=%s, link_lid=%s'
+                                   % (node_id, link_lid))
+                else:
+                    self.log.warning('Urban link in Unkown Facility.'
+                                     'node=%s, facilcls=%s, link_lid=%s'
+                                     % (node_id, facilcls, link_lid))
+        self.pg.commit1()
+        self._store_urban_path(del_pathes)
+
+    def _get_urban_link_pos(self, link_lid, urban_links):
+        urban_pos = -1
+        link_cnt = 0
+        while link_cnt < len(link_lid):
+            link_id = link_lid[link_cnt]
+            if link_id in urban_links:
+                urban_pos = link_cnt
+                break
+            link_cnt += 1
+        return urban_pos
+
+    def _match_facil_for_urban(self, other_road_seqs, other_facilclss,
+                               other_node_lids, new_node_lid):
+        ic_facils = set()
+        for(road_seq, facilcls,
+            node_lid) in zip(other_road_seqs, other_facilclss,
+                             other_node_lids):
+            node_lid = map(int, node_lid.split(','))
+            if node_lid[0:2] == new_node_lid[0:2]:
+                return road_seq, facilcls
+            ic_facils.add(road_seq, facilcls)
+        if ic_facils:
+            min_facil = ic_facils.pop()
+            for facil in ic_facils:
+                if facil[0] < min_facil[0]:
+                    min_facil = facil
+            return min_facil
+        return None
+
+    def _get_urban_facil(self):
+        sqlcmd = """
+        SELECT a.road_code, a.road_seq, a.updown_c,
+               a.facilcls_c, a.inout_c, a.node_id,
+               a.urban_links, b.path_types, b.gids,
+               b.node_lids, link_lids, other_road_seqs,
+               other_facilclss, other_node_lids
+          FROM (
+            SELECT road_code, road_seq, updown_c,
+                   facilcls_c, inout_c, node_id,
+                   array_agg(pass_link_id) urban_links
+              FROM mid_temp_hwy_ic_path_expand_link as a
+              INNER JOIN link_tbl as b
+              on pass_link_id = b.link_id and road_type = 1
+              group by road_code, road_seq, updown_c,
+                       facilcls_c, inout_c, node_id
+          ) AS a
+          LEFT JOIN (
+            SELECT road_code, road_seq, updown_c,
+                   facilcls_c, inout_c, node_id,
+                   array_agg(gid) gids,
+                   array_agg(node_lid) as node_lids,
+                   array_agg(link_lid) as link_lids,
+                   array_agg(path_type) as path_types
+              FROM mid_temp_hwy_ic_path
+              group by road_code, road_seq, updown_c,
+                   facilcls_c, inout_c, node_id
+          ) AS b
+          ON a.road_code = b.road_code and
+             a.road_seq = b.road_seq and
+             a.updown_c = b.updown_c and
+             a.facilcls_c = b.facilcls_c and
+             a.inout_c = b.inout_c and
+             a.node_id = b.node_id
+          LEFT JOIN (
+             SELECT node_id,
+                    inout_c other_inout,
+                    array_agg(gid) gids,
+                    road_code other_road_code,
+                    array_agg(road_seq) other_road_seqs,
+                    array_agg(updown_c) other_updowns,
+                   array_agg(facilcls_c) other_facilclss,
+                   array_agg(node_lid) as other_node_lids
+              FROM mid_temp_hwy_ic_path
+              WHERE path_type = 'IC'
+              group by road_code, node_id, inout_c
+          ) as c
+          ON a.road_code =c.other_road_code and
+             a.node_id = c.node_id and
+             a.inout_c = c.other_inout
+          order by a.road_code, a.road_seq, a.updown_c,
+                   a.facilcls_c, a.inout_c, a.node_id
+        """
+        return self.get_batch_data(sqlcmd)
+
+    def _store_urban_path(self, del_pathes):
+        self.CreateTable2('mid_temp_hwy_urban_path_del')
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_urban_path_del(gid)
+           VALUES(%s);
+        """
+        for gid in del_pathes:
+            self.pg.execute2(sqlcmd, (gid,))
+        self.pg.commit2()
+        # ## 备份路径情报
+        sqlcmd = """
+        UPDATE mid_temp_hwy_urban_path_del AS a
+           SET road_code=b.road_code, road_seq = b.road_seq,
+               facilcls_c = b.facilcls_c, inout_c = b.inout_c,
+               node_id = b.node_id, to_node_id = b.to_node_id,
+               node_lid = b.node_lid, link_lid = b.link_lid,
+               path_type = b.path_type, updown_c = b.updown_c
+          FROM mid_temp_hwy_ic_path as b
+          where a.gid = b.gid;
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # ## 路径从mid_temp_hwy_ic_path表中删去
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid in (
+          SELECT gid
+            FROM mid_temp_hwy_urban_path_del
+          )
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _uturn_in_other_path(self, path, node, to_node):
+        # 判断UTURN路径是否被起末点的其他设施路径包含
+        sqlcmd = '''
+        select node_id, array_agg(node_lid)
+        from mid_temp_hwy_ic_path
+        where (node_id = %s or node_id = %s) and
+              facilcls_c not in (3, 10)--3:JCT 10:UTURN
+        group by node_id
+        '''
+        path = map(str, path)
+        path_str = ','.join(path)
+        for row in self.pg.get_batch_data2(sqlcmd, (node, to_node)):
+            path_list = row[1]
+            for path_info in path_list:
+                path_node_list = path_info.split(',')
+                path_node_list.reverse()
+                path_info_reverse = ','.join(path_node_list)
+                if(path_str in path_info or
+                   path_str in path_info_reverse):
+                    return True
+        return False
+
+
+# ===============================================================================
+# ===============================================================================
+GAS_CHAIN_DICT = {'4081': ('230215', '2001'),  # 中国石油
+                  '4082': ('230215', '2002'),  # 中国石化
+                  '4083': ('230215', '2003'),  # 壳牌
+                  '4084': ('230215', '2004'),  # 美孚
+                  '4085': ('230215', '2005'),  # 英国石油BP
                   }
 SERVICE_RESTAURANT = {
                       '1300': 1  # 餐馆
@@ -1481,3 +2292,12 @@ SERVICE_UNDEFINED_DICT = {'10C0': 1,
                           'AE04': 1,  # 博彩: 彩票销售
                           'AF20': 1
                           }
+
+MAINTAIN_LINK_DICT = {(14867592, 6024327): None,
+                      (6024327, 14867592): None,
+                      # 原数据的问题
+                      (13957699, 13957678): None,
+                      (13957678, 13957699): None,
+                      (13957698, 13957691): None,
+                      (13957691, 13957698): None,
+                      }

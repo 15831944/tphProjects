@@ -994,3 +994,73 @@ BEGIN
 		
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION mid_find_intersectionlink(linkid bigint)
+RETURNS integer
+LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cnt integer;
+BEGIN
+	delete from temp_intersection_link;
+	
+	insert into temp_intersection_link(link_id,s_node,e_node,one_way_code,link_type)
+	select link_id,s_node,e_node,one_way_code,link_type
+	from link_tbl
+	where link_id=linkid;
+	
+	insert into temp_link_walked(link_id)
+	values(linkid);
+	
+	while True loop
+		cnt = 0;
+		for rec in
+			select distinct a.* from link_tbl a
+			join temp_intersection_link b
+			on (a.s_node in (b.s_node,b.e_node) or a.e_node in (b.s_node,b.e_node)) and a.link_type=4
+			left join temp_intersection_link c
+			on a.link_id=c.link_id
+			where c.link_id is null
+			order by a.link_id
+		loop
+			cnt = cnt+1;
+			
+			insert into temp_intersection_link(link_id,s_node,e_node,one_way_code,link_type)
+			values(rec.link_id,rec.s_node,rec.e_node,rec.one_way_code,rec.link_type);
+			
+			insert into temp_link_walked(link_id)
+			values(rec.link_id);
+			
+		end loop;
+		if cnt = 0 then
+			exit;
+		end if;
+	end loop;
+	
+	drop table if exists temp_dummy_node;
+	create table temp_dummy_node 
+	as
+	(
+	    select distinct s_node as node_id
+	    from temp_intersection_link
+	    union
+	    select distinct e_node as node_id
+	    from temp_intersection_link
+	);	
+	
+	insert into temp_intersection_link
+    (link_id,s_node,e_node,one_way_code,link_type)
+    select distinct a.link_id,a.s_node,a.e_node,a.one_way_code,a.link_type 
+    from link_tbl a
+    join 
+    temp_intersection_link b
+    on b.s_node in (a.s_node,a.e_node) or b.e_node in (a.s_node,a.e_node)
+    left join temp_intersection_link c
+    on a.link_id=c.link_id
+    where c.link_id is null
+    order by a.link_id;
+	
+	return 0;
+END;
+$$;

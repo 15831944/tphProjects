@@ -289,7 +289,8 @@ BEGIN
 			or kind like '%000e%' then 7			
 		when kind like '%05' or kind like '%05|%'
 		    or kind like '%0b' or kind like '%0b|%' then 5 		
-		when kind like '%04' or kind like '%04|%' then 4 
+		when kind like '%04' or kind like '%04|%'
+			or kind like '%16' or kind like '%16|%' then 4 
 		when kind like '%12' or kind like '%12|%' then 8 
 		when kind like '%15' or kind like '%15|%' then 9  
 		when kind like '%0a' or kind like '%0a|%' then 6 
@@ -852,6 +853,71 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION mid_convert_regulation_undcon()
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cur_regulation_id integer;
+	nCount integer;
+	nIndex integer;
+	condtype integer;
+BEGIN
+	-- regulation_id
+	select (case when max(regulation_id) is null then 0 else max(regulation_id) end)
+	from regulation_relation_tbl
+	into cur_regulation_id;
+	
+    FOR rec IN
+    	SELECT link_id, direction,
+			array_agg(cond_id) AS array_condid, 
+			array_agg(seasonal_flag) AS array_seasonal
+    	FROM (
+	    	SELECT a.id::bigint AS link_id, a.direction::bigint, c.cond_id, 
+				(CASE WHEN b.vp_approx = '1' THEN True ELSE False END) AS seasonal_flag
+	    	FROM org_r a
+	    	LEFT JOIN org_cr b
+				ON a.undconcrid = b.crid
+	    	LEFT JOIN temp_condition_regulation_tbl c
+				ON b.vperiod = c.vperiod AND b.vehcl_type = c.vehcl_type
+	    	WHERE a.const_st = '4' AND 
+				a.undconcrid != '' AND 
+				b.gid IS NOT NULL AND 
+				c.cond_id IS DISTINCT FROM -1
+	    	ORDER BY a.id::bigint, c.cond_id
+    	) t
+    	GROUP BY link_id, direction
+    LOOP
+		-- current regulation id
+    	cur_regulation_id := cur_regulation_id + 1;
+    	
+    	-- insert into regulation_item_tbl
+    	INSERT INTO regulation_item_tbl("regulation_id", "linkid", "nodeid", "seq_num") 
+			VALUES (cur_regulation_id, rec.link_id, null, 1);
+		
+    	-- insert into regulation_relation_tbl
+		nCount := array_upper(rec.array_condid, 1);
+		nIndex := 1;
+		IF rec.direction IN (0, 1) THEN
+			condtype := 4;
+		ELSIF rec.direction = 2 THEN
+			condtype := 42;
+		ELSIF rec.direction = 3 THEN
+			condtype := 43;
+		ELSE
+			raise EXCEPTION 'link = % have error direction = %', rec.link_id, rec.direction;
+		END IF;
+		
+		WHILE nIndex <= nCount LOOP
+    		INSERT INTO regulation_relation_tbl ("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id", "is_seasonal") 
+				VALUES (cur_regulation_id, null, rec.link_id, null, condtype, rec.array_condid[nIndex], rec.array_seasonal[nIndex]);
+    		nIndex := nIndex + 1;
+    	END LOOP;
+    END LOOP;
+    return 1;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION mid_convert_regulation_linkrow()
     RETURNS smallint

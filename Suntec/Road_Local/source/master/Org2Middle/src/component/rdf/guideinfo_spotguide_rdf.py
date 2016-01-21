@@ -103,7 +103,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                       from temp_guideinfo_spotguide_junction_view_chn as A
                     ) as B
                 ) as M
-                left join link_tbl as C
+                left join link_tbl_bak_splitting as C
                 on M.inlinkid = C.link_id
             );
             """
@@ -142,9 +142,11 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
 
     def _get_gjv_junctions_info_by_gjv_table(self):
         sqlcmd = '''
-            SELECT dp_node_id, originating_link_id, dest_link_id,
-                    CASE WHEN road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
-                   filename, side,
+            SELECT a.dp_node_id, a.originating_link_id, a.dest_link_id,
+                    CASE WHEN mdps='T' THEN 13 
+                    WHEN b.road_type in (0,1) THEN 1 
+                    ELSE 4 END AS jv_type,
+                   a.filename, a.side,
                    mid_findpasslinkbybothlinks(
                             originating_link_id,
                             dest_link_id,
@@ -155,11 +157,11 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                             ) as pathlink
             FROM(
             select distinct dp_node_id,originating_link_id,dest_link_id,
-                    filename,side
+                    filename,side, mdps
             from rdfpl_gjv_lat_display_org
             where filename is not null
             )as a
-            left join link_tbl as b
+            left join link_tbl_bak_splitting as b
             on a.originating_link_id = b.link_id;
         '''
         insert_sqlcmd = '''
@@ -195,9 +197,11 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         '''
         '''
         sqlcmd = '''
-            SELECT dp_node_id, originating_link_id, out_link_id,
-                    CASE WHEN b.road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
-                   filename, side,
+            SELECT a.dp_node_id, a.originating_link_id, a.out_link_id,
+                    CASE WHEN a.mdps='T' THEN 13 
+                    WHEN b.road_type in (0,1) THEN 1 
+                    ELSE 4 END AS jv_type,
+                   a.filename, a.side,
                    mid_findpasslinkbybothlinks(
                             originating_link_id,
                             out_link_id,
@@ -207,14 +211,14 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                             10
                             ) as pathlink
             FROM(
-                select a.dp_node_id,a.originating_link_id,a.out_link_id,a.filename,a.side
+                select a.dp_node_id,a.originating_link_id,a.out_link_id,a.filename,a.side, a.mdps
                 from(
                     select distinct dp_node_id,originating_link_id,
                         case when jv_dest_link is null or jv_dest_link = dest_link_id then dest_link_id
                             when jv_dest_link is not null and jv_dest_link <> dest_link_id then jv_dest_link
                         else 0
                         end as out_link_id,
-                            filename,side
+                            filename,side, mdps
                     from rdfpl_all_jv_lat_display_org
                     where filename is not null
                     ) as a
@@ -222,7 +226,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 on a.dp_node_id = b.nodeid and a.originating_link_id = b.inlink and a.out_link_id = b.outlink
                 where b.nodeid is null
             )as a
-            left join link_tbl as b
+            left join link_tbl_bak_splitting as b
             on a.originating_link_id = b.link_id;
         '''
         insert_sqlcmd = '''
@@ -258,7 +262,9 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         self.log.info('make ejv spotguide illust info')
         sqlcmd = '''
             select distinct dp_node_id,originating_link_id,out_link_id,
-                CASE WHEN d.road_type in (0,1) THEN 1 ELSE 4 END as jv_type,
+                CASE WHEN mdps='T' THEN 13 
+                WHEN d.road_type in (0,1) THEN 1 
+                ELSE 4 END AS jv_type,
                 c.filename,
                 c.side,ejv_filename,dp1_dest_link,
                 mid_findpasslinkbybothlinks(
@@ -271,7 +277,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                     ) as pathlink
             from(
                 select distinct dp_node_id,originating_link_id,out_link_id,
-                    a.filename,
+                    a.filename, a.mdps, 
                     a.side,ejv_filename,dp1_dest_link
                 from(
                     SELECT distinct dp_node_id, originating_link_id,
@@ -279,12 +285,12 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                             when jv_dest_link is not null and jv_dest_link <> dest_link_id then jv_dest_link
                         else 0
                         end as out_link_id,
-                        filename, side, ejv_filename,dp1_dest_link
+                        filename, mdps, side, ejv_filename,dp1_dest_link
                     FROM rdfpl_all_jv_lat_display_org
                     where ejv_filename is not null
                 )as a
             ) as c
-            left join link_tbl as d
+            left join link_tbl_bak_splitting as d
             on c.originating_link_id = d.link_id;
         '''
         insert_jv_sqlcmd = '''
@@ -355,7 +361,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 passlink = '|'.join(passlink_list[1:-1])  # »•µÙInlink°¢OutLink
                 pathcnt = len(passlink_list) - 2
             else:
-                self.log.warning("Cant't find the Path. InLink=%d, OutLink=%d"
+                self.log.warning("Gjv: Cant't find the Path. InLink=%d, OutLink=%d"
                                % (inlink, outlink))
                 continue
             
@@ -400,7 +406,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 passlink = '|'.join(passlink_list[1:-1])  # »•µÙInlink°¢OutLink
                 pathcnt = len(passlink_list) - 2
             else:
-                self.log.warning("Cant't find the Path. InLink=%d, OutLink=%d"
+                self.log.warning("Ejv: Cant't find the Path. InLink=%d, OutLink=%d"
                                % (inlink, outlink))
                 continue
             
@@ -450,10 +456,10 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         listline = inFStream.readlines()
         inFStream.close()
         
-        allSarPicList = []
+        allSarPicList = set()
         for line in listline:
-            allSarPicList.append(line.lower().strip('\n') )
-        return list(set(allSarPicList))
+            allSarPicList.add(line.lower().strip('\n') )
+        return allSarPicList
         
 
 

@@ -32,9 +32,7 @@ class CReachabilityCase(threading.Thread):
                  caseManager,
                  rec_index,
                  search_start_node, 
-                 search_start_node_t, 
                  search_end_node,
-                 search_end_node_t,
                  distance,
                  level14_flag = False):
         
@@ -48,9 +46,7 @@ class CReachabilityCase(threading.Thread):
         self.node_tbl = """rdb_region_node_layer%s_tbl""" % (str(self.layer_no))
         self.link_laneinfo_tbl = """rdb_region_link_lane_info_layer%s_tbl""" % (str(self.layer_no))
         self.search_start_node = search_start_node
-        self.search_start_node_t = search_start_node_t
         self.search_end_node = search_end_node
-        self.search_end_node_t = search_end_node_t
         self.distance = distance
         
         if level14_flag == True:
@@ -80,9 +76,15 @@ class CReachabilityCase(threading.Thread):
                 """
     
             try:
-                paths = self.objGraph.searchShortestPaths2(self.search_start_node, self.search_start_node_t,  self.search_end_node, self.search_end_node_t, 
-                                                           distance = self.distance, get_link_cost = common.networkx.CLinkCost.getCost2,
-                                                           link_tbl = self.link_tbl, node_tbl = self.node_tbl, link_laneinfo_tbl = self.link_laneinfo_tbl)              
+                paths = self.objGraph._searchBi_AStarPaths(self.search_start_node, 
+                                                           self.search_end_node, 
+                                                           max_buffer = 10000, 
+                                                           max_path_num = 1,
+                                                           get_link_cost = common.networkx.CLinkCost.getCost,
+                                                           log = self.logger,  
+                                                           link_tbl = self.link_tbl, 
+                                                           node_tbl = self.node_tbl, 
+                                                           link_laneinfo_tbl = self.link_laneinfo_tbl)              
                 
                 if not paths:
                     self.pg.execute(insert_sqlcmd1, (int(self.layer_no), self.search_start_node, self.search_end_node, None, None, None, None))
@@ -120,8 +122,12 @@ class CReachabilityCase(threading.Thread):
                 """
             
             try:
-                paths = self.objGraph.searchShortestPaths2(self.search_start_node, self.search_start_node_t,  self.search_end_node, self.search_end_node_t, 
-                                                           distance = self.distance, get_link_cost = common.networkx.CLinkCost.getCost2)
+                paths = self.objGraph._searchBi_AStarPaths(self.search_start_node, 
+                                                           self.search_end_node, 
+                                                           max_buffer = 50000,
+                                                           max_path_num = 1,
+                                                           get_link_cost = common.networkx.CLinkCost.getCost,
+                                                           log = self.logger)
                 
                 if not paths:
                     self.pg.execute(update_sqlcmd, (int(self.layer_no), None, False, self.rec_index))
@@ -239,7 +245,7 @@ class CReachabilityCaseManager:
         
         if self.level14_flag == False:
             sqlcmd = """
-                    SELECT search_start_node, search_start_node_t, search_end_node, search_end_node_t, distance 
+                    SELECT search_start_node, search_end_node, distance 
                     FROM temp_region_route_node_layer[layer_no]_tbl
                 """
             
@@ -252,23 +258,17 @@ class CReachabilityCaseManager:
                 
                 row_idx += 1
                 search_start_node = row[0]
-                search_start_node_t = row[1]
-                search_end_node = row[2]
-                search_end_node_t = row[3]
-                distance = row[4]
+                search_end_node = row[1]
+                distance = row[2]
                 case = CReachabilityCase(self,
                                          row_idx,
-                                         search_start_node, 
-                                         search_start_node_t, 
+                                         search_start_node,
                                          search_end_node,
-                                         search_end_node_t,
                                          distance)
                 self.cases[row_idx] = case
         else:
             sqlcmd = """
-                    SELECT a.gid, 
-                        d.node_id as search_s_node, d.node_id_t as search_s_node_t, 
-                        e.node_id as search_e_node, e.node_id_t as search_e_node_t,
+                    SELECT a.gid, d.node_id as search_s_node, e.node_id as search_e_node,
                         ST_Distance_Sphere(d.the_geom, e.the_geom) as distance
                     FROM temp_region_accessibility_layer[layer_no]_tbl a
                     LEFT JOIN rdb_region_layer[layer_no]_node_mapping b
@@ -289,16 +289,12 @@ class CReachabilityCaseManager:
             for row in rows:
                 row_idx = row[0]
                 search_start_node = row[1]
-                search_start_node_t = row[2]
-                search_end_node = row[3]
-                search_end_node_t = row[4]
-                distance = row[5]
+                search_end_node = row[2]
+                distance = row[3]
                 case = CReachabilityCase(self,
                                          row_idx,
                                          search_start_node, 
-                                         search_start_node_t, 
                                          search_end_node,
-                                         search_end_node_t,
                                          distance,
                                          self.level14_flag)
                 self.cases[row_idx] = case
@@ -371,7 +367,6 @@ class CReachabilityCaseManager:
                 CREATE TABLE temp_region_selectd_node_layer[layer_no]_tbl
                 (
                     node_id bigint not null,
-                    node_id_t integer not null,
                     the_geom geometry
                 );
             """
@@ -381,7 +376,6 @@ class CReachabilityCaseManager:
         self.pg.commit()
         
         self._get_representative_point_data_from_config()
-        #self._get_representative_point_data()
         
         distance_limit_val = self._get_distance_limit(self.layer_no)
         
@@ -398,9 +392,7 @@ class CReachabilityCaseManager:
                 CREATE TABLE temp_region_route_node_layer[layer_no]_tbl
                 AS (
                     SELECT a.node_id as search_start_node,
-                        a.node_id_t as search_start_node_t,
                         b.node_id as search_end_node,
-                        b.node_id_t as search_end_node_t,
                         ST_Distance_Sphere(a.the_geom, b.the_geom) as distance
                     FROM temp_region_selectd_node_layer[layer_no]_tbl a
                     LEFT JOIN temp_region_selectd_node_layer[layer_no]_tbl b
@@ -423,7 +415,7 @@ class CReachabilityCaseManager:
         
         sqlcmd = """
                 INSERT INTO temp_region_selectd_node_layer[layer_no]_tbl
-                SELECT c.node_id, c.node_id_t, c.the_geom
+                SELECT c.node_id, c.the_geom
                 FROM temp_config_node_list_tbl a
                 LEFT JOIN rdb_region_layer[layer_no]_node_mapping b
                     ON a.node_id = b.node_id_14
@@ -437,80 +429,7 @@ class CReachabilityCaseManager:
         self.pg.commit()
         
         return True
-    
-    def _get_representative_point_data(self):
-        
-        single_tile_flag = False
-        
-        sqlcmd = """
-                SELECT count(*)
-                FROM (
-                    SELECT DISTINCT node_id_t
-                    FROM rdb_region_node_layer[layer_no]_tbl
-                ) a
-            """
-        
-        sqlcmd = sqlcmd.replace('[layer_no]', self.layer_no)
-        self.pg.execute(sqlcmd)
-        row = self.pg.fetchone()
-        if row:
-            if row[0] < 3:
-                single_tile_flag = True
-        
-        if single_tile_flag:
-            self._get_representative_point_from_single_tile()
-        else:
-            self._get_representative_point_from_tile()
             
-        return True
-    
-    def _get_representative_point_from_single_tile(self):
-        
-        sqlcmd = """
-                INSERT INTO temp_region_selectd_node_layer[layer_no]_tbl
-                SELECT a.node_id, a.node_id_t, b.the_geom
-                FROM (
-                    SELECT node_id_t, link_num, (array_agg(node_id))[1] as node_id
-                    FROM rdb_region_node_layer[layer_no]_tbl
-                    GROUP BY node_id_t, link_num
-                    ORDER BY node_id_t, link_num
-                ) a
-                LEFT JOIN rdb_region_node_layer[layer_no]_tbl b
-                    ON a.node_id = b.node_id
-            """
-        
-        sqlcmd = sqlcmd.replace('[layer_no]', self.layer_no)
-        self.pg.execute(sqlcmd)
-        self.pg.commit()
-        
-        return True
-    
-    def _get_representative_point_from_tile(self):
-        
-        sqlcmd = """
-                INSERT INTO temp_region_selectd_node_layer[layer_no]_tbl
-                SELECT d.node_id, d.node_id_t, d.the_geom
-                FROM (
-                    SELECT b.node_id_t, b.link_num, (array_agg(b.node_id))[1] as node_id
-                    FROM (
-                        SELECT node_id_t, max(link_num) as max_link_num
-                        FROM rdb_region_node_layer[layer_no]_tbl
-                        GROUP BY node_id_t
-                    ) a
-                    LEFT JOIN rdb_region_node_layer[layer_no]_tbl b
-                        ON a.node_id_t = b.node_id_t and a.max_link_num = b.link_num
-                    GROUP BY b.node_id_t, b.link_num
-                ) c
-                LEFT JOIN rdb_region_node_layer[layer_no]_tbl d
-                    ON c.node_id = d.node_id
-            """
-        
-        sqlcmd = sqlcmd.replace('[layer_no]', self.layer_no)
-        self.pg.execute(sqlcmd)
-        self.pg.commit()
-            
-        return True
-    
     def _get_distance_limit(self, layer_no = 4):
 
         # 不同协议不同仕向地不同Region层对应的Node间间距不一样
@@ -529,7 +448,23 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
     def _do(self):
         
         # 验证Region各层道路连通性
-        #self._ReadShapePointList()
+        objGraph = common.networkx.CGraph_Cache(1000)
+        #paths = objGraph._searchBi_AStarPaths(-1397842792050327544, -1393620817723522458, max_buffer = 50000, max_path_num = 1, get_link_cost = common.networkx.CLinkCost.getCost)
+        #print paths
+#        paths = objGraph._searchBi_AStarPaths(6921047589404023245, 
+#                                              6920977220659852533, 
+#                                              max_buffer = 50000, 
+#                                              max_path_num = 6, 
+#                                              get_link_cost = common.networkx.CLinkCost.getCost,
+#                                              log = common.Logger.CLogger.instance().logger("   Reachability Test"),
+#                                              link_tbl = 'rdb_region_link_layer4_tbl',
+#                                              node_tbl = 'rdb_region_node_layer4_tbl',
+#                                              link_laneinfo_tbl = 'rdb_region_link_lane_info_layer4_tbl')
+#        for cost, path in paths:
+#            print path
+#        print paths
+#        return True
+        self._ReadShapePointList()
         region_layer_list = self.pg.GetRegionLayers()
         
         self._check_region_layers_reachability(region_layer_list)

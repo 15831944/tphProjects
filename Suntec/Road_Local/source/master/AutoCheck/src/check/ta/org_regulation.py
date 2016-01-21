@@ -94,3 +94,13 @@ class CCheckProhibitedManeuverJnctidIsEffect(platform.TestCase.CTestCase):
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+
+class CCheckUnderConstructionRoadIsExists(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                SELECT COUNT(*)
+                FROM org_rs
+                WHERE restrtyp = '6z'
+            """
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0)

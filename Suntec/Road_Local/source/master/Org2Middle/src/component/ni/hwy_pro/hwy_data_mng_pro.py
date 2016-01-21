@@ -4,6 +4,7 @@ Created on 2015-10-26
 
 @author: hcz
 '''
+import json
 from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_PATH_ID
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
@@ -12,6 +13,7 @@ from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.ni.hwy_pro.hwy_graph_pro import HwyGraphNiPro
 from component.ni.hwy_pro.hwy_graph_pro import HWY_FIRST_ICS_LINK
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC, HWY_PATH_TYPE_IC
 
 
 class HwyDataMngNiPro(HwyDataMngRDF):
@@ -33,8 +35,118 @@ class HwyDataMngNiPro(HwyDataMngRDF):
 
     def initialize(self):
         self._graph = HwyGraphNiPro()  # 高速link图
+        self._graph.set_data_mng(self)
+
+    def load_hwy_main_link(self):
+        '''load Highway Main Link.'''
+        self.log.info('Start Loading Highway Main Link.')
+        self.pg.connect2()
+        sqlcmd = """
+        SELECT a.link_id, a.s_node, a.e_node, a.one_way_code, a.link_type,
+            a.road_type, a.display_class, a.toll, a.fazm, a.tazm, a.tile_id,
+            a.length, '' AS road_name, '' AS road_number, b.extend_flag
+        FROM mid_temp_hwy_main_link a
+        LEFT JOIN link_tbl b
+        ON a.link_id = b.link_id
+        where b.const_st = false
+        """
+        for link_info in self._get_link_attr(sqlcmd):
+            (link_id, s_node, e_node, one_way,
+             s_angle, e_angle, link_attr) = link_info
+            self._graph.add_link(s_node, e_node,
+                                 one_way, link_id,
+                                 s_angle, e_angle,
+                                 **link_attr
+                                 )
+        self.log.info('End Loading Highway Main Link.')
+
+    def get_line_name2(self, road_code):
+        if not self._line_name_dict:
+            self._load_line_name()
+        return self._line_name_dict.get(road_code)
+
+    def _load_line_name(self):
+        sqlcmd = """
+        select road_code, road_name, road_number
+          from road_code_info
+        """
+        for road_code, road_name, road_number in self.get_batch_data(sqlcmd):
+            road_name = self.json_name_2_list(road_name)
+            road_number = self.json_name_2_list(road_number)
+            self._line_name_dict[road_code] = (road_name, road_number)
+
+    def json_name_2_list(self, json_name):
+        road_names = []
+        if not json_name:
+            return road_names
+        for names in json.loads(json_name):
+            one_name = []
+            for name_dict in names:
+                if name_dict.get("tts_type") == "not_tts":
+                    one_name.append(name_dict)
+            road_names.append(one_name)
+        return road_names
+
+    def json_number_2_list(self, json_number):
+        road_numbers = []
+        if not json_number:
+            return road_numbers.append('')
+        for numbers in json.loads(json_number.replace('\t', '\\t')):
+            one_num = list()
+            for num_dict in numbers:
+                if num_dict.get("tts_type") == "not_tts":
+                    one_num.append(num_dict)
+            road_numbers.append(one_num)
+        return road_numbers
+
+    def load_hwy_inout_link(self):
+        '''load Highway Main Link.'''
+        self.log.info('Start Loading Highway In/Out Link.')
+        self.pg.connect2()
+        sqlcmd = """
+                SELECT DISTINCT a.link_id, a.s_node, a.e_node, a.one_way_code, 
+                    a.link_type, a.road_type, a.display_class, a.toll, a.fazm, 
+                    a.tazm, a.tile_id, a.length, a.road_name, a.road_number, b.extend_flag
+                FROM mid_temp_hwy_inout_link a
+                LEFT JOIN link_tbl b
+		        ON a.link_id = b.link_id
+		        where b.const_st = false
+            """
+        for link_info in self._get_link_attr(sqlcmd):
+            (link_id, s_node, e_node, one_way,
+             s_angle, e_angle, link_attr) = link_info
+            self._graph.add_link(s_node, e_node,
+                                 one_way, link_id,
+                                 s_angle, e_angle,
+                                 **link_attr
+                                 )
+        self.log.info('End Loading Highway In/Out Link.')
+
+    def load_hwy_ic_link(self):
+        '''load Highway Main Link.'''
+        self.log.info('Start Loading Highway IC(Ramp/JCT/SAPA) Link.')
+        self.pg.connect2()
+        sqlcmd = """
+                SELECT a.link_id, a.s_node, a.e_node, a.one_way_code, a.link_type, 
+                    a.road_type, a.display_class, a.toll, a.fazm, a.tazm, a.tile_id, 
+                    a.length, '' AS road_name, '' AS road_number, b.extend_flag
+                FROM mid_temp_hwy_ic_link a
+                LEFT JOIN link_tbl b
+                ON a.link_id = b.link_id
+                where b.const_st = false
+            """
+        for link_info in self._get_link_attr(sqlcmd):
+            (link_id, s_node, e_node, one_way,
+             s_angle, e_angle, link_attr) = link_info
+            self._graph.add_link(s_node, e_node,
+                                 one_way, link_id,
+                                 s_angle, e_angle,
+                                 **link_attr
+                                 )
+        self.log.info('End Loading Highway IC(Ramp/JCT/SAPA) Link.')
 
     def _make_ic_links(self):
+        # 加载ic link
         self.pg.CreateTable2_ByName('mid_temp_hwy_ic_link')
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_link(
@@ -48,7 +160,28 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                fazm, tazm, tile_id, length,
                road_name, road_number, the_geom
           FROM link_tbl
-          where (road_type in (0, 1) and link_type not in (1, 2)) -- not main link
+          where (road_type in (0, 1) and
+                 link_type not in (1, 2)) -- not main link
+                 and const_st = false
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # 加载road_type=14且link_type=7的link
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_ic_link(
+                    link_id, s_node, e_node, one_way_code,
+                    link_type, road_type, display_class, toll,
+                    fazm, tazm, tile_id, length,
+                    road_name, road_number, the_geom)
+        (
+        SELECT link_id, s_node, e_node, one_way_code,
+               link_type, road_type, display_class, toll,
+               fazm, tazm, tile_id, length,
+               road_name, road_number, the_geom
+          FROM link_tbl
+          where (road_type =14 and link_type = 7) -- SAPA link
+                and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -76,6 +209,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
           where b.road_type not in (0, 8, 9, 12)
+                and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -97,6 +231,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
           where b.road_type not in (0, 8, 9, 12)
+                and const_st = false
         );
         """
         self.pg.execute2(sqlcmd)
@@ -112,6 +247,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
            LEFT JOIN link_tbl as b
            ON a.inlinkid = link_id
            where accesstype = 2 -- 出口设施
+                 and const_st = false
         UNION
         SELECT hw_pid, outlinkid as link_id,
                s_node, e_node, one_way_code
@@ -119,6 +255,7 @@ class HwyDataMngNiPro(HwyDataMngRDF):
            LEFT JOIN link_tbl as b
            ON a.outlinkid = link_id
            where accesstype = 1  -- 入口设施
+                 and const_st = false
         ORDER BY link_id, hw_pid;
         """
         prev_link_id = None
@@ -151,12 +288,14 @@ class HwyDataMngNiPro(HwyDataMngRDF):
            LEFT JOIN link_tbl as b
            ON a.outlinkid = link_id
            where accesstype = 2 -- 出口设施的outlink
+                 and const_st = false
         UNION
         SELECT s_node, e_node, one_way_code
            FROM mid_hwy_org_hw_junction_mid_linkid as a
            LEFT JOIN link_tbl as b
            ON a.inlinkid = link_id
            where accesstype = 1  -- 入口设施的inlink
+                and const_st = false
         ORDER BY s_node, e_node
         """
         data = {HWY_FIRST_ICS_LINK: True}
@@ -172,6 +311,22 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                     self._graph.add_edge(s_node, e_node, data)
                 if self._graph.has_edge(e_node, s_node):
                     self._graph.add_edge(e_node, s_node, data)
+
+    def is_parallel_road(self, road_code, p_road_code):
+        if not self._parallel_road_code:
+            self._load_parallel_road()
+        if((road_code, p_road_code) in self._parallel_road_code or
+           (p_road_code, road_code) in self._parallel_road_code):
+            return True
+        return False
+
+    def _load_parallel_road(self):
+        sqlcmd = """
+        select road_code, p_road_code
+          from hwy_parallel_road_code
+        """
+        for road_code, p_road_code in self.get_batch_data(sqlcmd):
+            self._parallel_road_code[(road_code, p_road_code)] = None
 
     def load_org_facil_id(self):
         '''加载元设施id'''
@@ -234,6 +389,35 @@ class HwyDataMngNiPro(HwyDataMngRDF):
             return row[0]
         else:
             return []
+
+    def get_enter_facil_num(self, link_id):
+        '''入口设施数'''
+        facil_id_set = set()
+        # # 取得前后方设施
+        bwd_fwd_list = self.get_link_fwd_bwd_facil(link_id)
+        fwd_list = bwd_fwd_list[1]
+        # 后方设施数
+        for fwd in fwd_list:
+            temp_path_type = fwd.get('path_type')
+            temp_facil_id = fwd.get('facility_id')
+            if temp_facil_id and temp_path_type in (HWY_PATH_TYPE_IC,):
+                facil_id_set.add(temp_facil_id)
+        return len(facil_id_set)
+
+    def get_exit_facil_num(self, link_id):
+        '''出口设施数'''
+        facil_id_set = set()
+        # # 取得前后方设施
+        bwd_fwd_list = self.get_link_fwd_bwd_facil(link_id)
+        bwd_list = bwd_fwd_list[0]
+        # 后方设施数
+        for bwd in bwd_list:
+            # temp_node_id = fwd.get('node_id')
+            temp_path_type = bwd.get('path_type')
+            temp_facil_id = bwd.get('facility_id')
+            if temp_facil_id and temp_path_type in (HWY_PATH_TYPE_IC,):
+                facil_id_set.add(temp_facil_id)
+        return len(facil_id_set)
 
     def get_cycle_route_start_end(self):
         CYCLE_ROUTE_START_END = [(5788214, ),

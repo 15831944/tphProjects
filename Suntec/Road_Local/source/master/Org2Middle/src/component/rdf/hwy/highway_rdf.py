@@ -173,8 +173,8 @@ class HighwayRDF(Highway):
         if self.store:
             self.store.Make()
         # 调整link_type: Ramp ==> SAPA, Ramp ==> JCT
-        if self.adjust_link:
-            self.adjust_link.Make()
+        # if self.adjust_link:
+        #    self.adjust_link.Make()
 
     def _make_hwy_route(self):
         '''高速路线'''
@@ -705,13 +705,14 @@ class HighwayRDF(Highway):
                                           pos_type_name, name_kanji,
                                           name_yomi, toll_flag,
                                           dir_s_node, dir_e_node,
-                                          from_linkid
+                                          from_linkid, path_type,
+                                          in_linkid, ic_num
                                          )
           VALUES(%s, %s, %s, %s,
                  %s, %s, %s, %s,
                  %s, %s, %s, %s,
                  %s, %s, %s, %s,
-                 %s)
+                 %s, %s, %s, %s)
         """
         for add_info in ic_info.get_add_info():
             param = (ic_info.ic_no, ic_info.updown,
@@ -722,5 +723,6 @@ class HighwayRDF(Highway):
                      add_info.get('pos_type_name'), ic_info.name,
                      ic_info.name_yomi, toll_flag,
                      add_info.get('dir_s_node'), add_info.get('dir_e_node'),
-                     add_info.get('from_linkid'))
+                     add_info.get('from_linkid'), add_info.get('path_type'),
+                     add_info.get('in_linkid'), add_info.get('ic_num'))
             self.pg.execute1(sqlcmd, param)

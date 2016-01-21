@@ -77,7 +77,7 @@ class comp_rawdata_rdf(component.component_base.comp_base):
               CREATE TABLE vce_phonetic_text
               (
                   phonetic_id              bigint NOT NULL,
-                  phonetic_string          character varying(512) NOT NULL,
+                  phonetic_string          character varying(512),
                   phonetic_language_code   character(3) NOT NULL,
                   transcription_method     character(1) NOT NULL,
                   CONSTRAINT pk_vce_phonetic PRIMARY KEY (phonetic_id)
@@ -123,9 +123,10 @@ class comp_rawdata_rdf(component.component_base.comp_base):
                     
                     if ph[2] == 'PYM' or ph[2] == 'PYT':
                         funccheck = get_checker(country, ph[2], parm1, parm2)
-                        if not funccheck.check(fields[1]):
-                            self.log.info('origin data :%s ,language: %s, transformed data:%s transform error!' % (ph[1],ph[2], fields[1]))
-                    
+                        if funccheck.check(fields[1]) <> 'True':
+                            self.log.info('origin data :%s ,language: %s, transformed data:%s ,transformed data is error, delete it!' % (ph[1],ph[2], fields[1]))
+                            fields[1] = ''
+                        
                 fields[1] = fields[1].replace('\\', '\\\\')
                 self.__store_name_to_temp_file(temp_file_obj, fields[0], fields[1], fields[2], fields[3])
             

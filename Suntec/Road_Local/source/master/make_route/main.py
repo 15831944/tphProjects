@@ -4,6 +4,13 @@ from route_server import ServerWorker_route
 from common import log
 import os
 import sys
+
+def setCurrentDir():
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+    execfilepath = os.path.abspath(sys.argv[0])
+    execdirpath = execfilepath[:execfilepath.rfind(os.path.sep)]
+    os.chdir(execdirpath)
      
 def main():
     log_pg = log.common_log.instance()
@@ -22,6 +29,7 @@ def main():
         exit(1)
 
 if __name__ == "__main__":
+    setCurrentDir()
     main()
     
      

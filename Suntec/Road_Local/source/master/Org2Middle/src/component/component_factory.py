@@ -138,9 +138,9 @@ class comp_factory(object):
             from component.default import update_sapa_link
             return update_sapa_link.comp_update_sapa_link()
         
-        if comp_name == 'Detele_redundance_regulation':
-            from component.default import delete_redundance_regulation
-            return delete_redundance_regulation.comp_detele_redundance_regulation()
+        if comp_name == 'Detele_regulation':
+            from component.default import delete_regulation
+            return delete_regulation.comp_detele_regulation()
 
         if comp_name == 'Update_link_type':
             from component.default import update_link_type_sapa_jct
@@ -990,6 +990,10 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'spotguide_tbl':
             from component.ni.guideinfo_spotguide_ni import comp_guideinfo_spotguide_ni
             return comp_guideinfo_spotguide_ni()
+        
+        if comp_name == 'slope':
+            from component.ni.slope_ni import comp_slope_ni
+            return comp_slope_ni()
         
         if comp_name == 'signpost_tbl':
             from component.ni.guideinfo_signpost_ni import comp_guideinfo_signpost_ni

@@ -131,6 +131,9 @@ class analyze_config_comp():
             return -1
         if self.__copy_Route_dump_config() == -1:
             return -1
+        if self._binformat == 'F18' and self._company == 'NAVINFO' and self._country == 'CHN_DUMMY':
+            if self.__copy_code_config_for_china_dummy() == -1:
+                return -1
         return 0
     
     def copy_result_code(self): 
@@ -373,7 +376,14 @@ class analyze_config_comp():
                 elif line.find("json_path=") == 0:
                     list_temp.append("json_path=" + self._check_dest_path + "\n")                                       
                 elif line.find("version=") == 0:
-                    list_temp.append("version=" + self._dbversion_num + "\n")                
+                    list_temp.append("version=" + self._dbversion_num + "\n") 
+                 #暂时关闭差分   
+#                elif (line.find("base_db=host=") == 0 or line.find("#base_db=host=") == 0) and self._tran_country.lower() == 'chn':
+##                    list_temp.append("base_db=host=" + self._dbversion_num + "\n")
+#                    if len(self._release_ip) > 0 and len(self._release_db) > 0:
+#                        list_temp.append("base_db=host=\'" + self._release_ip + "\' dbname=\'" + self._release_db + pg_key)
+#                    else:
+#                        list_temp.append("#base_db=host=\'" + self._release_ip + "\' dbname=\'" + self._release_db + pg_key)                                    
                 elif line.find("illust_binary=") == 0:
                     list_temp.append("illust_binary=" + os.path.join(os.path.dirname(self._org_image),"image_bak") + "\n")                 
                 else:
@@ -647,7 +657,7 @@ class analyze_config_comp():
                 elif line.find("db=host=") == 0:
                     list_temp.append("db=host=\'" + self._db_ip + "\' dbname=\'" + self._dbname_str + pg_key)
                 elif line.find("country_name=") == 0:
-                    list_temp.append("country_name=" + self._country + "\n")
+                    list_temp.append("country_name=" + self._tran_country + "\n")
                 #tool\\config.txt
                 elif line.find("json_path=") == 0:
                     list_temp.append("json_path=" + aut_road_path+ "\n")
@@ -676,7 +686,40 @@ class analyze_config_comp():
                 return -1
             
             
-        return 0    
+        return 0
+    
+    def __copy_code_config_for_china_dummy(self):        
+        file_path = os.path.join(self._codepath,"Org2Middle\\src\\config\\config_ni.txt")
+        if file_path is None or len(file_path) < 1:
+            return -1
+        
+        file_object = open(file_path, "r")
+        list_temp = list()
+        try:
+            lines = file_object.readlines()
+            for line in lines:      
+                #config_ni.txt            
+                if line.find("illust=") == 0 or line.find("pointlist=") == 0:
+                    list_temp.append(line.replace("China", "Dummy"))          
+                else:
+                    list_temp.append(line)                                                                         
+        except:
+            file_object.close()
+            self.log.error("alter %s error!",file_path)
+            return -1
+        else:
+            file_object.close()           
+            try:
+                os.remove(file_path)
+                file_object = open(file_path, "w")
+                file_object.writelines(list_temp)
+                file_object.close()
+            except:
+                self.log.error("alter %s error!",file_path)
+                return -1
+            
+            
+        return 0   
     
     def __getdb_num(self, dbname_front, line):
         return int(line[len(dbname_front)+1:len(dbname_front)+5])

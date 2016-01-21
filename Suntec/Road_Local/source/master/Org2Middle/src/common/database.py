@@ -11,6 +11,7 @@ import common.sql
 import common.log
 import common.config
 import datetime
+import time
 BATCH_SIZE = 1024 * 10
 
 
@@ -802,12 +803,16 @@ class pg_client(object):
 
     def batch_query2(self, sql, parameters=(), batch_size=BATCH_SIZE):
         try:
-            time = datetime.datetime.now().strftime("%m-%d_%H-%M-%S-%f")
-            curr_name = 'batch2-' + time
+            time.sleep(0.01)
+            str_time = datetime.datetime.now().strftime("%m-%d_%H-%M-%S-%f")
+            curr_name = 'batch2-' + str_time
             curs = self.conn2.cursor(name=curr_name)
             curs.arraysize = batch_size
             # print curs.mogrify(sql, parameters)
-            curs.execute(sql, parameters)
+            if parameters:
+                curs.execute(sql, parameters)
+            else:
+                curs.execute(sql)
             while True:
                 rows = curs.fetchmany()
                 if not rows:

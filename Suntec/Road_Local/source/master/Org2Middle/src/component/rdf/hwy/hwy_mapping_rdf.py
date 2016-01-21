@@ -602,11 +602,12 @@ class HwyMappingRDF(HwyMapping):
 
     def _deal_with_service_road(self):
         '''处理辅路、类辅路'''
+        self.log.info('Deal with Service Road Mapping.')
         for service_road_facil in self._get_service_road_facil():
             node_id, to_node_id = service_road_facil[0:2]
             road_code, link_lid = service_road_facil[2:4]
-            bwd_ic_nos, bwd_facilclss = service_road_facil[4:6]
-            fwd_ic_nos, fwd_facilclss = service_road_facil[6:8]
+            bwd_ic_nos, bwd_facilclss, bwd_facil_ids = service_road_facil[4:7]
+            fwd_ic_nos, fwd_facilclss, fwd_facil_ids = service_road_facil[7:10]
             # 求共同种别
             bwd_set = set()
             fwd_set = set()
@@ -616,10 +617,14 @@ class HwyMappingRDF(HwyMapping):
                 fwd_set = set(fwd_facilclss)
             common_facilcls = bwd_set.intersection(fwd_set)
             if common_facilcls:  # 前后有共同种别的设施
-                for bwd_ic, bwd_facilcls in zip(bwd_ic_nos, bwd_facilclss):
+                for bwd_ic, bwd_facilcls, bwd_facil_id in zip(bwd_ic_nos,
+                                                              bwd_facilclss,
+                                                              bwd_facil_ids):
                     if bwd_facilcls not in common_facilcls:
                         continue
-                    for fwd_ic, fwd_facils in zip(fwd_ic_nos, fwd_facilclss):
+                    for fwd_ic, fwd_facils, fwd_facil_id in zip(fwd_ic_nos,
+                                                                fwd_facilclss,
+                                                                fwd_facil_ids):
                         if fwd_facils != bwd_facilcls:
                             continue
                         if bwd_facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
@@ -633,8 +638,10 @@ class HwyMappingRDF(HwyMapping):
                             link_id = int(link_id)
                             self._store_service_road_mapping(node_id,
                                                              bwd_ic,
+                                                             bwd_facil_id,
                                                              to_node_id,
                                                              fwd_ic,
+                                                             fwd_facil_id,
                                                              link_id,
                                                              path_type
                                                              )
@@ -644,12 +651,15 @@ class HwyMappingRDF(HwyMapping):
                     bwd_ic = self._get_service_road_bwd_ic_no(node_id,
                                                               road_code)
                     if not bwd_ic:
-                        self.log.error('Service_road:No Backward IC. node_id=%s' % node_id)
+                        self.log.error('Service_road:No Backward IC.'
+                                       'node_id=%s' % node_id)
                         continue
                     bwd_ic_nos = [bwd_ic]
+                    # 取设施番号
                     ic_info = self.data_mng.get_ic(bwd_ic)
                     facil_list = ic_info[2]
                     node_id = facil_list[-1].node_id
+                    bwd_facil_ids = [facil_list[0].facility_id]
                 # 前方设施
                 if not fwd_ic_nos:
                     fwd_ic = self._get_service_road_fwd_ic_no(to_node_id,
@@ -662,23 +672,28 @@ class HwyMappingRDF(HwyMapping):
                     ic_info = self.data_mng.get_ic(fwd_ic)
                     facil_list = ic_info[2]
                     to_node_id = facil_list[0].node_id
-                for bwd_ic in bwd_ic_nos:
+                    fwd_facil_ids = [facil_list[0].facility_id]
+                for bwd_ic, bwd_facil_id in zip(bwd_ic_nos, bwd_facil_ids):
                     for link_id in link_lid.split(','):
                         link_id = int(link_id)
                         self._store_service_road_mapping(node_id,
                                                          bwd_ic,
+                                                         bwd_facil_id,
+                                                         None,
                                                          None,
                                                          None,
                                                          link_id,
                                                          HWY_PATH_TYPE_SR
                                                          )
-                for fwd_ic in fwd_ic_nos:
+                for fwd_ic, fwd_facil_id in zip(fwd_ic_nos, fwd_facil_ids):
                     for link_id in link_lid.split(','):
                         link_id = int(link_id)
                         self._store_service_road_mapping(None,
                                                          None,
+                                                         None,
                                                          to_node_id,
                                                          fwd_ic,
+                                                         fwd_facil_id,
                                                          link_id,
                                                          HWY_PATH_TYPE_SR
                                                          )
@@ -689,13 +704,14 @@ class HwyMappingRDF(HwyMapping):
         sqlcmd = """
         SELECT a.node_id, to_node_id,
                a.road_code, link_lid,
-               bwd_ic_nos, bwd_facilclss,
-               fwd_ic_nos, fwd_facilclss
+               bwd_ic_nos, bwd_facilclss, bwd_facility_ids,
+               fwd_ic_nos, fwd_facilclss, fwd_facility_ids
           FROM mid_temp_hwy_service_road_path2 as a
           LEFT JOIN (
             SELECT node_id, road_code,
                    array_agg(ic_no) as bwd_ic_nos,
-                   array_agg(facilclass_c) as bwd_facilclss
+                   array_agg(facilclass_c) as bwd_facilclss,
+                   array_agg(facility_id) as bwd_facility_ids
               FROM mid_hwy_ic_no
               where inout_c = 2     -- Out/Forward
               group by node_id, road_code
@@ -704,7 +720,8 @@ class HwyMappingRDF(HwyMapping):
           left join (
             SELECT node_id, road_code,
                    array_agg(ic_no) as fwd_ic_nos,
-                   array_agg(facilclass_c) as fwd_facilclss
+                   array_agg(facilclass_c) as fwd_facilclss,
+                   array_agg(facility_id) as fwd_facility_ids
               FROM mid_hwy_ic_no
               where inout_c = 1 -- In/Reverse
               group by node_id, road_code
@@ -722,7 +739,8 @@ class HwyMappingRDF(HwyMapping):
             # 取得后方设施
             bwd_ic_nos = self.data_mng.get_ic_nos_by_node(node_id,
                                                           road_code)
-            bwd_ic_nos = [max(bwd_ic_nos)]
+            # bwd_ic_nos = [max(bwd_ic_nos)]
+            return max(bwd_ic_nos)
         else:  # 取本线link的后方设设施
             in_nodes = self.G.get_main_link(node_id, road_code,
                                             HWY_ROAD_CODE,
@@ -783,20 +801,138 @@ class HwyMappingRDF(HwyMapping):
             return road_code
         return None
 
-    def _store_service_road_mapping(self, bwd_node_id, bwd_ic_no,
-                                    fwd_node_id, fwd_ic_no,
+    def _store_service_road_mapping(self,
+                                    bwd_node_id, bwd_ic_no, bwd_facility_id,
+                                    fwd_node_id, fwd_ic_no, fwd_facility_id,
                                     link_id, path_type):
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_link_mapping(
-                                bwd_node_id, bwd_ic_no, fwd_node_id,
-                                fwd_ic_no, link_id, path_type)
+                                bwd_node_id, bwd_ic_no, bwd_facility_id,
+                                fwd_node_id, fwd_ic_no, fwd_facility_id,
+                                link_id, path_type)
             VALUES (%s, %s, %s,
-                    %s,%s, %s);
+                    %s,%s, %s,
+                    %s, %s);
         """
-        self.pg.execute1(sqlcmd, (bwd_node_id, bwd_ic_no, fwd_node_id,
-                                  fwd_ic_no, link_id, path_type))
+        self.pg.execute1(sqlcmd, (bwd_node_id, bwd_ic_no, bwd_facility_id,
+                                  fwd_node_id, fwd_ic_no, fwd_facility_id,
+                                  link_id, path_type))
+
+    def _get_no_mapping_path(self, one_way, u, v, cutoff):
+        temp_path = []
+        u_v_pathes = list()
+        if one_way in (ONE_WAY_POSITIVE, ONE_WAY_BOTH):
+            u_v_pathes.append([u, v])
+        if one_way in (ONE_WAY_RERVERSE, ONE_WAY_BOTH):
+            u_v_pathes.append([v, u])
+        if not u_v_pathes:
+            return None
+
+        for u_v_path in u_v_pathes:
+            u_v_path_reverse = u_v_path[::-1]
+            # 顺车流方向探到高速本线的路径
+            out_pathes = list(self.G.all_path_2_hwy_main(u_v_path,
+                                                         HWY_ROAD_CODE,
+                                                         reverse=False,
+                                                         cutoff=cutoff))
+            # 逆车流方向探到高速本线的路径
+            in_pathes = list(self.G.all_path_2_hwy_main(u_v_path_reverse,
+                                                        HWY_ROAD_CODE,
+                                                        reverse=True,
+                                                        cutoff=cutoff))
+            if out_pathes:
+                for path in out_pathes:
+                    path = path[::-1]
+                    # ## 另一头也能通往高速
+                    for temp_path in self.G.all_path_2_hwy_main(path,
+                                                                HWY_ROAD_CODE,
+                                                                reverse=True,
+                                                                cutoff=cutoff):
+                        if temp_path:
+                            if not self._pass_urban_link(path):
+                                break
+                    if temp_path:
+                        return temp_path
+                    # ## 或另一个头通往一般道
+                    for temp_path in self.G.all_path_2_inout(path,
+                                                             HWY_ROAD_CODE,
+                                                             reverse=True,
+                                                             cutoff=cutoff):
+                        if temp_path:
+                            if not self._pass_urban_link(path):
+                                break
+                    if temp_path:
+                        return temp_path
+            if in_pathes:
+                for path in in_pathes:
+                    path = path[::-1]
+                    # ## 另一头也能通往高速
+                    for temp_path in self.G.all_path_2_hwy_main(path,
+                                                                HWY_ROAD_CODE,
+                                                                reverse=False,
+                                                                cutoff=cutoff):
+                        if temp_path:
+                            if not self._pass_urban_link(path):
+                                break
+                    if temp_path:
+                        return temp_path
+                    # ## 或另一个头通往一般道
+                    for temp_path in self.G.all_path_2_inout(path,
+                                                             HWY_ROAD_CODE,
+                                                             reverse=False,
+                                                             cutoff=cutoff):
+                        if temp_path:
+                            if not self._pass_urban_link(path):
+                                break
+                    if temp_path:
+                        return temp_path
+        return temp_path
 
     def _make_not_hwy_model_links(self):
+        '''非高速Model的link(由于物理、规制原因不能和高速本线通行的road_type=0的link).'''
+        self.CreateTable2('highway_not_hwy_model_link')
+        self.pg.connect1()
+        sqlcmd = """
+        SELECT a.link_id, s_node, e_node, one_way_code,
+               link_type, const_st
+          FROM link_tbl as a
+          LEFT JOIN highway_mapping as b
+          ON a.link_id = b.link_id
+          where road_type = 0 and b.link_id is null and
+                link_type <> 0   --  not roundabout link
+                -- not (link_type in (1, 2) and one_way_code = 1)
+          ORDER BY a.link_id;
+        """
+        cutoff = MIN_CUT_OFF
+        # 两头都能到高速本线，或者一头到高速本线，另一头到一般道
+        for (link_id, u, v, one_way,
+             link_type, const_st) in self.get_batch_data(sqlcmd):
+            if const_st:
+                self._store_not_hwy_model_link(link_id)
+                continue
+            # 本线、双向通行
+            if link_type in HWY_LINK_TYPE_MAIN and one_way == ONE_WAY_BOTH:
+                self._store_not_hwy_model_link(link_id)
+                continue
+            temp_path = self._get_no_mapping_path(one_way,
+                                                  u, v,
+                                                  cutoff=cutoff)
+            if temp_path:
+                if(self.G.has_edge(v, u) or
+                   link_id in (49179348, ) or
+                   self._pass_urban_link(temp_path)):
+                    self.log.warning('(Hwy Mapping)Does not include '
+                                     'link=%s.' % link_id)
+                    self._store_not_hwy_model_link(link_id)
+                else:
+                    self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                   % link_id)
+                continue
+            # 保存非高速本线link
+            self._store_not_hwy_model_link(link_id)
+        self.pg.commit1()
+
+    def _make_not_hwy_model_links_bak(self):
         '''非高速Model的link(由于物理、规制原因不能和高速本线通行的road_type=0的link).'''
         self.CreateTable2('highway_not_hwy_model_link')
         self.pg.connect1()
@@ -832,7 +968,8 @@ class HwyMappingRDF(HwyMapping):
                                                                 reverse=True,
                                                                 cutoff=cutoff):
                         if temp_path:
-                            break
+                            if not self._pass_urban_link(path):
+                                break
                     if temp_path:
                         break
                     # ## 或另一个头通往一般道
@@ -841,11 +978,13 @@ class HwyMappingRDF(HwyMapping):
                                                              reverse=True,
                                                              cutoff=cutoff):
                         if temp_path:
-                            break
+                            if not self._pass_urban_link(path):
+                                break
                     if temp_path:
                         break
                 if temp_path:
-                    if self.G.has_edge(v, u):
+                    if(self.G.has_edge(v, u) or
+                       self._pass_urban_link(path)):
                         self.log.warning('(Hwy Mapping)Does not include '
                                          'link=%s.' % link_id)
                         self._store_not_hwy_model_link(link_id)
@@ -867,7 +1006,8 @@ class HwyMappingRDF(HwyMapping):
                                                                 reverse=True,
                                                                 cutoff=cutoff):
                         if temp_path:
-                            break
+                            if not self._pass_urban_link(path):
+                                break
                     if temp_path:
                         break
                     # 另一个头通往一般道
@@ -876,11 +1016,14 @@ class HwyMappingRDF(HwyMapping):
                                                              reverse=True,
                                                              cutoff=cutoff):
                         if temp_path:
-                            break
+                            if not self._pass_urban_link(path):
+                                break
                     if temp_path:
                         break
                 if temp_path:
-                    if self.G.has_edge(v, u):
+                    if(self.G.has_edge(u, v) or
+                       link_id in (49179348, ) or
+                       self._pass_urban_link(path)):
                         self.log.warning('(Hwy Mapping)Does not include '
                                          'link=%s.' % link_id)
                         self._store_not_hwy_model_link(link_id)
@@ -891,6 +1034,13 @@ class HwyMappingRDF(HwyMapping):
             # 保存非高速本线link
             self._store_not_hwy_model_link(link_id)
         self.pg.commit1()
+
+    def _pass_urban_link(self, path):
+        '''经过都市link再到该'''
+        for temp_u, temp_v in zip(path[:-1], path[1:]):
+            if self.G.is_urban_link(temp_u, temp_v):
+                return True
+        return False
 
     def _store_not_hwy_model_link(self, link_id):
         sqlcmd = """

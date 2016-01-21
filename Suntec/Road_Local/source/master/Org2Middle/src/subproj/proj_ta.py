@@ -22,9 +22,6 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
-        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
-        return
-    
         if self.comp_factory != None:
             # jv files
             self.AddComponent(self.comp_factory.CreateOneComponent('sidefiles'))
@@ -41,11 +38,13 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
-            # update sapa link
-            #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_regulation'))
+            
             # Ramp
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
+            # update sapa link
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
@@ -83,7 +82,6 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_redundance_regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))

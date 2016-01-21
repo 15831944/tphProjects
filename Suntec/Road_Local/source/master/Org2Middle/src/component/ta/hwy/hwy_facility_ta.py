@@ -6,8 +6,10 @@ Created on 2015-3-18
 '''
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_EXTEND_FLAG
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 # from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
@@ -284,21 +286,33 @@ class HwyFacilityTa(HwyFacilityRDF):
         self.pg.connect1()
         self.CreateTable2('mid_temp_hwy_facil_name')
         sqlcmd = """
-        SELECT road_code, road_seq, facilcls_c, node_id,
-               inout_c, array_agg(node_lid), array_agg(path_type)
-          FROM (
-            SELECT distinct road_code, road_seq, facilcls_c,
-                   inout_c, node_id, node_lid, path_type
-              FROM mid_temp_hwy_ic_path
-              WHERE facilcls_c <> 10  -- Not U-turn
-              ORDER BY road_code, road_seq, node_id,
-                       facilcls_c, inout_c
-          ) AS a
-          group by road_code, road_seq, facilcls_c, node_id, inout_c
-          order by road_code, road_seq;
-        """
+                SELECT road_code, road_seq, facilcls_c, node_id,
+                    inout_c, array_agg(node_lid), array_agg(horizontal_degree),
+                    array_agg(path_type)
+                FROM (
+                    SELECT DISTINCT road_code, road_seq, facilcls_c, 
+                        inout_c, a.node_id, a.node_lid, path_type,
+                        (CASE
+                            WHEN a.facilcls_c=3 AND path_type != 'UTURN' AND b.node_id != c.node_id 
+                                THEN (360 - (ST_Azimuth(b.the_geom, c.the_geom) / (2*pi())*360 - 90))::numeric % 360
+                            WHEN a.facilcls_c=3 AND path_type != 'UTURN' AND b.node_id = c.node_id 
+                                THEN 0
+                            ELSE NULL
+                        END)::float AS horizontal_degree
+                    FROM mid_temp_hwy_ic_path a
+                    LEFT JOIN node_tbl b
+                        ON a.node_id = b.node_id
+                    LEFT JOIN node_tbl c
+                        ON a.to_node_id = c.node_id
+                    WHERE facilcls_c != 10 -- Not U-turn
+                    ORDER BY road_code, road_seq, a.node_id, facilcls_c, inout_c
+                ) a
+                GROUP BY road_code, road_seq, facilcls_c, node_id, inout_c
+                ORDER BY road_code, road_seq;
+            """
         for data in self.pg.get_batch_data2(sqlcmd):
-            road_code, road_seq, facilcls, node_id, inout, pathes = data[:-1]
+            (road_code, road_seq, facilcls, node_id,
+             inout, pathes, horizontal_degrees) = data[:-1]
             temp_pathes = [map(int, path.split(',')) for path in pathes]
             pathe_types = data[-1]
             facil_name = None
@@ -319,6 +333,22 @@ class HwyFacilityTa(HwyFacilityRDF):
                         pathes.append(path)
                 facil_name = self._get_ic_name(road_code, facilcls,
                                                inout, node_id, pathes)
+                if facil_name:
+                    self._store_facil_name(road_code, road_seq, facil_name)
+            elif facilcls == HWY_IC_TYPE_JCT:  # JCT
+                continue
+                pathes = []
+                temp_horizontal_degrees = []
+                # 过滤掉UTUTN路径
+                for (path, horizontal_degree, pathe_type
+                     ) in zip(temp_pathes, horizontal_degrees, pathe_types):
+                    if pathe_type != HWY_PATH_TYPE_UTURN:
+                        pathes.append(path)
+                        temp_horizontal_degrees.append(horizontal_degree)
+                facil_name = self._get_jct_name(road_code, facilcls,
+                                                inout, node_id,
+                                                pathes, temp_horizontal_degrees
+                                                )
                 if facil_name:
                     self._store_facil_name(road_code, road_seq, facil_name)
             else:  # JCT
@@ -348,7 +378,7 @@ class HwyFacilityTa(HwyFacilityRDF):
             return json_name
         json_name = self._get_next_street_names(pathes)
         return json_name
-
+    
     def _get_signpost_info(self, in_node, node_id, pathes):
         sp_infos = self.hwy_data.get_sp_infos(in_node, node_id)
         if not sp_infos:
@@ -393,12 +423,12 @@ class HwyFacilityTa(HwyFacilityRDF):
         json = self._get_sp_json_name(node_id, temp_sp_name_list)
         return json
 
-    def _get_sp_json_name(self, node_id, sp_name_list):
+    def _get_sp_json_name(self, node_id, sp_name_list, sp_name_num_limited=True):
         temp_sp_name_list2 = []
         for sp_name_list in sp_name_list:
             temp_sp_name_list2 += sp_name_list
         if temp_sp_name_list2:
-            json = self._cvt_signpost_name_2_json(temp_sp_name_list2)
+            json = self._cvt_signpost_name_2_json(temp_sp_name_list2, sp_name_num_limited)
             if not json:
                 self.log.error('JSON is none of SP Name. node=%s' % node_id)
             return json
@@ -561,8 +591,8 @@ class HwyFacilityTa(HwyFacilityRDF):
                 for temp_path in temp_pathes:
                     next_street_pathes.append(temp_path)
         return next_street_pathes
-
-    def _cvt_signpost_name_2_json(self, sp_name_list):
+    
+    def _cvt_signpost_name_2_json(self, sp_name_list, sp_name_num_limited=True):
         multi_name = None
         num = 0
         added_sp_names = {}
@@ -584,8 +614,9 @@ class HwyFacilityTa(HwyFacilityRDF):
                 multi_name.add_alter(other_name)
             added_sp_names[key] = None
             num += 1
-            if num > MAX_SP_NAME_NUM:
-                break
+            if sp_name_num_limited == True:
+                if num > MAX_SP_NAME_NUM:
+                    break
         if multi_name:
             return multi_name.json_format_dump()
         return None
@@ -822,6 +853,197 @@ class HwyFacilityTa(HwyFacilityRDF):
                %s, %s, %s)
         '''
         self.pg.execute1(sqlcmd, parm)
+    
+    def _get_next_main_link_path(self, in_node, pathes, road_code, horizontal_degrees):
+        # 求得和路径相同的main link
+        next_main_link_pathes = []
+        for path, horizontal_degree in zip(pathes, horizontal_degrees):
+            path = [in_node] + path
+            temp_main_nodes = list(self.G.get_to_main_link_of_path(path, road_code))
+            if not temp_main_nodes:
+                next_main_link_pathes.append((path, horizontal_degree))
+            else:
+                for temp_main_node in temp_main_nodes:
+                    temp_path = path + [temp_main_node]
+                    next_main_link_pathes.append((temp_path, horizontal_degree))
+        return next_main_link_pathes
+    
+    def _get_inlink_outnode_rad(self, path, node_id, horizontal_degree):
+        # 获取进入link与脱出Node（Path中倒数第二个点）的夹角---Path中第二个点与倒数第二个点连线逆时针旋转至进入link的角度
+        fst_link = (path[0], path[1])  # 进入link
+        fst_data = self.G[fst_link[0]][fst_link[1]]
+        extend_flag = fst_data.get(HWY_EXTEND_FLAG)
+        origin_angle = self.G.get_zm_angle(fst_link, node_id)
+        if origin_angle:
+            angle = origin_angle*360.0/65535
+            if angle < horizontal_degree:
+                angle = angle + (360-horizontal_degree)
+            else:
+                angle = angle - horizontal_degree
+            driving_side = extend_flag & 1
+            return (angle, driving_side)
+        self.log.error('fst_link %s node_id=%s' % (str(fst_link), str(node_id)))
+        return (None, None)
+    
+    def _get_signpost_info_2(self, in_node, node_id, pathes):
+        sp_infos = self.hwy_data.get_sp_infos(in_node, node_id)
+        if not sp_infos:
+            return None
+        temp_sp_name_list = []
+        temp_sp_name_list_sorted = []
+        exit_sp_name_list = []  # 出口、分歧
+        main_sp_name_list = []  # 本线
+        driving_side = -1
+        # 路的末端，去掉本线路径，留下出口、分叉路径
+        for node_lid, sp_name_list in sp_infos:
+            for (path, horizontal_degree) in pathes:
+                if self._march_path(node_lid, path):
+                    # 退出link非本线
+                    out_link = (node_lid[1], node_lid[2])
+                    data = self.G[out_link[0]][out_link[1]]
+                    link_type = data.get(HWY_LINK_TYPE)
+                    # road_type = data.get(HWY_ROAD_TYPE)
+                    (rad, driving_side) = self._get_inlink_outnode_rad(path, node_id, horizontal_degree) 
+                    if  (link_type in HWY_LINK_TYPE_MAIN):
+                        main_sp_name_list.append((sp_name_list, rad))
+                    else:
+                        exit_sp_name_list.append((sp_name_list, rad))
+                    break
+        if exit_sp_name_list:
+            temp_sp_name_list = exit_sp_name_list
+        else:
+            temp_sp_name_list = main_sp_name_list
+        if len(temp_sp_name_list) > 1:
+            self.log.warning('JCT sp_name_list > 1. node=%s' % node_id)
+        
+        if driving_side == 1:
+            # 左行 升序
+            temp_sp_name_list.sort(key=lambda x:x[1], reverse=False)
+        elif driving_side == 0:
+            # 右行 降序
+            temp_sp_name_list.sort(key=lambda x:x[1], reverse=True)
+        else:
+            return None
+        
+        for (sp_name_list, rad) in temp_sp_name_list:
+            temp_sp_name_list_sorted.append(sp_name_list)
+            
+        # 取得出口
+        exit_nums = []
+        for sp_name_list in temp_sp_name_list_sorted:
+            for sp_name in sp_name_list:
+                if sp_name.get(SP_TYPE) == SP_EXIT_NUMBER:
+                    exit_nums.append(sp_name)
+        if exit_nums:
+            # 出口番号，转成JSON
+            json = self._cvt_signpost_name_2_json(exit_nums, sp_name_num_limited=False)
+            if not json:
+                self.log.error('JSON is none of Exit Number. node=%s'
+                               % node_id)
+            return json
+        # 道路番号、道路名称转成JSON
+        temp_sp_name_list2 = []
+        for sp_name_list in temp_sp_name_list_sorted:
+            temp_sp_name_list2 += sp_name_list
+        if temp_sp_name_list2:
+            json = self._cvt_signpost_name_2_json(temp_sp_name_list2, sp_name_num_limited=False)
+            if not json:
+                self.log.error('JSON is none of SP Name. node=%s' % node_id)
+            return json
+        return None
+        #json = self._get_sp_json_name(node_id, temp_sp_name_list_sorted, sp_name_num_limited=False)
+        #return json
+    
+    def _get_last_main_link_name(self, node_id, pathes):
+        
+        exit_main_link_name_list = [] # 保存不同路径的脱出道路番号/道路名称
+        driving_side = -1
+        for (path, horizontal_degree) in pathes:
+            exit_main_link_names = [] # 保存一条路径脱出link的道路番号&道路名称（道路番号在前，道路名称在后）
+            (rad, driving_side) = self._get_inlink_outnode_rad(path, node_id, horizontal_degree)
+            last_link = (path[-2], path[-1])  # 最后一条脱出link
+            last_data = self.G[last_link[0]][last_link[1]]
+            
+            # 一条路径同时存在道路番号/名称时，优先保存道路番号（存在多个时仅保留第一个）
+            # 其后保存道路名称（存在多个时仅保留第一个）
+            road_nums = last_data.get(HWY_ROAD_NUMS)
+            if road_nums:
+                exit_main_link_names.append(road_nums[0])
+            
+            road_names = last_data.get(HWY_ROAD_NAMES)
+            if road_names:
+                exit_main_link_names.append(road_names[0])
+            
+            exit_main_link_name_list.append((exit_main_link_names, rad))
+            
+        if len(exit_main_link_name_list) > 1:
+            self.log.warning('exit_main_link_name_list > 1!!! node=%s' % node_id)
+        
+        # 不同JCT路径对应的道路番号/道路名称根据左右行、脱出link角度进行排序   
+        if driving_side == 1:
+            # 左行 升序
+            exit_main_link_name_list.sort(key=lambda x:x[1], reverse=False)
+        elif driving_side == 0:
+            # 右行 降序
+            exit_main_link_name_list.sort(key=lambda x:x[1], reverse=True)
+        else:
+            self.log.error('driving_side error!!! node=%s' % node_id)
+            return None
+        
+        sorted_main_link_names = []
+        for (exit_main_link_names, rad) in exit_main_link_name_list:
+            sorted_main_link_names += exit_main_link_names
+        
+        added_main_link_names = {} # 保存已收录的名称（已收录过的名称不再收录）
+        multi_name = None
+        for main_link_name in sorted_main_link_names:
+            str_name = main_link_name.get(u'val')
+            name_type = main_link_name.get(u'type')
+            lang_code = main_link_name.get(u'lang')
+            #lang_code = lang_code_dict.get(lang_code)
+            key = (str_name, lang_code)
+            
+            if not multi_name:
+                multi_name = MultiLangNameTa(lang_code=lang_code,
+                                             str_name=str_name,
+                                             name_type=name_type)
+            else:
+                if key in added_main_link_names:  # 名称已经收录
+                    continue
+                other_name = MultiLangNameTa(lang_code=lang_code,
+                                             str_name=str_name,
+                                             name_type=name_type)
+                multi_name.add_alter(other_name)
+            added_main_link_names[key] = None
+        
+        if multi_name:
+            return multi_name.json_format_dump()
+            
+        return None
+    
+    def _get_jct_name(self, road_code, facilcls, inout, node_id, pathes, horizontal_degrees):
+        if facilcls != HWY_IC_TYPE_JCT or inout != HWY_INOUT_TYPE_OUT:
+            return None
+        
+        # 进入Node
+        in_nodes = self.G.get_main_link(node_id, road_code,
+                                        code_field=HWY_ROAD_CODE,
+                                        same_code=True, reverse=True)
+        
+        if not in_nodes:
+            self.log.error('No In_node. node_id=%s' % node_id)
+            return None
+        if len(in_nodes) > 1:
+            self.log.error('JCT In_node > 1. node_id=%s' % node_id)
+            return None
+        in_node = in_nodes[0]
+        # 路径上添加JCT两端的main link
+        pathes = self._get_next_main_link_path(in_node, pathes, road_code, horizontal_degrees)
+        json_name = self._get_signpost_info_2(in_node, node_id, pathes)
+        if json_name:
+            return json_name
+        json_name = self._get_last_main_link_name(node_id, pathes)
+        return json_name
 
 
 # ==============================================================================

@@ -40,9 +40,12 @@ class rdb_slope(ItemBase):
         '''
         Make slope info 
         '''
-        slope_data_status = rdb_common.GetPath('slope_data_support')
-        if slope_data_status.lower() != 'true':
+        if not self.pg.IsExistTable('grad'):
             return 0
+
+#        slope_data_status = rdb_common.GetPath('slope_data_support')
+#        if slope_data_status.lower() != 'true':
+#            return 0
         
         # step 1: insert info to temp_org_slope
         sqlcmd = """

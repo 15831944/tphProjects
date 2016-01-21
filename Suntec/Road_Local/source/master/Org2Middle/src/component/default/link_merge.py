@@ -123,7 +123,7 @@ class comp_link_merge(component.component_base.comp_base):
                     one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                     name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                     access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                    erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                    erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, const_st, the_geom
                     )
                     (
                         select  a.link_id, a.iso_country_code, tile_id, a.s_node, a.e_node, link_type, road_type, toll, speed_class, length, function_class,
@@ -132,7 +132,7 @@ class comp_link_merge(component.component_base.comp_base):
                                 a.one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                                erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                                erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, a.const_st, the_geom
                         from (select * from link_tbl_bak_merge where gid >= %d and gid <= %d) as a
                         left join temp_merge_link_mapping as b
                         on a.link_id = b.merge_link_id
@@ -151,7 +151,7 @@ class comp_link_merge(component.component_base.comp_base):
                     one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                     name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                     access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                    erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                    erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, const_st, the_geom
                     )
                     (
                         select  b.link_id, a.iso_country_code, a.tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, b.length, function_class,
@@ -173,7 +173,7 @@ class comp_link_merge(component.component_base.comp_base):
                                 else md5(array_to_string(ARRAY[d.feature_string, c.feature_string], ','))
                                 end
                                 ) as feature_key, 
-                                b.the_geom
+                                a.const_st, b.the_geom
                         from temp_merge_newlink as b
                         inner join link_tbl_bak_merge as a
                         on a.link_id = b.link_id

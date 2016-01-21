@@ -21,6 +21,7 @@
 292;357;ON;UKE;Unspecified;;;;
 156;304;ON;UKE;SPAR;;;;
 104;16;ON;UKE;All major tourist attractions;;;;
+161;25;ON;UKE;All speciality shops;;;;
 264;33;ON;UKE;Arboreta & botanical gardens;;;;
 300;169;ON;UKE;Hospitals/polyclinics;;;;
 26;186;ON;UKE;Italian food;;;;
@@ -217,7 +218,6 @@
 251;286;ON;UKE;Rugby grounds;;;;
 18;234;ON;UKE;Nando's;;;;
 247;27;ON;UKE;All stadiums;;;;
-161;25;ON;UKE;All ﻿speciality shops;;;;
 99;68;ON;UKE;Cabins & lodges;;;;
 238;227;ON;UKE;Mountain passes;;;;
 152;243;ON;UKE;OK;;;;
@@ -225,13 +225,12 @@
 64;346;ON;UKE;Unspecified;;;;
 198;5;ON;UKE;Agricultural supplies;;;;
 231;71;ON;UKE;Campsites;;;;
-94;9;ON;UKE;All accomodiation;;;;
+95;52;ON;UKE;Bed & Breakfast/Guest Houses;;;;
 61;64;ON;UKE;Budget;;;;
 254;302;ON;UKE;Soccer stadiums;;;;
 335;221;ON;UKE;Mosques;;;;
 241;308;ON;UKE;Sports centres;;;;
 371;335;ON;UKE;Traffic service companies;;;;
-95;52;ON;UKE;Bed & breakfasts and guest houses;;;;
 225;160;ON;UKE;Hairdressers & barbers;;;;
 174;310;ON;UKE;Sports equipment & clothing;;;;
 313;265;ON;UKE;Post offices;;;;
@@ -243,6 +242,7 @@
 352;151;ON;UKE;Funeral service & mortuaries;;;;
 294;269;ON;UKE;Private medical offices;;;;
 336;360;ON;UKE;Unspecified;;;;
+94;9;ON;UKE;All accommodations;;;;
 84;28;ON;UKE;All transport stops;;;;
 170;100;ON;UKE;Construction materials & equipment;;;;
 101;282;ON;UKE;Resorts;;;;

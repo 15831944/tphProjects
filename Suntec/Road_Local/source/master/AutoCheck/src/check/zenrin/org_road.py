@@ -347,3 +347,14 @@ class CCheckTimeCross(platform.TestCase.CTestCase):
                         return False
         
         return True
+    
+class CCheckUnderConstructionRoadIsExists(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        sqlcmd = """
+                SELECT COUNT(*)
+                FROM org_road
+                WHERE substr(elcode, 3, 1) = '7'
+            """
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)

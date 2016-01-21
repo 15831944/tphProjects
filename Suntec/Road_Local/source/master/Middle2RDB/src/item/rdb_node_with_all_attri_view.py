@@ -29,52 +29,55 @@ class rdb_node_with_all_attri_view(ItemBase):
 
     def Do(self):
         sqlcmd = """
-            drop table if exists temp_rdb_node_bigint_2_int_mapping cascade;
-            
-            select node_id, node_id_t, rdb_split_tileid(node_id) as node_id_32 into temp_rdb_node_bigint_2_int_mapping from rdb_node;
-            
-            create index temp_rdb_node_bigint_2_int_mapping_nodeid_idx
-            on temp_rdb_node_bigint_2_int_mapping
-            using btree
-            (node_id);
-            
-            create index temp_rdb_node_bigint_2_int_mapping_nodeid_32_idx
-            on temp_rdb_node_bigint_2_int_mapping
-            using btree
-            (node_id_32);
-            
-            create index temp_rdb_node_bigint_2_int_mapping_nodeid_t_idx
-            on temp_rdb_node_bigint_2_int_mapping
-            using btree
-            (node_id_t);
-        """
+                DROP TABLE IF EXISTS temp_rdb_node_bigint_2_int_mapping cascade;
+                
+                SELECT node_id, node_id_t, rdb_split_tileid(node_id) AS node_id_32 
+                INTO temp_rdb_node_bigint_2_int_mapping 
+                FROM rdb_node;
+                
+                CREATE INDEX temp_rdb_node_bigint_2_int_mapping_nodeid_idx
+                    ON temp_rdb_node_bigint_2_int_mapping
+                    USING btree
+                    (node_id);
+                
+                CREATE INDEX temp_rdb_node_bigint_2_int_mapping_nodeid_32_idx
+                    ON temp_rdb_node_bigint_2_int_mapping
+                    USING btree
+                    (node_id_32);
+                
+                CREATE INDEX temp_rdb_node_bigint_2_int_mapping_nodeid_t_idx
+                    ON temp_rdb_node_bigint_2_int_mapping
+                    USING btree
+                    (node_id_t);
+            """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
         self.CreateFunction2('rdb_makenode2pixelbytea')
         self.CreateFunction2('rdb_cvt_branch_to_json_format')
+        
         sqlcmd = """
-            INSERT INTO rdb_node_with_all_attri_view(gid, node_id, node_id_t,
-                            extend_flag, height, link_num, branches, upgrade_node_id,
-                            upgrade_node_id_t, geom_blob, the_geom)
-            (
-            SELECT a.gid, a.node_id, a.node_id_t, a.extend_flag, 
-                   d.height, a.link_num, a.branches,
-                   c.region_node_id AS upgrade_node_id,
-                   NULL::integer AS upgrade_node_id_t, 
-                   rdb_makenode2pixelbytea(14::smallint, ((a.node_id_t >> 14) & 16383), (a.node_id_t & 16383), a.the_geom_4096), 
-                   a.the_geom
-               FROM rdb_node a
-               LEFT JOIN temp_rdb_node_bigint_2_int_mapping m
-               ON a.node_id_t = m.node_id_t AND a.node_id = m.node_id
-               LEFT JOIN rdb_region_layer4_node_mapping c
-               ON a.node_id = c.node_id_14
-               LEFT JOIN rdb_node_height d
-               ON a.node_id = d.node_id
-            );
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+                INSERT INTO rdb_node_with_all_attri_view (gid, node_id, node_id_t, extend_flag, height, 
+                    link_num, branches, upgrade_node_id, upgrade_node_id_t, geom_blob, the_geom
+                    )
+                (
+                    SELECT a.gid, a.node_id, a.node_id_t, a.extend_flag, d.height, a.link_num, a.branches,
+                        c.region_node_id AS upgrade_node_id, NULL::integer AS upgrade_node_id_t,
+                        rdb_makenode2pixelbytea(14::smallint, ((a.node_id_t >> 14) & 16383), (a.node_id_t & 16383), a.the_geom_4096),
+                        a.the_geom
+                    FROM rdb_node a
+                    LEFT JOIN temp_rdb_node_bigint_2_int_mapping m
+                        ON a.node_id_t = m.node_id_t AND a.node_id = m.node_id
+                    LEFT JOIN rdb_region_layer4_node_mapping c
+                        ON a.node_id = c.node_id_14
+                    LEFT JOIN rdb_node_height d
+                        ON a.node_id = d.node_id
+                    WHERE a.gid >= %d AND a.gid <= %d
+                );
+            """
+        
+        (min_gid, max_gid) = self.pg.getMinMaxValue('rdb_node', 'gid')
+        self.pg.multi_execute(sqlcmd, min_gid, max_gid, 4, 100000)
 
         self.CreateIndex2('rdb_node_with_all_attri_view_node_id_idx')
         self.CreateIndex2('rdb_node_with_all_attri_view_node_id_t_idx')

@@ -529,8 +529,8 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         self.pg.connect1()
         postbox, toilet = HWY_FALSE, HWY_FALSE
         for (road_code, updown_c, road_seq,
-             information, gas_station, rest_area, ATM,
-             shopping_coner, Restaurant) in self.get_batch_data(sqlcmd):
+             information, gas_station, Restaurant, ATM,
+             shopping_coner, rest_area) in self.get_batch_data(sqlcmd):
             param = (gas_station, information, rest_area, shopping_coner,
                     postbox, ATM, Restaurant, toilet)
             if set(param) == set([HWY_FALSE]):

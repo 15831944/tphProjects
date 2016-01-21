@@ -8,8 +8,61 @@ import platform.TestCase
 
 
 # =============================================================================
+# CCheckLinkFacilityNum --  link上的设施数要与实际做成的facility_num匹配
+# =============================================================================
+class CCheckLinkFacilityNum(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+        SELECT a.link_id, facility_num, num
+           FROM (
+             SELECT link_id, facility_num
+               FROM rdb_highway_node_add_info
+           ) AS a
+           LEFT JOIN (
+             SELECT link_id, COUNT(link_id) as num
+               FROM rdb_highway_node_add_info
+               group by link_id
+           ) AS b
+           on a.link_id = b.link_id
+           where facility_num <> num
+           order by a.link_id
+        '''
+        self.pg.execute(sqlcmd)
+        row = self.pg.fetchone()
+        if row:
+            return False
+        return True
+
+
+# =============================================================================
+# CCheckLinkId --  收费站附加情报link和其他设施附加情报link，不能重叠
+# =============================================================================
+class CCheckTollLinkId(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+        SELECT count(a.link_id)
+        FROM (
+            SELECT link_id
+            FROM rdb_highway_node_add_info
+            where toll_flag = 1
+        ) AS a
+        inner join (
+            SELECT link_id
+            FROM rdb_highway_node_add_info
+            where toll_flag <> 1
+        ) AS b
+        On a.link_id = b.link_id
+        '''
+        for row in self.pg.get_batch_data(sqlcmd):
+            count = row[0]
+            if count != 0:
+                return False
+        return True
+
+
+# =============================================================================
 # CCheckLinkId -- link_id存在表rdb_link中
-# ==============================================================================
+# =============================================================================
 class CCheckLinkId(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
@@ -153,8 +206,9 @@ class CCheckFacilityType(platform.TestCase.CTestCase):
           FROM rdb_highway_node_add_info
           where etc_antenna not in (0, 1) or  enter not in (0, 1) or
                 exit not in (0, 1) or jct not in (0, 1) or
-                sapa not in (0, 1) or gate not in (0, 1) or
-                un_open not in (0, 1) or dummy not in (0, 1);
+                sa not in (0, 1) or pa not in (0, 1) or
+                gate not in (0, 1) or un_open not in (0, 1) or
+                dummy not in (0, 1);
         """
         self.pg.execute(sqlcmd)
         row = self.pg.fetchone()

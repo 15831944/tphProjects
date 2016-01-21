@@ -52,7 +52,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
                 disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
-                feature_string, feature_key, the_geom
+                feature_string, feature_key, const_st, the_geom
                 )
         select link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
                 toll, speed_class, length, function_class, lane_dir, 
@@ -61,7 +61,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
                 disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
-                feature_string, feature_key, the_geom_4326
+                feature_string, feature_key, const_st, the_geom_4326
         from
         (
             select a.link_id,
@@ -125,6 +125,7 @@ class comp_link_zenrin(component.component_base.comp_base):
             0 as urban,
             array_to_string(ARRAY[a.meshcode, a.linkno::varchar],',') as feature_string,
             md5(array_to_string(ARRAY[a.meshcode, a.linkno::varchar],',')) as feature_key,
+            const_st,
             st_geometryn(a.the_geom_4326,1) as the_geom_4326
             from (
                 select gid, meshcode, elcode, linkno, snodeno, enodeno, 
@@ -133,7 +134,8 @@ class comp_link_zenrin(component.component_base.comp_base):
                                  when oneway=3 then 3
                                  when oneway=0 then 1
                                  end as one_way_code, 
-                            netlevel, attrnmno, the_geom_4326,link_id
+                            netlevel, attrnmno, the_geom_4326,link_id,
+                            CASE WHEN substr(elcode, 3, 1) = '7' THEN True ELSE False END AS const_st
                 from (
                      select gid, meshcode, elcode, linkno, snodeno, enodeno, 
                             case when c.link_id is null then oneway 
@@ -179,7 +181,14 @@ class comp_link_zenrin(component.component_base.comp_base):
                 join temp_node_mapping h on a.meshcode=h.meshcode and a.snodeno=h.nodeno
                 join temp_node_mapping i on a.meshcode=i.meshcode and a.enodeno=i.nodeno
                 where substr(a.elcode,4,1)='8'
-            )
+            );
+            
+            drop table if exists mid_dummy_link_bak;
+            create table mid_dummy_link_bak
+            as
+            (
+                select * from mid_dummy_link
+            );
             '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

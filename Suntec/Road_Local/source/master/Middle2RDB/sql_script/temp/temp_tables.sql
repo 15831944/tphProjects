@@ -334,7 +334,7 @@ CREATE TABLE temp_simplifying_admin_zone_edge_simple
   gid serial not null primary key,
   a_polygon_gid integer,
   b_polygon_gid integer,
-  simplify_para float default 0.00009,
+  simplify_para float default 0.00005,
   simplify_scale float default 1.0,
   i_geom geometry,
   i_simple_geom geometry
@@ -719,8 +719,8 @@ as
 	        			struct_code, shortcut_code, etc_lane_flag, disobey_flag, ops_lane_number, neg_lane_number, 
 	        			(case when ops_width = 4 then null else ops_width end) as ops_width, 
 	        			(case when neg_width = 4 then null else neg_width end) as neg_width, 
-	        			(case when pos_cond_speed = 0 then null else pos_cond_speed end) as pos_cond_speed, 
-	        			(case when neg_cond_speed = 0 then null else neg_cond_speed end) as neg_cond_speed, 
+	        			(case when pos_cond_speed = 0 then null when speed_limit_unit = 1 then pos_cond_speed * 1.609344 else pos_cond_speed end)::smallint as pos_cond_speed, 
+	        			(case when neg_cond_speed = 0 then null when speed_limit_unit = 1 then neg_cond_speed * 1.609344 else neg_cond_speed end)::smallint as neg_cond_speed, 
 	        			link_type, link_length, abs_link_id, the_geom
 	        	from
 	        	(
@@ -737,6 +737,7 @@ as
 		            		(case when a.link_dir then e.neg_width else e.ops_width end) as neg_width,
 		            		(case when a.link_dir then f.pos_cond_speed else f.neg_cond_speed end) as pos_cond_speed,
 		            		(case when a.link_dir then f.neg_cond_speed else f.pos_cond_speed end) as neg_cond_speed,
+		            		f.unit as speed_limit_unit,
 		            		m.link_type,
 		            		m.link_length, 
 		            		m.abs_link_id,
@@ -782,7 +783,9 @@ as
 		       (case when d.shortcut_code is null then 0 else d.shortcut_code end) as shortcut_code, 
 		       (case when d.etc_lane_flag is null then 0 else d.etc_lane_flag end) as etc_lane_flag, 
 		       e.disobey_flag, e.ops_lane_number, e.ops_width, e.neg_lane_number, e.neg_width, 
-		       f.pos_cond_speed, f.neg_cond_speed, the_geom, 
+		       (case when f.unit = 0 then f.pos_cond_speed else f.pos_cond_speed * 1.609344 end)::smallint as pos_cond_speed, 
+		       (case when f.unit = 0 then f.neg_cond_speed else f.neg_cond_speed * 1.609344 end)::smallint as neg_cond_speed, 
+		       the_geom, 
 		       ARRAY[a.link_id] as low_level_linkids, 
 		       ARRAY[True] as low_level_linkdirs,
 		       ARRAY[a.abs_link_id] as abs_linkids
@@ -1821,10 +1824,10 @@ as
 create table temp_guideinfo_safetyalert 
 as
 (
-	select lon,lat,b.tile_link_id as link_id,type,angle,dir,s_dis,e_dis
+	select featid,lon,lat,b.tile_link_id as link_id,type,angle,dir,s_dis,e_dis
 	from 
 	(       
-		select distinct lon, lat, link_id, orglink_id, type, angle, dir, 
+		select distinct featid, lon, lat, link_id, orglink_id, type, angle, dir, 
 			   s_dis, e_dis, speed, speed_unit
 		from safety_alert_tbl
 	) a

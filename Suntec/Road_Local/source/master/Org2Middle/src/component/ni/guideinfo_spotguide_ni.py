@@ -21,6 +21,7 @@ spotguide_tbl_insert_sqlcmd = '''
 class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
     def __init__(self):
         comp_guideinfo_spotguide.__init__(self)
+        self.mMDPSPicSet = set() # 连续分歧illust图片列表
 
     def _DoCreateTable(self):
         comp_guideinfo_spotguide._DoCreateTable(self)
@@ -34,15 +35,30 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
 
     def _Do(self):
         self.log.info("ni generate spotguide_tbl begin.")
+        self.initMDPSPicList(self.mMDPSPicSet)
         self._CreateTempSpotguideLinkTbl()
         self._GenerateSpotguideTblFromBr()
         self._GenerateSpotguideTblFromDm()
         self._GenerateSpotguideTblFromTollPattern()
-        tollIllustName = common_func.GetPath('toll_station_illust')
+        #tollIllustName = common_func.GetPath('toll_station_illust')
         #comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         self.log.info("ni generate spotguide_tbl end.")
         return 0
-
+    
+    # guide组要求，需要将连续分歧illust图单独区分成spotguide类型13.
+    # 需要对数据进行预处理，人工对四维提供的原始图片进行识别，把所有连续分歧illust图的名字列出至文件mdps_pic_list中。
+    # 将分歧illust都列入mMDPSPicSet中。
+    def initMDPSPicList(self, MDPSPicSet):
+        mdps_pic_list = common_func.GetPath('mdps_pic_list')
+        if mdps_pic_list == '':
+            self.log.error("get attribute failed: %s" % mdps_pic_list)
+            return
+    
+        with open(mdps_pic_list, 'r') as iFStream:
+            listline = iFStream.readlines()
+            for line in listline:
+                MDPSPicSet.add(line.lower().split('.')[0])
+        
     # 优化：建立临时表，查询link两端节点时使用，提高查询速度
     def _CreateTempSpotguideLinkTbl(self):
         self.log.info("generate temp_spotguide_link_ni...")
@@ -127,6 +143,10 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             # 中国的数据没有SAR
             isExistSar = False 
             
+            # 连续分歧illust图，类型为13
+            if patternno in self.mMDPSPicSet:
+                jv_type = 13
+            
             self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid, 
                               totalPasslid, totalPasslidCount, direction,
@@ -172,6 +192,9 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             
             # 3D交叉点模式图，对应类型为7
             jv_type = 7
+            # 连续分歧illust图，类型为13
+            if patternno in self.mMDPSPicSet:
+                jv_type = 13
             
             self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid, 

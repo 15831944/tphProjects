@@ -259,7 +259,7 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
     
     def _do_safety_caution(self):
 
-		self.CreateFunction2('mid_findpasslinkbybothnodes')
+        self.CreateFunction2('mid_findpasslinkbybothnodes')
         
         # step one: get all inlinks which flow to the node 
         sqlcmd = '''
@@ -310,9 +310,9 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
         create table temp_caution_full_path
         as
         select 
-			in_node_id, out_node_id, 
-			mid_findpasslinkbybothnodes(in_node_id, out_node_id, 30) as all_path_links, 
-			safety_type
+            in_node_id, out_node_id, 
+            mid_findpasslinkbybothnodes(in_node_id, out_node_id, 30) as all_path_links, 
+            safety_type
         from
         (
             select b.tile_node_id as in_node_id, c.tile_node_id as out_node_id, 
@@ -339,17 +339,17 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
                 AS $$
                 DECLARE
                 BEGIN
-                    return case safety_type when '1' then array['81','ã“ã®å…ˆã‚«ãƒ¼ãƒ–ãŒç¶šãã¾ã™ã€‚ã”æ³¨æ„ãã ã•ã„']
-                         when '4' then array['82','ã“ã“ã‹ã‚‰ãŠã‚ˆã1kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when '5' then array['83','ã“ã“ã‹ã‚‰ãŠã‚ˆã2kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when '6' then array['84','ã“ã“ã‹ã‚‰ãŠã‚ˆã3kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when '7' then array['85','ã“ã“ã‹ã‚‰ãŠã‚ˆã4kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when '8' then array['86','ã“ã“ã‹ã‚‰ãŠã‚ˆã5kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when '9' then array['87','ã“ã“ã‹ã‚‰ãŠã‚ˆã6kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when 'A' then array['88','ã“ã“ã‹ã‚‰ãŠã‚ˆã7kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when 'B' then array['89','ã“ã“ã‹ã‚‰ãŠã‚ˆã8kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when 'C' then array['90','ã“ã“ã‹ã‚‰ãŠã‚ˆã9kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
-                         when 'D' then array['91','ã“ã“ã‹ã‚‰ãŠã‚ˆã10kmå…ˆã¾ã§ã¯ã€å……åˆ†é‹è»¢ã«æ³¨æ„ã—ã¦ãã ã•ã„']
+                    return case safety_type when '1' then array['81','¤³¤ÎÏÈ¥«©`¥Ö¤¬¾A¤­¤Ş¤¹¡£¤´×¢Òâ¤¯¤À¤µ¤¤']
+                         when '4' then array['82','¤³¤³¤«¤é¤ª¤è¤½1kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when '5' then array['83','¤³¤³¤«¤é¤ª¤è¤½2kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when '6' then array['84','¤³¤³¤«¤é¤ª¤è¤½3kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when '7' then array['85','¤³¤³¤«¤é¤ª¤è¤½4kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when '8' then array['86','¤³¤³¤«¤é¤ª¤è¤½5kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when '9' then array['87','¤³¤³¤«¤é¤ª¤è¤½6kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when 'A' then array['88','¤³¤³¤«¤é¤ª¤è¤½7kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when 'B' then array['89','¤³¤³¤«¤é¤ª¤è¤½8kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when 'C' then array['90','¤³¤³¤«¤é¤ª¤è¤½9kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+                         when 'D' then array['91','¤³¤³¤«¤é¤ª¤è¤½10kmÏÈ¤Ş¤Ç¤Ï¡¢³ä·Öß\Ü¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
                         END;    
                 END;
                 $$;
@@ -400,7 +400,7 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
                     passlink_cnt, data_kind, voice_id,strTTS ,image_id
                 )
                 values
-				(
+                (
                     %s, %s, %s, %s, %s, %s, %s, %s, %s
                 );
 

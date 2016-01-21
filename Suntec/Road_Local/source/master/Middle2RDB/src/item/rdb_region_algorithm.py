@@ -58,6 +58,8 @@ class CGraph:
                 arrive_nodes[cur_node] = True
             
             if (cur_node != node_id) and self._isDockNode(cur_node,dock_node_table):
+                if not paths and cur_distance * 1.5 < max_distance:
+                    max_distance = cur_distance * 1.5
                 paths.append((cur_node,path))
                 continue
             
@@ -135,6 +137,8 @@ class CGraph:
             
             #
             if (cur_node != node_id) and self._isRegionNode(cur_node, region_node_table):
+                if not paths and cur_distance * 1.5 < max_distance:
+                    max_distance = cur_distance * 1.5
                 paths.append((cur_node,path))
             
             adjlink_list = self._getAdjLinkList(cur_node)

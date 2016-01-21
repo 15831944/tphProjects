@@ -38,8 +38,8 @@ class CTestCaseManager:
             self.__loadCaseList()
             #self.__doAllCase()
             self.__doAllCase_parallel()
+            self.__saveReportForJson()            
             self.__saveReport()
-            self.__saveReportForJson()
             return self.__isAllCaseOK()
         except:
             self.logger.exception("error happened...")

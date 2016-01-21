@@ -44,7 +44,7 @@ class comp_link_ni(component.component_base.comp_base):
         
         self.CreateIndex2('temp_link_name_link_id_idx')
         self.CreateIndex2('temp_link_shield_link_id_idx')
-       
+        
         sqlcmd = """
             insert into link_tbl (
                 link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
@@ -54,7 +54,7 @@ class comp_link_ni(component.component_base.comp_base):
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
                 disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
-                feature_string, feature_key, the_geom
+                feature_string, feature_key, const_st, the_geom
             )
               select 
                     link_id, 
@@ -68,7 +68,7 @@ class comp_link_ni(component.component_base.comp_base):
                     ni_cnv_lane( one_way_code, lanenums2e, lanenume2s, true) as lane_num_s2e, 
                     ni_cnv_lane( one_way_code, lanenums2e, lanenume2s, false) as lane_num_e2s, 
                     elevated, structure, tunnel, 
-                    0 as rail_cross, paved, 0 as uturn,
+                    0 as rail_cross, paved, uturn,
                     ni_cnv_speedlimit( one_way_code, spdlmts2e, speedclass, true ) as speed_limit_s2e,
                     ni_cnv_speedlimit( one_way_code, spdlmte2s, speedclass, false ) as speed_limit_e2s, 
                     ni_cnv_speed_source( one_way_code, spdsrcs2e, true ) as speed_source_s2e, 
@@ -87,6 +87,7 @@ class comp_link_ni(component.component_base.comp_base):
                     urban, 
                     feature_string, 
                     feature_key, 
+                    const_st,
                     the_geom
               from 
               (
@@ -98,7 +99,7 @@ class comp_link_ni(component.component_base.comp_base):
                         ni_cnv_link_type ( kind ) as link_type, 
                         ni_cnv_road_type ( kind, through, unthrucrid, vehcl_type, ownership ) as road_type,
                         funcclass::smallint as function_class,
-                        case when const_st = '4'
+                        case when (const_st = '4' and undconcrid = '')
                             or mid_get_access(vehcl_type) = 0 then 4::smallint
                             when direction = '0' then 1::smallint
                             else direction::smallint 
@@ -113,6 +114,7 @@ class comp_link_ni(component.component_base.comp_base):
                             else 0
                         end as tunnel,
                         case when road_cond = '0' then 0 else 1 end as paved,
+                        case when kind like '%16' or kind like '%16|%' then 1 else 0 end as uturn,                        
                         ownership::smallint as ownership,
                         case when kind like '%02' or kind like '%02|%' then 1
                             else 0
@@ -132,6 +134,7 @@ class comp_link_ni(component.component_base.comp_base):
                         folder,
                         a.id::varchar as feature_string,
                         md5(a.id::varchar) as feature_key,
+                        CASE WHEN a.const_st = '4' THEN True ELSE False END AS const_st,
                         ST_LineMerge( a.the_geom ) as the_geom
                   from org_r a
                   left join temp_link_name n

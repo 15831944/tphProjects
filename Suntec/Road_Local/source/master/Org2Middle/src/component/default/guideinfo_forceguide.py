@@ -208,16 +208,19 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         sqlcmd = """
                 INSERT INTO force_guide_tbl(
                     force_guide_id, nodeid, inlinkid, outlinkid,
-                    passlid, passlink_cnt, guide_type, position_type
+                    passlid, passlink_cnt, guide_type, position_type,
+                    is_patch_data
                 )
-                SELECT nextval('temp_link_forceguide_seq') as force_guide_id,
+                SELECT nextval('temp_link_forceguide_seq') AS force_guide_id,
                     nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type, 
-                    mid_get_position_type_by_links(inlinkid, outlinkid) as position_type
+                    mid_get_position_type_by_links(inlinkid, outlinkid) AS position_type,
+                    True AS is_patch_data
                 FROM (
-                    SELECT c.node_id_list[2] as nodeid, b.link_id_list[1] as inlinkid,
-                        b.link_id_list[array_upper(b.link_id_list, 1)] as outlinkid,
-                        (case when array_upper(b.link_id_list, 1) = 2 then null else array_to_string(b.link_id_list[2:array_upper(b.link_id_list, 1)-1], '|') end)::varchar as passlid,
-                        (array_upper(b.link_id_list, 1) - 2)::smallint as passlink_cnt,
+                    SELECT c.node_id_list[2] AS nodeid, 
+                        b.link_id_list[1] AS inlinkid,
+                        b.link_id_list[array_upper(b.link_id_list, 1)] AS outlinkid,
+                        (CASE WHEN array_upper(b.link_id_list, 1) = 2 THEN NULL ELSE array_to_string(b.link_id_list[2:array_upper(b.link_id_list, 1)-1], '|') END)::varchar AS passlid,
+                        (array_upper(b.link_id_list, 1) - 2)::smallint AS passlink_cnt,
                         d.guide_type
                     FROM mid_temp_patch_link_tbl b
                     LEFT JOIN mid_temp_patch_node_tbl c

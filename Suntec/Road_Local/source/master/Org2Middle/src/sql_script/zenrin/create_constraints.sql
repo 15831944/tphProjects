@@ -206,3 +206,8 @@ CREATE INDEX temp_zenrin_dummy_new_inlink_node_crossname_id_idx
   ON temp_crossname_path_after_delete_dummy_link
   USING btree
   (id);
+  
+CREATE INDEX temp_link_walked_link_id_idx
+ON temp_link_walked
+USING btree
+(link_id);  

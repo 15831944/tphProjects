@@ -31,45 +31,124 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
 
     def _make_poi_category_mapping(self):
         self.log.info('make temp_poi_category_mapping ...')
-        sqlcmd = '''
+        
+        
+#        sqlcmd = '''
+#            drop table if exists temp_poi_category_mapping;
+#            create table temp_poi_category_mapping
+#            as
+#            (
+#                with cat as 
+#                (
+#                    select distinct org_code, series, per_code,filename
+#                    from temp_poi_category
+#                    where genre_type not in ('0','1') or genre_type is null
+#                )
+#                    
+#                select p.poi_id as org_id1, 1000 as org_id2, cat.per_code, cat.filename
+#                from org_poi as p
+#                join cat
+#                on p.sub_cat = cat.org_code and p.series = cat.series
+#            
+#                union 
+#            
+#                select poi_id, 1000 as org_id2, cat.per_code, cat.filename
+#                from 
+#                (
+#                    select poi_id, sub_cat
+#                    from
+#                    (
+#                        select p.poi_id, sub_cat, row_number() over(partition by p.poi_id) as seq
+#                        from org_poi as p
+#                        left join cat
+#                        on p.sub_cat = cat.org_code 
+#                        and  p.series = cat.series
+#                        where per_code is null
+#                    ) as z 
+#                    where seq = 1
+#                ) as a
+#                join cat
+#                on a.sub_cat = cat.org_code and  cat.series is null 
+#            )    
+#        
+#            ''' 
+        
+        sqlcmd = '''    
+            drop table if exists temp_mid_poi;
+            create table temp_mid_poi
+            as
+            (
+                        
+                with cat as 
+                    (
+                        select distinct org_code, series, per_code,filename
+                        from temp_poi_category
+                        where ( genre_type not in ('0','1') or genre_type is null ) and poi_name is null
+                    ),
+                    cat_name as
+                    (
+                        select distinct org_code, series, poi_name, per_code,filename
+                        from temp_poi_category
+                        where ( genre_type not in ('0','1') or genre_type is null ) and poi_name is not null
+                    )
+                    
+                    select poi_id, per_code, filename
+                    from 
+                    (
+                    select p.poi_id ,  per_code,filename
+                    from org_poi as p
+                    join cat
+                    on p.sub_cat = cat.org_code and p.series = cat.series
+            
+                    union
+            
+                    select p.poi_id , per_code, filename
+                    from org_poi as p
+                    join cat_name
+                    on p.sub_cat = cat_name.org_code and p.series = cat_name.series
+                    and substring(p.offi_name,'.*?汽車') = cat_name.poi_name
+            
+                    union 
+            
+                    select poi_id, cat.per_code, filename
+                    from 
+                    (
+                        select poi_id, sub_cat
+                        from 
+                        (
+                            select p.poi_id, sub_cat,
+                                row_number() over(partition by p.poi_id) as seq
+                            from org_poi as p
+                            left join cat
+                            on p.sub_cat = cat.org_code and  p.series = cat.series
+                            where per_code is null
+                        ) as z 
+                        where seq = 1
+                    ) as a
+                    join cat
+                    on a.sub_cat = cat.org_code and  cat.series is null
+                    ) as b
+            
+            );
+            
             drop table if exists temp_poi_category_mapping;
             create table temp_poi_category_mapping
             as
             (
-                with cat as 
-                (
-                    select distinct org_code, series, per_code,filename
-                    from temp_poi_category
-                    where genre_type not in ('0','1') or genre_type is null
-                )
-                    
-                select p.poi_id as org_id1, 1000 as org_id2, cat.per_code, cat.filename
+                select p.poi_id as org_id1 , -1 as per_code, filename
                 from org_poi as p
-                join cat
-                on p.sub_cat = cat.org_code and p.series = cat.series
+                left join temp_mid_poi  as tp
+                on p.poi_id = tp.poi_id 
+                where tp.poi_id is null
             
                 union 
             
-                select poi_id, 1000 as org_id2, cat.per_code, cat.filename
-                from 
-                (
-                    select poi_id, sub_cat
-                    from
-                    (
-                        select p.poi_id, sub_cat, row_number() over(partition by p.poi_id) as seq
-                        from org_poi as p
-                        left join cat
-                        on p.sub_cat = cat.org_code 
-                        and  p.series = cat.series
-                        where per_code is null
-                    ) as z 
-                    where seq = 1
-                ) as a
-                join cat
-                on a.sub_cat = cat.org_code and  cat.series is null 
-            )    
-        
-            '''                   
+                select p.poi_id as org_id1, per_code, filename
+                from temp_mid_poi as p
+            
+            );
+
+        '''                  
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('temp_poi_category_mapping_org_id1_idx')

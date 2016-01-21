@@ -9,8 +9,9 @@ from component.rdf.hwy.highway_rdf import HighwayRDF
 from component.rdf.hwy.hwy_adjust_link_type_rdf import HwyAdjustLinkType
 from component.rdf.hwy.hwy_service_info_rdf import HwyServiceInfoRDF
 from component.rdf.hwy.hwy_store_rdf import HwyStoreRDF
+from component.rdf.hwy.hwy_tollgate_rdf import HwyTollgateRDF
 from component.rdf.hwy.hwy_mapping_rdf import HwyMappingRDF
-from component.rdf.hwy.hwy_node_addinfo_rdf import HwyNodeAddInfoRDF
+# from component.rdf.hwy.hwy_node_addinfo_rdf import HwyNodeAddInfoRDF
 from component.ni.hwy_pro.hwy_data_mng_pro import HwyDataMngNiPro
 from component.ni.hwy_pro.hwy_route_pro import HwyRouteNiPro
 from component.ni.hwy_pro.hwy_link_mapping_pro import HwyLinkMappingNiPro
@@ -20,6 +21,9 @@ from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryOutInfoRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryInInfoRDF
 from component.ni.hwy_pro.hwy_line_name_pro import HwyLineNameNiPro
 from component.ni.hwy_pro.hwy_facil_name_pro import HwyFacilNameNiPro
+from component.ni.hwy_pro.hwy_sapa_info_pro import HwySaPaInfoNiPro
+from component.ni.hwy_pro.hwy_node_add_info_pro import HwyNodeAddInfoNiPro
+from component.ni.hwy_pro.hwy_parallel_path_pro import HwyParallelPathNiPro
 
 
 class HighwayNiPro(HighwayRDF):
@@ -32,6 +36,7 @@ class HighwayNiPro(HighwayRDF):
         Constructor
         '''
         HighwayRDF.__init__(self, ItemName)
+        self.hwy_parallel = None
 
     def initialize(self):
         self.link_id_mapping = HwyLinkMappingNiPro()
@@ -46,9 +51,10 @@ class HighwayNiPro(HighwayRDF):
         self.service_info = HwyServiceInfoRDF()
         self.store = HwyStoreRDF()
         self.adjust_link = HwyAdjustLinkType()
-        self.node_addinfo = HwyNodeAddInfoRDF(self.data_mng,
-                                              'HwyNodeAddInfoNI')
-        self.hwy_toll = None  # HwyTollgateRDF()
+        self.node_addinfo = HwyNodeAddInfoNiPro(self.data_mng)
+        self.sapa_info = HwySaPaInfoNiPro()
+        self.hwy_toll = HwyTollgateRDF()
+        self.hwy_parallel = HwyParallelPathNiPro()
 
     def _Do(self):
         self.initialize()
@@ -70,6 +76,8 @@ class HighwayNiPro(HighwayRDF):
             self.hwy_line_name.Make()
             del self.hwy_line_name
             self.hwy_line_name = None
+        if self.sapa_info:
+            self.sapa_info.Make()
         if self.data_mng:
             self.data_mng.Make()
             # load Highway Main Link.
@@ -82,10 +90,11 @@ class HighwayNiPro(HighwayRDF):
             return 0
         # ## 高速路线
         self._make_hwy_route()
+        if self.hwy_parallel:
+            self.hwy_parallel.Make()
         if self.data_mng:
             # 加载高速road_code
             self.data_mng.load_hwy_road_code()
-#             self.data_mng.load_hwy_inout_link()
             self.data_mng.load_hwy_regulation()
             self.data_mng.load_tollgate()
             self.data_mng.load_hwy_ic_link()
@@ -122,8 +131,8 @@ class HighwayNiPro(HighwayRDF):
         if self.store:
             self.store.Make()
         # 调整link_type: Ramp ==> SAPA, Ramp ==> JCT
-        if self.adjust_link:
-            self.adjust_link.Make()
+#         if self.adjust_link:
+#             self.adjust_link.Make()
 
     def _make_ic_info(self):
         self.log.info('Making IC Info.')

@@ -100,6 +100,96 @@ class rdb_name_language_order(component.component_base.comp_base):
         for table_name, field_name in alter_list:
             if self.pg.IsExistTable(table_name):
                 self.__alterTableField(table_name, field_name)
+                
+        self.contents_update(alter_list)
+        
+    def contents_update(self, alter_list):
+        same_table_items = [] # [#1,#2,#3,...#n] #1: table name, #2...#n: column name
+        
+        cur_list = []
+        cur_table_name = ''
+        
+        for table_name, field_name in alter_list:
+            if table_name <> cur_table_name:
+                cur_list.append(table_name)
+                cur_list.append(field_name)
+                if cur_table_name <> '':
+                    same_table_items.append(cur_list)
+                cur_table_name = table_name
+            else:
+                cur_list.append(field_name)
+                
+        same_table_items.append(cur_list)
+        
+        for item in same_table_items:
+            # save sql of indexes
+            sql_indexes = []
+            sqlcmd = """
+                  select indexname, indexdef from pg_indexes 
+                  where tablename='%s';
+            """ %(item[0])
+            self.pg.execute2(sqlcmd)
+            rows = self.pg.fetchall2()
+            for row in rows:
+                sql_indexes.append(row[1])
+            
+            # backup target table
+            sqlcmd = """
+                drop table if exists [table]_pre_language_process;
+                create table [table]_pre_language_process
+                as
+                select * from [table];
+                create index [table]_pre_language_process_gid_idx 
+                    on [table]_pre_language_process 
+                    using btree 
+                    (gid);
+            """
+            sqlcmd = sqlcmd.replace('[table]', item[0])
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            
+            # get all column name with specified table
+            sqlcmd = """
+                SELECT a.attname as name  
+                    FROM pg_class as c,pg_attribute as a   
+                    where c.relname = '%s_pre_language_process' and a.attrelid = c.oid and a.attnum>0  
+            """ %(item[0])
+            
+            string = ''
+            self.pg.execute2(sqlcmd)
+            rows = self.pg.fetchall2()
+            for row in rows:
+                # join column dynamic
+                if row[0] not in item:
+                    string = string + 'a.' + row[0] + ','
+                    
+            for i in range(1, len(item)):
+                if i <> len(item)-1:
+                    string = string + chr(97 + i) + '.new_name ' + 'as ' + item[i] + ', '  # left join table's altername begins from 'b'
+                else:
+                    string = string + chr(97 + i) + '.new_name ' + 'as ' + item[i] + ' '
+                    
+            # join complete sql sentence
+            sqlcmd = """
+             drop table if exists %s;
+             select %s
+             into %s
+             from %s_pre_language_process as a
+            """ %(item[0], string, item[0],item[0])
+            
+            for i in range(1,len(item)):
+                sqlcmd = sqlcmd + 'left join temp_language_%s_%s as %s on a.gid = %s.gid\n' %(item[0], item[i], chr(97 + i),chr(97 + i) )
+            
+            sqlcmd = sqlcmd + ';'
+            
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            
+            # create indexes
+            for sql_index in sql_indexes:
+                self.pg.execute2(sql_index)
+                self.pg.commit2()
+        
     
     def __alterTableField(self, table_name, field_name):
         self.log.info('alter language order for %s of %s...' % (field_name, table_name))
@@ -160,25 +250,28 @@ class rdb_name_language_order(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
-        # update target table
-        sqlcmd = """
-                alter table %s rename column %s to %s_bak;
-                alter table %s add column %s varchar;
-                update %s as a set %s = b.new_name
-                from 
-                (
-                    select  a.gid, 
-                            (case when b.gid is null then a.%s_bak else b.new_name end) as new_name
-                    from %s as a
-                    left join %s as b
-                    on a.gid = b.gid
-                )as b
-                where a.gid = b.gid
-                """ % (table_name, field_name, field_name, 
-                       table_name, field_name, 
-                       table_name, field_name, field_name, table_name, update_table_name)
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+#        # update target table
+#        sqlcmd = """
+#                alter table %s rename column %s to %s_bak;
+#                alter table %s add column %s varchar;
+#                update %s as a set %s = b.new_name
+#                from 
+#                (
+#                    select  a.gid, 
+#                            (case when b.gid is null then a.%s_bak else b.new_name end) as new_name
+#                    from %s as a
+#                    left join %s as b
+#                    on a.gid = b.gid
+#                )as b
+#                where a.gid = b.gid
+#                """ % (table_name, field_name, field_name, 
+#                       table_name, field_name, 
+#                       table_name, field_name, 
+#                       field_name, 
+#                       table_name, 
+#                       update_table_name)
+#        self.pg.execute2(sqlcmd)
+#        self.pg.commit2()
         
         return 0
     
@@ -335,17 +428,39 @@ class name_operator_class():
         
         temp_name.sort(key=operator.itemgetter(0))
         
-        temp_used_language_list = []
+        temp_road_name_used_language_list = []
+        temp_road_number_used_language_list = []
         
         # add operation to support only one record in the same language
         new_name = []
+        new_road_number_name = []
+        
         if self.__is_support_one_record_in_same_language and self.__is_table_needs_one_record:
+            first_record_is_road_name = False
+            i = 0
             for (prior, one_name_new) in temp_name:
-                if temp_used_language_list.count(one_name_new[0]['lang']) == 0:
-                    temp_used_language_list.append(one_name_new[0]['lang'])
-                    new_name.append(one_name_new)
+                i = i + 1
+                if one_name_new[0]['type'] <> 'route_num':
+                    if temp_road_name_used_language_list.count(one_name_new[0]['lang']) == 0:
+                        temp_road_name_used_language_list.append(one_name_new[0]['lang'])
+                        new_name.append(one_name_new)
+                        if i == 1:
+                            first_record_is_road_name = True
+                    else:
+                        pass
                 else:
-                    pass
+                    if temp_road_number_used_language_list.count(one_name_new[0]['lang']) == 0:
+                        temp_road_number_used_language_list.append(one_name_new[0]['lang'])
+                        new_road_number_name.append(one_name_new)
+                    else:
+                        pass
+                    
+            if first_record_is_road_name:
+                if len(new_road_number_name) <> 0:
+                    new_name = new_name + new_road_number_name
+            else:
+                new_name = new_road_number_name
+                    
         else:
             for (prior, one_name_new) in temp_name:
                 new_name.append(one_name_new)

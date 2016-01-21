@@ -378,7 +378,42 @@ class CCheckERPFlag_NOTNULL(platform.TestCase.CTestCase):
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt != 0) 
-    
+
+class CCheckERPFlag_Valid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from (
+                select node_id,
+                    array_agg(erp_flag) as erp_flag_array
+                from (
+                    select a.node_id,b.link_id,b.start_node_id,b.end_node_id
+                        ,c.etc_lane_flag
+                        ,case when (d.link_add_info2 >> 1) & 3 != 0 then (d.link_add_info2 >> 1) & 3
+                            else 0
+                        end as erp_flag
+                    from rdb_node a
+                    left join rdb_link b
+                    on a.node_id in (b.start_node_id,b.end_node_id)
+                    left join rdb_link_add_info c
+                    on b.link_id = c.link_id and c.etc_lane_flag = 1
+                    left join rdb_link_add_info2 d
+                    on b.link_id = d.link_id and (d.link_add_info2 >> 1) & 3 != 0
+                    where (a.extend_flag >> 10) & 1 = 1
+                    and b.link_id is not null and c.link_id is not null 
+                    and b.iso_country_code in ('SGP','ZAF','ARE')
+                ) m
+                group by node_id
+            ) n
+            where not 
+            (
+                1 = any(n.erp_flag_array)
+                or 2 = any(n.erp_flag_array)
+                or 3 = any(n.erp_flag_array)
+            );
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0) 
+        
 class CCheckSafetyZoneFlag(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

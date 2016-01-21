@@ -17,7 +17,7 @@ class comp_update_sapa_link(component.component_base.comp_base):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Update_link_type')
+        component.component_base.comp_base.__init__(self, 'Update_sapa_link')
 #        self.proj_name = common.common_func.GetProjName()  
 #        self.proj_country = common.common_func.getProjCountry()
         
@@ -26,6 +26,7 @@ class comp_update_sapa_link(component.component_base.comp_base):
     
     def _Do(self):
         
+        self.__backup_link_tbl_before_update_sapa()
         self.__find_highway_sapa_link()
         
 #        #method 1
@@ -35,9 +36,35 @@ class comp_update_sapa_link(component.component_base.comp_base):
         #method 2
         self.__find_sapa_link()
         self.__update_sapa_link_rev2()
+        self.__backup_link_tbl_after_update_sapa()
         
-    
-            
+        
+    def __backup_link_tbl_before_update_sapa(self):
+        self.log.info('backup link_tbl before update sapa...')
+        sqlcmd = '''
+            drop table if exists temp_link_tbl_bak_before_update_sapa;
+            create table temp_link_tbl_bak_before_update_sapa
+            as
+            select * from link_tbl;
+
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        
+    def __backup_link_tbl_after_update_sapa(self):
+        self.log.info('backup link_tbl after update sapa...')
+        sqlcmd = '''
+            drop table if exists temp_link_tbl_bak_after_update_sapa;
+            create table temp_link_tbl_bak_after_update_sapa
+            as
+            select * from link_tbl
+
+        ''' 
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+        
+                  
     def __find_highway_sapa_link(self):
         
         self.log.info('find highway sapa link...')
@@ -55,6 +82,7 @@ class comp_update_sapa_link(component.component_base.comp_base):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        self.CreateIndex2('temp_highway_link_buffer_the_geom_idx')
         
         sqlcmd = '''
             drop table if exists temp_highway_sapa_link;
@@ -186,7 +214,10 @@ class comp_update_sapa_link(component.component_base.comp_base):
             update link_tbl as a
             set link_type = 7
             from temp_change_to_sapa_link as b
-            where a.link_id = b.link_id
+            where a.link_id = b.link_id and b.link_type not in (3,5)
+            and 
+            not ( b.road_type in (0,1) and b.link_type = 0 )
+            and not ( a.link_type in (1,2) and a.road_type in (0,1) )
 
         '''
         self.pg.execute2(sqlcmd)

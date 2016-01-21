@@ -110,6 +110,9 @@ class rdb_guideinfo_safety_zone(ItemBase):
         # 删除不位于起点camera与终点camera之间的safety zone link和accident zone link
         # school zone没有camera信息，不做处理
         #=======================================================================
+
+        self.log.info('Start deleting dummy safety_zone/accident_zone.') 
+                
         '备份'
         self.CreateTable2('rdb_guideinfo_safety_zone_bak_delete_dummy')
         self.CreateTable2('rdb_guideinfo_safety_zone')
@@ -174,9 +177,18 @@ class rdb_guideinfo_safety_zone(ItemBase):
                                 case when b.e_dis is null then -1
                                     else b.e_dis
                                 end as e_dis 
-                            from rdb_guideinfo_safety_zone_bak_delete_dummy a
+                            from (
+                                select m.*,n.featid
+                                from rdb_guideinfo_safety_zone_bak_delete_dummy m
+                                left join (
+                                    select distinct safetyzone_id,featid
+                                    from safety_zone_tbl 
+                                ) n
+                                on m.safetyzone_id = n.safetyzone_id
+                            ) a
                             left join temp_guideinfo_safetyalert b
-                            on a.link_id = b.link_id and a.direction - 2 = b.dir and b.type in (%START,%END)
+                            on a.featid = b.featid
+                            and a.link_id = b.link_id and a.direction - 2 = b.dir and b.type in (%START,%END)
                             where a.safety_type = %TYPE
                             order by a.safetyzone_id,a.gid
                         ) c group by safetyzone_id
@@ -213,4 +225,6 @@ class rdb_guideinfo_safety_zone(ItemBase):
             order by a.gid
         """
         self.pg.execute2(sqlcmd)
-        self.pg.commit2()                         
+        self.pg.commit2()
+
+        self.log.info('succeeded to delete dummy safety_zone/accident_zone.')                         

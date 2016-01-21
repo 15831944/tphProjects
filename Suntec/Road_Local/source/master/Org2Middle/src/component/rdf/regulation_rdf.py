@@ -28,6 +28,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.CreateTable2('regulation_item_tbl')
         
         self.__convert_regulation_oneway_link()
+        self.__convert_regulation_undcon_link()
         self.__convert_regulation_through_link()
         self.__convert_regulation_access_link()
         self.__make_linklist_for_linkdir()
@@ -89,6 +90,14 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         self.log.info('End convert regulation for oneway link.')
+    
+    def __convert_regulation_undcon_link(self):
+        
+        self.log.info('Begin convert regulation for under construction link...')
+        self.CreateFunction2('mid_convert_regulation_undcon_link')
+        self.pg.callproc('mid_convert_regulation_undcon_link')
+        self.pg.commit2()
+        self.log.info('End convert regulation for under construction link.')
         
     def __convert_regulation_through_link(self):
         

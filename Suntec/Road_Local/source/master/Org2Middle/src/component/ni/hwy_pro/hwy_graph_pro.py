@@ -7,6 +7,7 @@ Created on 2015-10-23
 from component.rdf.hwy.hwy_graph_rdf import HWY_PATH_ID
 import networkx as nx
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
+from component.rdf.hwy.hwy_def_rdf import ANGLE_45, ANGLE_80, ANGLE_180
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_URBAN_JCT
@@ -40,6 +41,10 @@ class HwyGraphNiPro(HwyGraphRDF):
         Constructor
         '''
         HwyGraphRDF.__init__(self, data, **attr)
+        self.data_mng = None
+
+    def set_data_mng(self, data_mng):
+        self.data_mng = data_mng
 
     def get_main_path(self, nodes, path_id, code_field=HWY_PATH_ID):
         '''通过间断的点求出整条本线。'''
@@ -190,8 +195,8 @@ class HwyGraphNiPro(HwyGraphRDF):
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
             link_type = data.get(HWY_LINK_TYPE)
-            if (data.get(HWY_PATH_ID) and
-                road_type == HWY_ROAD_TYPE_HWY1):  # 城市高速本线
+            if(data.get(HWY_PATH_ID) and
+               road_type == HWY_ROAD_TYPE_HWY1):  # 城市高速本线
                 continue
             if(road_type in (HWY_ROAD_TYPE_HWY0, HWY_ROAD_TYPE_HWY1)or  # 高速
                link_type == HWY_LINK_TYPE_SAPA):  # SAPA Link
@@ -302,7 +307,7 @@ class HwyGraphNiPro(HwyGraphRDF):
                             else:
                                 yield temp_path[1:], HWY_IC_TYPE_JCT
                             if self.is_sapa_path(temp_path, road_code,
-                                                  code_field, reverse):
+                                                 code_field, reverse):
                                 yield temp_path[1:], HWY_IC_TYPE_PA
                                 exist_sapa_facil = True
                     elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
@@ -426,8 +431,121 @@ class HwyGraphNiPro(HwyGraphRDF):
         self.add_edge(u, v, data)
         return orther_path_flg
 
-    def is_uturn_angle(self, angle):
+    def get_uturns(self, path, road_code,
+                   code_field=HWY_ROAD_CODE, reverse=False):
+        if reverse:
+            in_edge = (path[1], path[0])
+        else:
+            in_edge = (path[0], path[1])
+        node = path[-1]
+        main_nodes = self.get_main_link(node, road_code, code_field,
+                                        False, reverse)
+        if main_nodes:
+            for e_v in main_nodes:
+                if not reverse:
+                    out_edge = (node, e_v)
+                else:
+                    out_edge = (e_v, node)
+                if self._is_uturn(in_edge, out_edge, path,
+                                  road_code, code_field, reverse):
+                    yield e_v, True  # U-turn
+                else:
+                    yield e_v, False  # JCT
+
+    def is_uturn_angle(self, angle, default_angle=ANGLE_35):
         # 小于30度/大于330度
-        if angle < ANGLE_35 or angle > ANGLE_360 - ANGLE_35:
+        if angle < default_angle or angle > ANGLE_360 - default_angle:
             return True
         return False
+
+    def _is_uturn(self, in_edge, out_edge, path,
+                  road_code, code_field, reverse):
+        # ## 名称相似，且进入本线和退出本线夹角接近360左右
+        if set(in_edge) & set(out_edge):  # 相交
+            return False
+        angle = None
+#         name1 = self.get_line_name(in_edge[0], in_edge[1])
+#         name2 = self.get_line_name(out_edge[0], out_edge[1])
+#         if self.is_similar_name(name1, name2):
+#             angle = self.get_angle(in_edge, out_edge, reverse)
+#             if self.is_uturn_angle(angle):
+#                 return True
+        road_code1 = self[in_edge[0]][in_edge[1]].get(HWY_ROAD_CODE)
+        road_code2 = self[out_edge[0]][out_edge[1]].get(HWY_ROAD_CODE)
+        if self.data_mng.is_parallel_road(road_code1, road_code2):
+            if angle is None:
+                angle = self.get_angle(in_edge, out_edge, reverse)
+            # 角度<80度
+            if self.is_uturn_angle(angle, ANGLE_80):
+                # 角度<35度
+                if self.is_uturn_angle(angle, ANGLE_35):
+                    return True
+                if not self.angle_smaller_than_main(in_edge, out_edge, path,
+                                                    code_field, reverse):
+                    return True
+                # else:
+                    # self.log.warning('Smaller than main angle, '
+                    #                  'in_edge=%s, out_edge=%s' %
+                    #                  (in_edge, out_edge))
+            # else:
+                # self.log.warning('Angle=%s > 80, in_edge=%s, out_edge=%s' %
+                #                  (angle, in_edge, out_edge))
+        return False
+
+    def get_line_name(self, u, v):
+        data = self[u][v]
+        road_code = data.get(HWY_ROAD_CODE)
+        if road_code:
+            name_info = self.data_mng.get_line_name2(road_code)
+            if name_info:
+                name = name_info[0]
+                return name
+        return None
+
+    def angle_smaller_than_main(self, in_edge, out_edge, path,
+                                code_field, reverse=False):
+        '''角度小于本线之间的夹角'''
+        if reverse:  # 逆
+            first_outedge = (path[2], path[1])
+            last_outedge = (path[-1], path[-2])
+        else:
+            first_outedge = (path[1], path[2])
+            last_outedge = (path[-2], path[-1])
+        first_angle = self.get_angle(in_edge, first_outedge)
+        f_main_angle = self.get_main_angle(in_edge, code_field,
+                                           reverse=False)
+        if f_main_angle:
+            first_angle = abs(first_angle - ANGLE_180)
+            f_main_angle = abs(f_main_angle - ANGLE_180)
+            if first_angle < f_main_angle:  # 比本线夹角小
+                return True
+        last_angle = self.get_angle(last_outedge, out_edge, reverse)
+        t_main_angle = self.get_main_angle(out_edge, code_field,
+                                           reverse=False)
+        if t_main_angle:
+            last_angle = abs(last_angle - ANGLE_180)
+            t_main_angle = abs(t_main_angle - ANGLE_180)
+            if last_angle < t_main_angle:  # 比本线夹角小
+                return True
+        return False
+
+    def get_main_angle(self, edge, code_field, reverse=False):
+        '''两本线线的夹角'''
+        if reverse:
+            node = edge[0]
+        else:
+            node = edge[1]
+        road_code = self[edge[0]][edge[1]].get(code_field)
+        if not road_code:
+            self.log.error('No road_code. edge=%s' % edge)
+            return None
+        main_nodes = self.get_main_link(node, road_code, code_field,
+                                        True, reverse)
+        if main_nodes:
+            if reverse:
+                out_edeg = main_nodes[0], node,
+            else:
+                out_edeg = node, main_nodes[0]
+            angle = self.get_angle(edge, out_edeg, reverse)
+            return angle
+        return None

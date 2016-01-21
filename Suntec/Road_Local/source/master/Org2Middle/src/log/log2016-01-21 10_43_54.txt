@@ -1,0 +1,73 @@
+2016-01-21 10:43:54,111 - INFO: proj_rdf_module----start to process rdf_ase original data.
+2016-01-21 10:43:54,111 - INFO: spotguide_tbl----Start make spotguide_tbl.
+2016-01-21 10:44:05,312 - ERROR: DataBase----SQL excute error:
+            SELECT a.dp_node_id, a.originating_link_id, a.dest_link_id,
+                    CASE WHEN mdps='T' THEN 13 
+                    WHEN b.road_type in (0,1) THEN 1 
+                    ELSE 4 END AS jv_type,
+                   a.filename, a.side,
+                   mid_findpasslinkbybothlinks(
+                            originating_link_id,
+                            dest_link_id,
+                            0,
+                            dp_node_id,
+                            0,
+                            10
+                            ) as pathlink
+            FROM(
+            select distinct dp_node_id,originating_link_id,dest_link_id,
+                    filename,side
+            from rdfpl_gjv_lat_display_org
+            where filename is not null
+            )as a
+            left join link_tbl_bak_splitting as b
+            on a.originating_link_id = b.link_id;
+        
+2016-01-21 10:44:07,825 - ERROR: spotguide_tbl----Fail to make spotguide_tbl.
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 54, in _Do
+    self._get_gjv_junctions_info_by_gjv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 175, in _get_gjv_junctions_info_by_gjv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: column "mdps" does not exist
+LINE 3:                     CASE WHEN mdps='T' THEN 13 
+                                      ^
+
+2016-01-21 10:44:07,825 - ERROR: proj_rdf_module----error happened while processing rdf_ase original data.
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\subproj\proj_base.py", line 48, in Start2DealwithOriginalData
+    comp.Make()
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 54, in _Do
+    self._get_gjv_junctions_info_by_gjv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 175, in _get_gjv_junctions_info_by_gjv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: column "mdps" does not exist
+LINE 3:                     CASE WHEN mdps='T' THEN 13 
+                                      ^
+
+2016-01-21 10:44:07,825 - ERROR: System----error happened in org2middle...
+Traceback (most recent call last):
+  File "C:\My\Road\source\master\Org2Middle\src\main.py", line 21, in main
+    proj_object.Start2DealwithOriginalData()
+  File "C:\My\Road\source\master\Org2Middle\src\subproj\proj_base.py", line 48, in Start2DealwithOriginalData
+    comp.Make()
+  File "C:\My\Road\source\master\Org2Middle\src\component\component_base.py", line 31, in Make
+    bDoResult = self._Do()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 54, in _Do
+    self._get_gjv_junctions_info_by_gjv_table()
+  File "C:\My\Road\source\master\Org2Middle\src\component\rdf\guideinfo_spotguide_rdf.py", line 175, in _get_gjv_junctions_info_by_gjv_table
+    self.pg.execute2(sqlcmd)
+  File "C:\My\Road\source\master\Org2Middle\src\common\database.py", line 153, in execute2
+    self.pgcur2.execute(sqlcmd)
+ProgrammingError: column "mdps" does not exist
+LINE 3:                     CASE WHEN mdps='T' THEN 13 
+                                      ^
+

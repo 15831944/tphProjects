@@ -445,3 +445,26 @@ CREATE TABLE mid_temp_hwy_urban_jct_bak
   node_lid      character varying,
   ic_road_seq   integer
 );
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_sapa_ic_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE hwy_extend_sapa_poi_ni
+(
+  poi_id          bigint not null,
+  link_id         bigint not null,
+  x               float,
+  y               float
+); SELECT AddGeometryColumn('','hwy_extend_sapa_poi_ni','the_geom','4326','POINT',2);
