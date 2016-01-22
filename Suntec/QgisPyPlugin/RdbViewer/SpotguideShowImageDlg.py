@@ -21,6 +21,11 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
 
+        # graphic show members
+        self.mScene = QGraphicsScene()
+        self.graphicsViewShowImage.setScene(self.mScene)
+        self.mPixmapList = []
+
         featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
         inti = 0
         theFeature = QgsFeature()
@@ -40,6 +45,10 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
         self.pushButtonNext.clicked.connect(self.onPushButtonNext)
         self.connect(self.comboBoxOutlinkid, QtCore.SIGNAL('activated(QString)'), self.comboBoxOutlinkidChanged)
+
+    def resizeEvent(self, event):
+        self.showImageInGraphicsView()
+        return
 
     def disableAllControls(self):
         self.pushButtonPrev.setEnabled(False)
@@ -71,27 +80,28 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             #QMessageBox.information(self, "Show Spotguide", errMsg[0])
             return
 
-        scene = QGraphicsScene()
+        self.mPixmapList = []
         if pattern_dat is not None:
-            datParser = DatParser()
-            datParser.initFromMemory(errMsg, pattern_dat) # pattern picture
-            pixmap1 = QPixmap()
-            pixmap1.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
-            scene.addPixmap(self.getPixMapSizedByWidgt(pixmap1, self.graphicsViewShowImage))
+            patternDatParser = DatParser()
+            patternDatParser.initFromMemory(errMsg, pattern_dat) # pattern picture
+            patternPixmap = QPixmap()
+            patternPixmap.loadFromData(patternDatParser.getDatContentByIndex(errMsg, 0))
+            self.mPixmapList.append(patternPixmap)
 
         if arrow_dat is not None:
-            datParser = DatParser()
-            datParser.initFromMemory(errMsg, arrow_dat) # arrow picture
-            pixmap2 = QPixmap()
-            pixmap2.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
+            arrowDatParser = DatParser()
+            arrowDatParser.initFromMemory(errMsg, arrow_dat) # arrow picture
+            arrowPixmap = QPixmap()
+            arrowPixmap.loadFromData(arrowDatParser.getDatContentByIndex(errMsg, 0))
+            self.mPixmapList.append(arrowPixmap)
 
-            if datParser.hasPointlist():
-                vecCoors = datParser.getPointListCoordinatesByIndex(errMsg, datParser.getPointlistIndex())
+            if arrowDatParser.hasPointlist():
+                # draw the point list on the arrow picture
+                vecCoors = arrowDatParser.getPointListCoordinatesByIndex(errMsg, arrowDatParser.getPointlistIndex())
                 if errMsg[0] != '':
                     QMessageBox.information(self, "Show Spotguide", errMsg[0])
                     return
-
-                with QPainter(pixmap2) as thePainter:
+                with QPainter(self.mArrowPixmap) as thePainter:
                     for oneXYPair in vecCoors:
                         thePainter.setPen(QPen(QColor(255, 0, 0)))
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1])
@@ -100,19 +110,30 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1]-1)
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1]+1)
 
-                strPointList = datParser.getPointListStringByIndex(errMsg, datParser.getPointlistIndex())
+                # append pointlist information to the text box.
+                strPointList = arrowDatParser.getPointListStringByIndex(errMsg, arrowDatParser.getPointlistIndex())
                 if errMsg[0] != '':
                     QMessageBox.information(self, "Show Spotguide", errMsg[0])
                     return
-
                 strTemp = self.textEditFeatureInfo.toPlainText()
                 strTemp += """\n\npointlist:\n"""
                 strTemp += strPointList
                 self.textEditFeatureInfo.setText(strTemp)
-            scene.addPixmap(self.getPixMapSizedByWidgt(pixmap2, self.graphicsViewShowImage))
-        self.graphicsViewShowImage.setScene(scene)
+
+        self.showImageInGraphicsView()
         return
     
+    def showImageInGraphicsView(self):
+        # remove all items in member QGraphicsScene.
+        for oneItem in self.mScene.items():
+            self.mScene.removeItem(oneItem)
+
+        for onePixmap in self.mPixmapList:
+            self.mScene.addPixmap(self.getPixMapSizedByWidgt(onePixmap, self.graphicsViewShowImage))
+
+        self.mScene.setSceneRect(0, 0, self.graphicsViewShowImage.width()-5, self.graphicsViewShowImage.height()-5)
+        return
+
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
         attrList = theFeature.attributes()
