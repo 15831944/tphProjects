@@ -12,6 +12,7 @@ from RegulationShowInfoDlg import RegulationShowInfoDlg
 from BuildingStructureShowInfoDlg import BuildingStructureShowInfoDlg
 from CautionShowInfoDlg import CautionShowInfoDlg
 from ForceGuideShowInfoDlg import ForceGuideShowInfoDlg
+from GuideDlg import GuideDlg
 
 class GuideInfoCommonMapTool(QgsMapTool):
     def __init__(self, canvas):
@@ -93,6 +94,9 @@ class GuideInfoCommonMapTool(QgsMapTool):
 
         if ForceGuideShowInfoDlg.isMyFeature(theFeature) == True:
             return ForceGuideShowInfoDlg(self.mCanvas, theLayer, featureIdList)
+
+        if GuideDlg.isMyFeature(theFeature) == True:
+            return GuideDlg(self.mCanvas, theLayer, featureIdList)
 
         return GuideInfoCommonDlg(self.mCanvas, theLayer, featureIdList)
 

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GuideDlgDesign</class>
+ <widget class="QDialog" name="GuideDlgDesign">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>615</width>
+    <height>513</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Guide List</string>
+  </property>
+  <widget class="QSplitter" name="splitter">
+   <property name="geometry">
+    <rect>
+     <x>440</x>
+     <y>470</y>
+     <width>161</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QDialogButtonBox" name="button_box">
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="standardButtons">
+     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QSplitter" name="splitter_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>116</width>
+     <height>421</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+   <widget class="QPushButton" name="btnCrossName">
+    <property name="text">
+     <string>Crossname</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSignpostUc">
+    <property name="text">
+     <string>Signpost uc</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSpotguide">
+    <property name="text">
+     <string>Spotguide</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSignpost">
+    <property name="text">
+     <string>Signpost</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnLane">
+    <property name="text">
+     <string>Lane</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnRoadStructure">
+    <property name="text">
+     <string>Road Structure</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnBuildingStructure">
+    <property name="text">
+     <string>Building Structure</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnCaution">
+    <property name="text">
+     <string>Caution</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnForceguide">
+    <property name="text">
+     <string>Forceguide</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnNaturalGuidence">
+    <property name="text">
+     <string>Natural Guidence</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnHookturn">
+    <property name="text">
+     <string>Hookturn</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnTowardName">
+    <property name="text">
+     <string>Toward Name</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnTollStation">
+    <property name="text">
+     <string>Toll Station</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>GuideDlgDesign</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>440</x>
+     <y>470</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>GuideDlgDesign</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>440</x>
+     <y>470</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
