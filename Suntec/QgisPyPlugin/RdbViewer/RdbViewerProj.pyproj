@@ -24,6 +24,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="CautionShowInfoDlgDesign.ui" />
+    <Content Include="GuideDlgDesign.ui" />
     <Content Include="metadata.txt" />
     <Content Include="LaneShowImageDlgDesign.ui" />
     <Content Include="GuideInfoCommonDlgDesign.ui" />
@@ -33,6 +34,9 @@
   <ItemGroup>
     <Compile Include="ForceGuideShowInfoDlg.py" />
     <Compile Include="CautionShowInfoDlg.py" />
+    <Compile Include="GuideDataManager.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LaneShowImageDlg.py">
       <SubType>Code</SubType>
     </Compile>
@@ -48,6 +52,10 @@
     <Compile Include="resources.py" />
     <Compile Include="GuideInfoCommonDlg.py" />
     <Compile Include="SignpostShowImageDlg.py" />
+    <Compile Include="GuideDlg.py" />
+    <Compile Include="SpotguideDataItem.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
     <Compile Include="GuideInfoCommonMapTool.py" />

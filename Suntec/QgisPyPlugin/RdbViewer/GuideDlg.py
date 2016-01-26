@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 import os
 import psycopg2
+from GuideDataManager import GuideDataManager
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
@@ -37,9 +38,10 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
         self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
         self.mSelFeatureIds = selFeatureIds
-        self.mSelFeatureId = selFeatureIds[0]
         self.disableAllGuideBtns()
-        self.enableGuideBtns(self.mSelFeatureId)
+        self.enableGuideBtns()
+        #self.dataManager = GuideDataManager()
+        # todo: new a thread to initialise self.dataManager.
 
         self.btnSpotguide.clicked.connect(self.onBtnSpotguide)
         self.btnSignpost.clicked.connect(self.onBtnSignpost)
@@ -51,59 +53,72 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
         self.btnHookturn.clicked.connect(self.onBtnHookturn)
         self.btnNaturalGuidence.clicked.connect(self.onBtnNaturalGuidence)
         self.btnRoadStructure.clicked.connect(self.onBtnRoadStructure)
-        self.btnSignpostUc.clicked.connect(self.onBtnSignpostUc)
+        self.btnSignpostUc.clicked.connect(self.onBtnSignpostUC)
         self.btnTowardName.clicked.connect(self.onBtnTowardName)
         self.btnTollStation.clicked.connect(self.onBtnTollStation)
 
+        self.tabWidgetMain.tabBar().hide()
+        self.tabWidgetMain.setCurrentWidget(self.tabDefault)
+        #spotguide ui controls
+        self.spotguideScene = QGraphicsScene()
+        self.spotguidePixmapList = []
+        self.graphicsViewSpotguide.setScene(self.spotguideScene)
+
+        # lane ui controls
+
+
     def onBtnSpotguide(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnSpotguide""")
-        return
-    def onBtnSignpost(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnSignpost""")
-        return
-    def onBtnLane(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnLane""")
-        return
-    def onBtnBuildingStructure(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnBuildingStructure""")
-        return
-    def onBtnCaution(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnCaution""")
-        return
-    def onBtnCrossName(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnCrossName""")
-        return
-    def onBtnForceguide(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnForceguide""")
-        return
-    def onBtnHookturn(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnHookturn""")
-        return
-    def onBtnNaturalGuidence(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnNaturalGuidence""")
-        return
-    def onBtnRoadStructure(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnRoadStructure""")
-        return
-    def onBtnSignpostUc(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnSignpostUc""")
-        return
-    def onBtnTowardName(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnTowardName""")
-        return
-    def onBtnTollStation(self):
-        QMessageBox.information(self, "Guide dialog", """onBtnTollStation""")
+        self.tabWidgetMain.setCurrentWidget(self.tabSpotguide)
+        self.graphicsViewSpotguide
         return
 
-    def enableGuideBtns(self, theFeatureId):
+    def onBtnSignpost(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabSignpost)
+        return
+    def onBtnLane(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabLane)
+        return
+    def onBtnBuildingStructure(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabBuildingStructure)
+        return
+    def onBtnCaution(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabCaution)
+        return
+    def onBtnCrossName(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabCrossName)
+        return
+    def onBtnForceguide(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabForceguide)
+        return
+    def onBtnHookturn(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabHookturn)
+        return
+    def onBtnNaturalGuidence(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabNaturalGuidence)
+        return
+    def onBtnRoadStructure(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabRoadStructure)
+        return
+    def onBtnSignpostUC(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabSignpostUC)
+        return
+    def onBtnTowardName(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabTowardName)
+        return
+    def onBtnTollStation(self):
+        self.tabWidgetMain.setCurrentWidget(self.tabTollStation)
+        return
+
+    def enableGuideBtns(self):
         errMsg = ['']
-        theFeature = self.getFeatureByFeatureId(errMsg, theFeatureId)
-        if errMsg[0] <> '':
-            return
-        extend_flag = theFeature.attribute('extend_flag')
-        for key, value in self.mBitToFeatureDict.items():
-            if extend_flag & 2**key:
-                value.setEnabled(True)
+        for theFeatureId in self.mSelFeatureIds:
+            theFeature = self.getFeatureByFeatureId(errMsg, theFeatureId)
+            if errMsg[0] <> '':
+                return
+            extend_flag = theFeature.attribute('extend_flag')
+            for key, value in self.mBitToFeatureDict.items():
+                if extend_flag & 2**key:
+                    value.setEnabled(True)
         return
 
     def disableAllGuideBtns(self):

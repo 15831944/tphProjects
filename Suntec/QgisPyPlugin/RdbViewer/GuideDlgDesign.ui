@@ -6,112 +6,246 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>615</width>
-    <height>513</height>
+    <width>853</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Guide List</string>
   </property>
-  <widget class="QSplitter" name="splitter">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>470</y>
-     <width>161</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <widget class="QDialogButtonBox" name="button_box">
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-    <property name="standardButtons">
-     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QSplitter" name="splitter_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>116</width>
-     <height>421</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-   <widget class="QPushButton" name="btnCrossName">
-    <property name="text">
-     <string>Crossname</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnSignpostUc">
-    <property name="text">
-     <string>Signpost uc</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnSpotguide">
-    <property name="text">
-     <string>Spotguide</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnSignpost">
-    <property name="text">
-     <string>Signpost</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnLane">
-    <property name="text">
-     <string>Lane</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnRoadStructure">
-    <property name="text">
-     <string>Road Structure</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnBuildingStructure">
-    <property name="text">
-     <string>Building Structure</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnCaution">
-    <property name="text">
-     <string>Caution</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnForceguide">
-    <property name="text">
-     <string>Forceguide</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnNaturalGuidence">
-    <property name="text">
-     <string>Natural Guidence</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnHookturn">
-    <property name="text">
-     <string>Hookturn</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnTowardName">
-    <property name="text">
-     <string>Toward Name</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnTollStation">
-    <property name="text">
-     <string>Toll Station</string>
-    </property>
-   </widget>
-  </widget>
+  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="1,5">
+   <item row="1" column="1">
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QDialogButtonBox" name="button_box">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QSplitter" name="splitter_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QPushButton" name="btnCrossName">
+      <property name="text">
+       <string>Crossname</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnSignpostUc">
+      <property name="text">
+       <string>Signpost uc</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnSpotguide">
+      <property name="text">
+       <string>Spotguide</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnSignpost">
+      <property name="text">
+       <string>Signpost</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnLane">
+      <property name="text">
+       <string>Lane</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnRoadStructure">
+      <property name="text">
+       <string>Road Structure</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnBuildingStructure">
+      <property name="text">
+       <string>Building Structure</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnCaution">
+      <property name="text">
+       <string>Caution</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnForceguide">
+      <property name="text">
+       <string>Forceguide</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnNaturalGuidence">
+      <property name="text">
+       <string>Natural Guidence</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnHookturn">
+      <property name="text">
+       <string>Hookturn</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnTowardName">
+      <property name="text">
+       <string>Toward Name</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnTollStation">
+      <property name="text">
+       <string>Toll Station</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QTabWidget" name="tabWidgetMain">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>3</number>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>true</bool>
+     </property>
+     <property name="documentMode">
+      <bool>false</bool>
+     </property>
+     <property name="tabsClosable">
+      <bool>false</bool>
+     </property>
+     <property name="movable">
+      <bool>false</bool>
+     </property>
+     <widget class="QWidget" name="tabDefault">
+      <attribute name="title">
+       <string>Default</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabCrossName">
+      <attribute name="title">
+       <string>CrossName</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabSignpostUC">
+      <attribute name="title">
+       <string>SignpostUC</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabSpotguide">
+      <attribute name="title">
+       <string>Spotguide</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3" columnstretch="2,1">
+       <item row="0" column="0" rowspan="2">
+        <widget class="QGraphicsView" name="graphicsViewSpotguide"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSplitter" name="splitter_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Outlink</string>
+          </property>
+          <property name="indent">
+           <number>-1</number>
+          </property>
+         </widget>
+         <widget class="QComboBox" name="comboBoxSpotguideOutlinkid"/>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QTextEdit" name="textEditSpotguideInfo">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabSignpost">
+      <attribute name="title">
+       <string>Signpost</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabLane">
+      <attribute name="title">
+       <string>Lane</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabRoadStructure">
+      <attribute name="title">
+       <string>RoadStructure</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabBuildingStructure">
+      <attribute name="title">
+       <string>BuildingStructure</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabCaution">
+      <attribute name="title">
+       <string>Caution</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabForceguide">
+      <attribute name="title">
+       <string>Forceguide</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabNaturalGuidence">
+      <attribute name="title">
+       <string>NaturalGuidence</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabHookturn">
+      <attribute name="title">
+       <string>Hookturn</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabTowardName">
+      <attribute name="title">
+       <string>TowardName</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabTollStation">
+      <attribute name="title">
+       <string>TollStation</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+  <zorder>tabWidgetMain</zorder>
+  <zorder>splitter</zorder>
+  <zorder>splitter_2</zorder>
  </widget>
  <resources/>
  <connections>

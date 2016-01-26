@@ -7,8 +7,6 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "QtGraphicViewTest", "..\QtG
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "RdbNaviSimulator", "..\RdbNaviSimulator\RdbNaviSimulator.pyproj", "{DED120CE-CBFD-4CBC-BDFB-68067F322A80}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dijkstra", "..\dijkstra\dijkstra.vcxproj", "{D00935AE-3F73-49C8-8602-1ED17F2DE030}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dl", "..\..\..\..\Desktop\20160107_deep_learning\caffe\dl.vcxproj", "{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01-ErrorShow", "..\01-ErrorShow\01-ErrorShow.vcxproj", "{1F169C3B-A907-402D-B2EF-C0BB21E90AF9}"
@@ -59,20 +57,6 @@ Global
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|Win32.ActiveCfg = Release|Any CPU
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|x64.ActiveCfg = Release|Any CPU
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|x86.ActiveCfg = Release|Any CPU
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|Win32.Build.0 = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|x64.ActiveCfg = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Debug|x86.ActiveCfg = Debug|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|Any CPU.ActiveCfg = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|Win32.ActiveCfg = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|Win32.Build.0 = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|x64.ActiveCfg = Release|Win32
-		{D00935AE-3F73-49C8-8602-1ED17F2DE030}.Release|x86.ActiveCfg = Release|Win32
 		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Mixed Platforms.Build.0 = Debug|Win32

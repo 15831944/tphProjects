@@ -21,7 +21,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
 
-        # graphic show members
+        # members shown in graphic view.
         self.mScene = QGraphicsScene()
         self.graphicsViewShowImage.setScene(self.mScene)
         self.mPixmapList = []
