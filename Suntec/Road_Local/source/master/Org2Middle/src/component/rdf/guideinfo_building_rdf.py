@@ -100,7 +100,7 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
             on a.poi_id = b.feature_id
             join rdf_file as c
             on c.file_id = b.file_id
-            where c.file_type > 18 and  c.file_type < 24 and b.owner = 'P'
+            where c.file_type in (5,6,9,19,20,21,22,23,24) and b.owner = 'P'
       
             
         '''

@@ -2466,6 +2466,50 @@ CREATE TABLE hwy_link_road_code_info
 
 ------------------------------------------------------------------------
 --
+CREATE TABLE highway_node_add_info_bak
+(
+  gid              integer PRIMARY KEY not null,
+  link_id          BIGINT not null,
+  node_id          BIGINT not null,
+  toll_flag        SMALLINT not null DEFAULT 0,
+  no_toll_money    SMALLINT not null DEFAULT 0,
+  ---------------------------------------------
+  facility_num     SMALLINT not null,
+  up_down          SMALLINT not null,
+  facility_id      INTEGER not null,
+  seq_num          SMALLINT not null DEFAULT 0,
+  dir_s_node       BIGINT,
+  dir_e_node       BIGINT,
+  etc_antenna      SMALLINT not null DEFAULT 0,
+  enter            SMALLINT not null DEFAULT 0,
+  exit             SMALLINT not null DEFAULT 0,
+  jct              SMALLINT not null DEFAULT 0,
+  sa               SMALLINT not null DEFAULT 0,
+  pa               SMALLINT not null DEFAULT 0,
+  gate             SMALLINT not null DEFAULT 0,
+  un_open          SMALLINT not null DEFAULT 0,
+  dummy            SMALLINT not null DEFAULT 0,
+  ---------------------------------------------
+  toll_type_num    SMALLINT not null DEFAULT 0,
+  non_ticket_gate  smallint not null DEFAULT 0,
+  check_gate       smallint not null DEFAULT 0,
+  single_gate      smallint not null DEFAULT 0,
+  cal_gate         smallint not null DEFAULT 0,
+  ticket_gate      smallint not null DEFAULT 0,
+  nest             smallint not null DEFAULT 0,
+  uturn            smallint not null DEFAULT 0,
+  not_guide        smallint not null DEFAULT 0,
+  normal_toll      smallint not null DEFAULT 0,
+  etc_toll         smallint not null DEFAULT 0,
+  etc_section      smallint not null DEFAULT 0,
+  name             CHARACTER VARYING(4096),
+  tile_id          INTEGER not null,
+  no_toll_flag     smallint not null,  -- 1: no toll, 0: toll
+  link_lid         CHARACTER VARYING
+);
+
+------------------------------------------------------------------------
+--
 CREATE TABLE mid_temp_hwy_ic_path
 (
    gid            serial not null primary key,
@@ -2802,7 +2846,8 @@ CREATE TABLE hwy_store
   store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
   chain_name        character varying(254) DEFAULT '',
   priority          double precision,
-  service_kind      character varying
+  service_kind      character varying,
+  per_code          bigint
 );
 
 ------------------------------------------------------------------------
@@ -2869,7 +2914,8 @@ CREATE TABLE hwy_ic_store
   store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
   chain_name        character varying(254) DEFAULT '',
   priority          double precision,
-  service_kind      character varying
+  service_kind      character varying,
+  per_code          bigint not null
 );
 ------------------------------------------------------------------------
 CREATE TABLE hook_turn_tbl
@@ -3062,7 +3108,9 @@ link_type  smallint
 create table temp_sapa_link
 (
 gid           serial,
-link_array    bigint[]
+link_array    bigint[],
+road_end	integer,
+general_sapa_percent double precision
 );
 
 CREATE TABLE hwy_tollgate
@@ -3245,3 +3293,21 @@ CREATE TABLE temp_org_link_under_construction
 (
 	link_id bigint not null primary key
 ); SELECT AddGeometryColumn('','temp_org_link_under_construction','the_geom','4326','LINESTRING',2);
+
+create table link_tbl_bak_ramp_roadtype
+as
+(
+	select * from link_tbl
+);
+
+create table temp_sapa_paths_start_ic
+(
+link_path bigint[]
+) ;
+
+------------------------------------------------------------------------
+CREATE TABLE hwy_tollgate_name
+(
+  node_id  bigint not null primary key,
+  name     character varying(1024)
+);

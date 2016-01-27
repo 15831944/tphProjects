@@ -705,3 +705,9 @@ CREATE INDEX temp_forbid_entry_regulation_linkrow_linkids_idx
   ON temp_forbid_entry_regulation_linkrow
   USING btree
   (linkids);
+  
+--------------------------------------------------------------
+CREATE INDEX temp_spotguide_mdps_pictures_pic_name_idx
+  ON temp_spotguide_mdps_pictures
+  USING btree
+  (pic_name);

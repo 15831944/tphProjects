@@ -7065,3 +7065,119 @@ BEGIN
 	return new_passlid;
 END;
 $$;
+----------------------------------------------------------------------------------------------
+--slope
+----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION rdb_get_fraction_for_slope(slope_geom geometry, link_geom geometry)
+RETURNS double precision[]
+  LANGUAGE plpgsql VOLATILE
+  AS
+$$ 
+DECLARE
+	s_pos double precision;
+	e_pos double precision;
+BEGIN
+	if st_contains(link_geom, st_startpoint(slope_geom)) = TRUE then
+	
+		s_pos = ST_Line_Locate_Point(link_geom, st_startpoint(slope_geom));
+		if st_contains(link_geom, st_endpoint(slope_geom)) = TRUE then
+			e_pos = ST_Line_Locate_Point(link_geom, st_endpoint(slope_geom));
+		else
+			if st_contains(slope_geom, st_startpoint(link_geom)) = TRUE then
+				e_pos = 0.0;
+			else
+				e_pos = 1.0;
+			end if;
+		end if;
+		
+	elseif st_contains(link_geom, st_endpoint(slope_geom)) = TRUE then
+	
+		e_pos = ST_Line_Locate_Point(link_geom, st_endpoint(slope_geom));
+		if st_contains(slope_geom, st_startpoint(link_geom)) = TRUE then
+			s_pos = 0.0;
+		else
+			s_pos = 1.0;
+		end if; 
+	
+	else
+	
+		if ST_Line_Locate_Point(slope_geom, st_startpoint(link_geom)) > ST_Line_Locate_Point(slope_geom, st_endpoint(link_geom)) then
+			s_pos = 1.0;
+			e_pos = 0.0;
+		else
+			s_pos = 0.0;
+			e_pos = 1.0;		
+		end if;
+
+	end if;
+	
+	return array[s_pos, e_pos];
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rdb_get_point_num_slope(link_geom geometry, point_geom geometry)
+RETURNS integer
+  LANGUAGE plpgsql VOLATILE
+  AS
+$$ 
+DECLARE
+	num_all integer;
+	num integer;
+BEGIN
+	num_all = ST_NumPoints(link_geom);
+	num = 0;
+	while num < num_all loop
+		if ST_Equals(ST_PointN(link_geom, num), point_geom) then
+			return num;
+		end if;
+	end loop;
+	
+	return -1
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rdb_add_point_in_line_slope(link_geom geometry, slope_pos double precision)
+RETURNS double precision[]
+  LANGUAGE plpgsql VOLATILE
+  AS
+$$ 
+DECLARE
+	point_near geometry;
+	point_next geometry;
+	
+	point_near_pos double precision;
+	point_next_pos double precision;
+	
+	num_near integer;
+	num_next integer;
+	
+	point_x double precision;
+	point_y double precision;
+	
+	new_geom geometry;
+BEGIN
+	point_near = ST_Line_Interpolate_Point(link_geom, slope_pos);
+	num_near = rdb_get_point_num_slope(link_geom, point_near);
+	point_near_pos = ST_Line_Locate_Point(link_geom, point_near);
+	if point_near_pos > slope_pos then
+		num_next = num_near - 1;
+	else
+	  num_next = num_near + 1;
+	end if;
+	point_next = ST_PointN(link_geom, num_next);
+	point_next_pos = ST_Line_Locate_Point(link_geom, point_next);
+	
+	point_x = abs((point_near_pos - slope_pos)/(point_next_pos - point_near_pos))*ST_X(point_next) + 
+						abs((point_next_pos - slope_pos)/(point_next_pos - point_near_pos))*ST_X(point_near);
+	point_y = abs((point_near_pos - slope_pos)/(point_next_pos - point_near_pos))*ST_Y(point_next) + 
+						abs((point_next_pos - slope_pos)/(point_next_pos - point_near_pos))*ST_Y(point_near);
+						
+	if point_near_pos > slope_pos then
+		new_geom = ST_AddPoint(link_geom,ST_SRID(ST_MakePoint(point_x, point_y),4326),num_near)
+	else
+	  new_geom = ST_AddPoint(link_geom,ST_SRID(ST_MakePoint(point_x, point_y),4326),num_next);
+	end if;
+
+	return new_geom;
+END;
+$$;

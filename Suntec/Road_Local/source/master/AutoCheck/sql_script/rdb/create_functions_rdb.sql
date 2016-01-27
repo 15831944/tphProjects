@@ -479,10 +479,12 @@ DECLARE
 	tmpLastNodeArray	bigint[];
 	tmpPathCount		integer;
 	tmpPathIndex		integer;
+	tmpPathArr          bigint[];
 	
 	nIndex				integer;
 	nCount				integer;
 	link_array 			bigint[];
+	azm                 integer;
 BEGIN	
 	--rstPathArray
 	tmpPathArray		:= ARRAY[null];
@@ -496,7 +498,10 @@ BEGIN
 		for rec in
 			select	(case when start_node_id = tmpLastNodeArray[tmpPathIndex] then end_node_id else start_node_id end) as nextnode, 
 					link_id as nextlink, 
-					link_type, road_type, function_code
+					link_type, road_type, function_code,
+					case when start_node_id = tmpLastNodeArray[tmpPathIndex] then fazm
+						 when end_node_id = tmpLastNodeArray[tmpPathIndex] then tazm
+						 end as azm
 			from rdb_link
 			where	(
 						(dir = 1)
@@ -530,7 +535,18 @@ BEGIN
 			elseif rec.link_type in (3,5)  then
 				--raise info 'main node:%',nHwyNode;
 				--raise info 'IC:link_id=%,function_code=%,link_type=%',cast(rec.nextlink as varchar),rec.function_code,rec.link_type;
-
+				if tmpPath is not null then
+					tmpPatharr=(string_to_array(tmpPath,'|'))::bigint[];
+					select case when start_node_id = tmpLastNodeArray[tmpPathIndex] then fazm
+							 when end_node_id = tmpLastNodeArray[tmpPathIndex] then tazm
+							 end into azm
+					from rdb_link 
+					where link_id=(tmpPatharr[array_upper(tmpPatharr,1)]::bigint);
+					if rdb_get_angle_sequence_temp(rec.azm::smallint,azm::smallint)>=130 then
+						continue;
+					end if;
+				end if;
+				
 				if rec.road_type not in (0,1) then
 				
 					raise exception 'ramp of link (JCT/IC) error: link_id=%,road_type=%,function_code=%,link_type=%',cast(rec.nextlink as varchar),rec.road_type,rec.function_code,rec.link_type;
@@ -1678,5 +1694,20 @@ BEGIN
 	END LOOP;
 
 	return true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rdb_get_angle_sequence_temp(fstart_azm smallint, fend_azm smallint)
+	RETURNS smallint
+	LANGUAGE PLPGSQL
+AS $$
+DECLARE
+	fstart double precision;
+	fend double precision;
+BEGIN
+	 fstart := (fstart_azm + 32768) * 360.0 / 65536.0;
+	 fend := (fend_azm + 32768) * 360.0 / 65536.0;
+	 
+	 return abs(abs(fstart - fend) - 180.0)::smallint;
 END;
 $$;

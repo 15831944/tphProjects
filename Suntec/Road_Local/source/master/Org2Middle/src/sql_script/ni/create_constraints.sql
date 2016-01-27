@@ -380,3 +380,9 @@ CREATE INDEX mid_hwy_org_hw_junction_mid_linkid_merged_the_geom_idx
   ON mid_hwy_org_hw_junction_mid_linkid
   USING gist
   (the_geom);
+
+-----------------------------------------------------
+CREATE UNIQUE INDEX mid_temp_toll_poi_relation_node_id_idx
+  ON mid_temp_toll_poi_relation
+  USING btree
+  (node_id);

@@ -66,10 +66,13 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         return 0
 
     def _makeJV_CHN(self):
-
+            self.CreateTable2('temp_spotguide_mdps_pictures')
+            mdps_pic_list = common.common_func.GetPath('mdps_pic_list')
+            with open(mdps_pic_list, 'a+') as f:
+                self.pg.copy_from2(f, 'temp_spotguide_mdps_pictures')
+            
             # create temp junction view table.
             self.CreateTable2('temp_guideinfo_spotguide_junction_view_chn')
-
             sqlcmd = """
             insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                 passlid,passlink_cnt,direction,
@@ -78,7 +81,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 select nodeid,inlinkid,outlinkid,passlinks,pass_cnt,
                 direction,guideattr,namekind,guideclass,
                 patternno,arrowno,
-                case when pattern_file_type = 3 and road_type in (0,1) then 1 
+                case when D.pic_name is not null then 13
+                    when pattern_file_type = 3 and road_type in (0,1) then 1 
                     when pattern_file_type = 3 and road_type not in (0,1) then 4
                     when pattern_file_type = 13 and road_type in (0,1) then 2
                     when pattern_file_type = 13 and road_type not in (0,1) then 5
@@ -105,6 +109,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 ) as M
                 left join link_tbl_bak_splitting as C
                 on M.inlinkid = C.link_id
+                left join temp_spotguide_mdps_pictures as D
+                on M.patternno=D.pic_name
             );
             """
             self.pg.execute2(sqlcmd)
@@ -143,7 +149,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
     def _get_gjv_junctions_info_by_gjv_table(self):
         sqlcmd = '''
             SELECT a.dp_node_id, a.originating_link_id, a.dest_link_id,
-                    CASE WHEN mdps='T' THEN 13 
+                    CASE WHEN a.mdps='Y' THEN 13 
                     WHEN b.road_type in (0,1) THEN 1 
                     ELSE 4 END AS jv_type,
                    a.filename, a.side,
@@ -198,7 +204,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         '''
         sqlcmd = '''
             SELECT a.dp_node_id, a.originating_link_id, a.out_link_id,
-                    CASE WHEN a.mdps='T' THEN 13 
+                    CASE WHEN a.mdps='Y' THEN 13 
                     WHEN b.road_type in (0,1) THEN 1 
                     ELSE 4 END AS jv_type,
                    a.filename, a.side,
@@ -262,7 +268,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         self.log.info('make ejv spotguide illust info')
         sqlcmd = '''
             select distinct dp_node_id,originating_link_id,out_link_id,
-                CASE WHEN mdps='T' THEN 13 
+                CASE WHEN c.mdps='Y' THEN 13 
                 WHEN d.road_type in (0,1) THEN 1 
                 ELSE 4 END AS jv_type,
                 c.filename,

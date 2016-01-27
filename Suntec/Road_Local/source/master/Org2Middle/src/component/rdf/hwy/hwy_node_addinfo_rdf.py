@@ -56,7 +56,11 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
         # 添加坐标信息(the_geom)——给QGis显示用
         self._add_the_geom()
         self._check_toll_add_info()
-        self._check_facility_num()
+        if not self._check_facility_num():
+            # 备分facility_num出错的记录
+            self._backup_facility_num_failed_add_info()
+            # 更新设施番号数目和seq_num
+            self._update_facility_num()
         self._check_repeat_add_link()
 
     def _make_toll_node_add_info(self):
@@ -462,8 +466,6 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
         add_link_changed = {}
         for info in self._get_add_info_data():
             add_linkid, tile_id, add_node_ids, inout_list = info[0:4]
-            if add_linkid == 87889705:
-                pass
             if len(set(add_node_ids)) > 1:
                 self.log.warning('Number of add node > 1. link_id=%s'
                                  % add_linkid)
@@ -1037,23 +1039,24 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
     def _check_facility_num(self):
         self.log.info('Check facility number.')
         sqlcmd = """
-        SELECT count(a.link_id)
+        SELECT distinct a.link_id
           FROM (
-            SELECT link_id, facility_num
+            SELECT distinct link_id, facility_num
               FROM highway_node_add_info
           ) AS a
           LEFT JOIN (
-            SELECT link_id, COUNT(link_id) as num
+            SELECT distinct link_id, COUNT(link_id) as num
               FROM highway_node_add_info
               group by link_id
           ) AS b
           on a.link_id = b.link_id
           where facility_num <> num
         """
-        self.pg.execute2(sqlcmd)
-        row = self.pg.fetchone2()
-        if row[0]:
-            self.log.error('Check Facility_num Failed.')
+        link_id = None
+        for row in self.get_batch_data(sqlcmd):
+            link_id = row[0]
+            self.log.warning('Check Facility_num Failed. link_id=%s' % link_id)
+        if link_id:
             return False
         return True
 
@@ -1094,6 +1097,89 @@ class HwyNodeAddInfoRDF(HwyNodeAddInfo):
           ORDER BY add_link_id;
         """
         return self.get_batch_data(sqlcmd)
+
+    def _backup_facility_num_failed_add_info(self):
+        '''备分facility_num出错的记录。'''
+        self.CreateTable2('highway_node_add_info_bak')
+        sqlcmd = """
+        INSERT INTO highway_node_add_info_bak(
+                      gid, link_id, node_id, toll_flag,
+                       no_toll_money, facility_num, up_down, facility_id,
+                       seq_num, dir_s_node, dir_e_node, etc_antenna,
+                       enter, exit, jct, sa,
+                       pa, gate, un_open, dummy,
+                       toll_type_num, non_ticket_gate, check_gate, single_gate,
+                       cal_gate, ticket_gate, nest, uturn,
+                       not_guide, normal_toll, etc_toll, etc_section,
+                       name, tile_id, no_toll_flag, link_lid)
+        (
+        SELECT gid, link_id, node_id, toll_flag,
+               no_toll_money, facility_num, up_down, facility_id,
+               seq_num, dir_s_node, dir_e_node, etc_antenna,
+               enter, exit, jct, sa,
+               pa, gate, un_open, dummy,
+               toll_type_num, non_ticket_gate, check_gate, single_gate,
+               cal_gate, ticket_gate, nest, uturn,
+               not_guide, normal_toll, etc_toll, etc_section,
+               name, tile_id, no_toll_flag, link_lid
+          FROM highway_node_add_info
+          WHERE link_id in (
+                SELECT distinct a.link_id
+                  FROM (
+                    SELECT distinct link_id, facility_num
+                      FROM highway_node_add_info
+                  ) AS a
+                  LEFT JOIN (
+                    SELECT distinct link_id, COUNT(link_id) as num
+                      FROM highway_node_add_info
+                      group by link_id
+                  ) AS b
+                  on a.link_id = b.link_id
+                  where facility_num <> num
+          )
+        )
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _update_facility_num(self):
+        '''更新设施番号数目和seq_num'''
+        self.log.info('Update facility num of add info.')
+        sqlcmd = """
+        SELECT array_agg(gid) as gids
+          FROM (
+            SELECT gid, a.link_id, num
+              FROM highway_node_add_info AS a
+              inner JOIN (
+                SELECT distinct a.link_id, num
+                  FROM (
+                    SELECT distinct link_id, facility_num
+                      FROM highway_node_add_info
+                  ) AS a
+                  LEFT JOIN (
+                    SELECT distinct link_id, COUNT(link_id) as num
+                      FROM highway_node_add_info
+                      group by link_id
+                  ) AS b
+                  on a.link_id = b.link_id
+                  where facility_num <> num
+              ) AS c
+              ON a.link_id = c.link_id
+              order by link_id, gid
+          ) as d
+          group by link_id
+        """
+        sqlcmd2 = """
+        UPDATE highway_node_add_info SET facility_num = %s, seq_num = %s
+          WHERE gid = %s;
+        """
+        for (gids,) in self.get_batch_data(sqlcmd):
+            seq_num = 1
+            facility_num = len(gids)
+            for gid in gids:
+                self.pg.execute2(sqlcmd2, (facility_num, seq_num, gid))
+                seq_num += 1
+        self.pg.commit2()
 
 
 # =============================================================================

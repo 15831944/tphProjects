@@ -1440,7 +1440,9 @@ class CCheckRoadTypeMatching_Nostra(platform.TestCase.CTestCase):
             
 class CCheckRampClass(platform.TestCase.CTestCase):
     def _do(self):
-
+            if self.pg.CreateFunction_ByName('rdb_get_angle_sequence_temp') == -1:
+                return 0
+            
             if self.pg.CreateFunction_ByName('check_ramp_atnode') == -1:
                 return 0
         

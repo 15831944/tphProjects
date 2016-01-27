@@ -1,0 +1,2 @@
+2016-01-27 16:17:17,746 - INFO: proj_rdf_module----start to process rdf_hkg original data.
+2016-01-27 16:17:17,746 - INFO: spotguide_tbl----Start make spotguide_tbl.

@@ -403,14 +403,15 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.log.info('Start Loading Highway IC(Ramp/JCT/SAPA) Link.')
         self.pg.connect2()
         sqlcmd = """
-                SELECT a.link_id, a.s_node, a.e_node, a.one_way_code, a.link_type, 
-                    a.road_type, a.display_class, a.toll, a.fazm, a.tazm, a.tile_id, 
-                    a.length, a.road_name, a.road_number, b.extend_flag 
-                FROM mid_temp_hwy_ic_link a
-                LEFT JOIN link_tbl b
-                    ON a.link_id = b.link_id
-                where b.const_st = false
-            """
+        SELECT a.link_id, a.s_node, a.e_node, a.one_way_code,
+               a.link_type, a.road_type, a.display_class, a.toll,
+               a.fazm, a.tazm, a.tile_id, a.length,
+               a.road_name, a.road_number, b.extend_flag
+        FROM mid_temp_hwy_ic_link a
+        LEFT JOIN link_tbl b
+        ON a.link_id = b.link_id
+        where b.const_st = false
+        """
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info

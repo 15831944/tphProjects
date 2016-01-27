@@ -31,7 +31,7 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         # 表单temp_base_link_tbl记录指定层所有link的基本信息（主要与验证连通性相关的link属性）
         # 表单temp_links_to_search记录连通性验证过程中将要探索的link，已被探索过的link会从该表单中删除
         # 上述表单在连通性验证结束之后会被删除
-        self.logger.info('Now it is preparing data...')
+        self.logger.info('Begin preparing data...')
         
         sqlcmd = """
                 DROP TABLE IF EXISTS temp_base_link_tbl;
@@ -87,21 +87,21 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-        self.logger.info('Now it is preparing data end.')
+        self.logger.info('End preparing data.')
         return True
     
     def _check_level14_road_network_connectivity(self):
         
         # 验证level14道路连通性
-        self.logger.info('Now it is checking isolated road network from rdb_link...')
+        self.logger.info('Begin checking isolated road network from rdb_link...')
         
         self._make_temp_common_tbl()
         
-        # 表单temp_rdb_walked_link_tbl记录level14 link与所属'岛'的对照关系
+        # 表单temp_rdb_region_walked_link_layer0_tbl记录level14 link与所属'岛'的对照关系
         
         sqlcmd = """
-                DROP TABLE IF EXISTS temp_rdb_walked_link_tbl;
-                CREATE TABLE temp_rdb_walked_link_tbl
+                DROP TABLE IF EXISTS temp_rdb_region_walked_link_layer0_tbl;
+                CREATE TABLE temp_rdb_region_walked_link_layer0_tbl
                 (
                     link_id bigint primary key,
                     island_id bigint,
@@ -118,7 +118,7 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         # 为方便在postgis上查看'岛'与link的对照关系，更新link形点
         self._update_the_geom_in_isolated_tbl()
         
-        self.logger.info('Now it is checking isolated road network from rdb_link end.')  
+        self.logger.info('End checking isolated road network from rdb_link.')  
         
         return True
     
@@ -126,7 +126,7 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         
         # 验证Region层道路连通性
         region_table_name = """rdb_region_link_layer%s_tbl""" % (str(layer_no))
-        self.logger.info('Now it is checking isolated road network from ' + region_table_name + '...')
+        self.logger.info('Begin checking isolated road network from ' + region_table_name + '...')
         
         self._make_temp_common_tbl(region_table_name)
         
@@ -156,14 +156,14 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         # 作成region层的'岛'与level14的'岛'的对照关系，以便验证道路分层是否导致孤岛
         self._make_region_island_to_level14_island_rel(layer_no)
         
-        self.logger.info('Now it is checking isolated road network from ' + region_table_name + ' end.')
+        self.logger.info('End checking isolated road network from ' + region_table_name + '.')
         
         return True
     
-    def _fill_isolated_tbl(self, table_name = 'temp_rdb_walked_link_tbl'):
+    def _fill_isolated_tbl(self, table_name = 'temp_rdb_region_walked_link_layer0_tbl'):
         
         # 作成指定层的 link与所属'岛'的对照关系
-        self.logger.info('Now it is finding isolated road network ...')
+        self.logger.info('Begin finding isolated road network ...')
         
         self.pg.CreateFunction_ByName('find_isolated_road_network_from_tbl')
         sqlcmd = """
@@ -173,13 +173,13 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-        self.logger.info('Now it is finding isolated road network end.')
+        self.logger.info('End finding isolated road network .')
         return True
     
-    def _update_the_geom_in_isolated_tbl(self, isolated_tbl = 'temp_rdb_walked_link_tbl', ref_tbl = 'rdb_link'):
+    def _update_the_geom_in_isolated_tbl(self, isolated_tbl = 'temp_rdb_region_walked_link_layer0_tbl', ref_tbl = 'rdb_link'):
         
         # 更新孤岛中link的形点信息，以便在postgis上查看
-        self.logger.info('Now it is updating geometry for isolated road network ...')
+        self.logger.info('Begin updating geometry for isolated road network ...')
         
         sqlcmd = """
                 UPDATE %s a
@@ -191,10 +191,10 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-        self.logger.info('Now it is updating geometry for isolated road network end.')
+        self.logger.info('End updating geometry for isolated road network .')
         return True
     
-    def _make_region_island_to_level14_island_rel(self, layer_no = '4', rdf_tbl = 'temp_rdb_walked_link_tbl'):
+    def _make_region_island_to_level14_island_rel(self, layer_no = '4', rdf_tbl = 'temp_rdb_region_walked_link_layer0_tbl'):
         
         # 作成region层的'岛'与level14的'岛'的对照关系，以便验证道路分层是否导致孤岛
         region_island_id_list = []
@@ -203,7 +203,7 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         region_mapping_tbl = """rdb_region_layer%s_link_mapping""" % (str(layer_no))
         region_island_to_level14_island_rel_tbl = """region_layer%s_island_to_level14_island_rel_tbl""" % (str(layer_no))
         
-        self.logger.info('Now it is creating a relationship between region layer' + str(layer_no) + ' island and level14 island...')
+        self.logger.info('Begin creating a relationship between region layer' + str(layer_no) + ' island and level14 island...')
         
         sqlcmd = """
                 DROP TABLE IF EXISTS %s;
@@ -279,7 +279,7 @@ class CCheckConnectivity(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-        self.logger.info('Now it is creating a relationship between region layer' + str(layer_no) + ' island and level14 island end.')
+        self.logger.info('End creating a relationship between region layer' + str(layer_no) + ' island and level14 island.')
         return True
     
     def _delete_no_use_tbl(self):

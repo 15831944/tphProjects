@@ -1833,3 +1833,9 @@ AS
 		on a.regulation_id = b.regulation_id
 	WHERE a.condtype = 1 and a.cond_id is null
 );
+
+--------------------------------------------------------------------------------------------------------
+CREATE TABLE temp_spotguide_mdps_pictures
+(
+   pic_name varchar
+);

@@ -334,7 +334,7 @@ CREATE TABLE temp_simplifying_admin_zone_edge_simple
   gid serial not null primary key,
   a_polygon_gid integer,
   b_polygon_gid integer,
-  simplify_para float default 0.00005,
+  simplify_para float default 0.00009,
   simplify_scale float default 1.0,
   i_geom geometry,
   i_simple_geom geometry
@@ -350,6 +350,12 @@ CREATE TABLE temp_simplifying_admin_zone_simple
   the_simple_geom geometry
 );
 
+CREATE TABLE temp_link_out_admin_tile
+(
+	ad_code integer not null,
+	tile_id integer not null,
+	order0_id integer not null
+);
 
 create table temp_region_promote_link_fc
 (
@@ -1380,12 +1386,27 @@ create table temp_tile_level_14_park
 	tile_y	integer
 );SELECT AddGeometryColumn('','temp_tile_level_14_park','the_geom','4326','POLYGON',2);
 
-CREATE TABLE temp_org_slope
+CREATE TABLE temp_org2middle_slope
 (
-  rdb_link_id 	bigint NOT NULL,
+  middle_link_id 	bigint NOT NULL,
   org_link_id 	bigint NOT NULL,
   slope_value 	integer NOT NULL
-);SELECT AddGeometryColumn('','temp_org_slope','slope_shape','4326','LINESTRING',2);SELECT AddGeometryColumn('','temp_org_slope','link_geom','4326','LINESTRING',2);
+);SELECT AddGeometryColumn('','temp_org2middle_slope','slope_shape','4326','LINESTRING',2);SELECT AddGeometryColumn('','temp_org2middle_slope','middle_geom','4326','LINESTRING',2);
+
+CREATE TABLE temp_middle_slope
+(
+  middle_link_id 	bigint NOT NULL,
+  link_pos_s	double precision NOT NULL,
+  link_pos_e	double precision NOT NULL,
+  slope_value	integer NOT NULL
+);SELECT AddGeometryColumn('','temp_middle_slope','middle_shape','4326','LINESTRING',2)
+
+CREATE TABLE temp_middle2rdb_slope
+(
+  rdb_link_id 	bigint NOT NULL,
+  middle_link_id 	bigint NOT NULL,
+  slope_value 	integer NOT NULL
+);SELECT AddGeometryColumn('','temp_middle2rdb_slope','slope_shape','4326','LINESTRING',2);SELECT AddGeometryColumn('','temp_middle2rdb_slope','rdb_geom','4326','LINESTRING',2);
 
 CREATE TABLE temp_rdb_slope
 (

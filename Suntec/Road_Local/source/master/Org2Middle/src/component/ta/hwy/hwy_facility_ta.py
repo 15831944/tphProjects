@@ -129,7 +129,7 @@ class HwyFacilityTa(HwyFacilityRDF):
             distance = min(distance)
             self._insert_into_store_info((road_code, road_seq, updown_c,
                                           cat_id, subcat, chain_id, chain_name,
-                                          distance, service_kind))
+                                          distance, service_kind, percode))
         self.pg.commit1()
         self.log.info('End Make Facility Stores.')
 
@@ -168,10 +168,10 @@ class HwyFacilityTa(HwyFacilityRDF):
         sqlcmd = '''
         INSERT INTO hwy_store(road_code, road_seq, updown_c,
                               store_cat_id, sub_cat, store_chain_id,
-                              chain_name, priority, service_kind)
+                              chain_name, priority, service_kind, per_code)
         VALUES(%s, %s, %s, %s,
                %s, %s, %s, %s,
-               %s)
+               %s, %s)
         '''
         self.pg.execute1(sqlcmd, parm)
 
@@ -765,7 +765,7 @@ class HwyFacilityTa(HwyFacilityRDF):
                 continue
             self._store_ic_store_info((road_code, road_seq, updown_c, node_id,
                                        cat_id, subcat, chain_id, chain_name,
-                                       distance, service_kind))
+                                       distance, service_kind, percode))
         self.pg.commit1()
 
     def _get_ic_out_service_info(self):
@@ -845,15 +845,17 @@ class HwyFacilityTa(HwyFacilityRDF):
     def _store_ic_store_info(self, parm):
         ''''''
         sqlcmd = '''
-        INSERT INTO hwy_ic_store(road_code, road_seq, updown_c, node_id,
-                                 store_cat_id, sub_cat, store_chain_id,
-                                 chain_name, priority, service_kind)
-        VALUES(%s, %s, %s, %s,
+        INSERT INTO hwy_ic_store(road_code, road_seq, updown_c,
+                                 node_id, store_cat_id, sub_cat,
+                                 store_chain_id, chain_name, priority,
+                                 service_kind, per_code)
+        VALUES(%s, %s, %s,
                %s, %s, %s,
-               %s, %s, %s)
+               %s, %s, %s,
+               %s, %s)
         '''
         self.pg.execute1(sqlcmd, parm)
-    
+
     def _get_next_main_link_path(self, in_node, pathes, road_code, horizontal_degrees):
         # 求得和路径相同的main link
         next_main_link_pathes = []

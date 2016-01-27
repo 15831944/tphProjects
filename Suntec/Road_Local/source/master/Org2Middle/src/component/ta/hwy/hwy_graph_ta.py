@@ -59,6 +59,11 @@ class HwyGraphTa(HwyGraphRDF):
                 yield visited + [child]
                 stack.pop()
                 visited.pop()
+            elif not self.check_regulation([u] + visited + [child]):
+                # print visited[-1]
+                yield visited
+                stack.pop()
+                visited.pop()
             elif (self._outlink_is_hov(child) and
                   self._inlink_exist_hov(child)):
                 yield visited + [child]
@@ -114,6 +119,12 @@ class HwyGraphTa(HwyGraphRDF):
                 visited.pop()
             elif self._is_conn_hwy_both_link(parent):  # 到达双向通行高速
                 yield visited + [parent]
+                stack.pop()
+                visited.pop()
+            elif not self.check_regulation([v] + visited + [parent],
+                                           reverse=True):
+                # print visited[-1]
+                yield visited
                 stack.pop()
                 visited.pop()
             elif (self._outlink_exist_hov(parent) and

@@ -22,7 +22,7 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
         """
         self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
         return
-            
+    
         if self.comp_factory != None:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('rawdata'))    #revise the rawdata about phoneme
@@ -46,9 +46,10 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             
             # Ramp RoadType
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
-            
+
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))            
             self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
+
             # Node Height
             self.AddComponent(self.comp_factory.CreateOneComponent('Node_Height'))            
             #park

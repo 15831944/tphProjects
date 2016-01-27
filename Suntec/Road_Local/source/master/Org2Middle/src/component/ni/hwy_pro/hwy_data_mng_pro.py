@@ -14,6 +14,9 @@ from component.ni.hwy_pro.hwy_graph_pro import HwyGraphNiPro
 from component.ni.hwy_pro.hwy_graph_pro import HWY_FIRST_ICS_LINK
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC, HWY_PATH_TYPE_IC
+from component.rdf.hwy.hwy_graph_rdf import HWY_TOLL_FLAG
+from component.rdf.hwy.hwy_graph_rdf import HWY_NODE_NAME
+from component.rdf.hwy.hwy_data_mng_rdf import NODE_TOLL_FLAG
 
 
 class HwyDataMngNiPro(HwyDataMngRDF):
@@ -36,6 +39,20 @@ class HwyDataMngNiPro(HwyDataMngRDF):
     def initialize(self):
         self._graph = HwyGraphNiPro()  # 高速link图
         self._graph.set_data_mng(self)
+
+    def load_tollgate(self):
+        '''加载收费站'''
+        sqlcmd = """
+          SELECT distinct node_tbl.node_id, name
+          FROM node_tbl
+          LEFT JOIN hwy_tollgate_name as b
+          ON node_tbl.node_id = b.node_id
+          where toll_flag = 1;
+        """
+        for node_id, node_name in self.get_batch_data(sqlcmd):
+            data = {HWY_TOLL_FLAG: NODE_TOLL_FLAG,
+                    HWY_NODE_NAME: node_name}
+            self._graph.add_node(node_id, data)
 
     def load_hwy_main_link(self):
         '''load Highway Main Link.'''

@@ -155,7 +155,8 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         self.log.info('Begin converting force guide patch node to link...')
         
         # 作成表单temp_force_guide_patch_link_tbl记录force guide关联的link信息，作成：
-        # 1、从temp_force_guide_patch_node_tbl中取一条记录中任意相邻两点算路，得到一段路径
+        # 1、从temp_force_guide_patch_node_tbl中取一条记录中任意相邻两点算路，得到一段路径.
+        #   为保证得到所想的路径(不偏离)，建议相邻Node间不应超过3条link，否则会报错
         # 2、将一条记录的所有node算路所获路径连在一起，即为当前force guide对应的link
         self.CreateTable2('mid_temp_patch_link_tbl')
         self.CreateFunction2('mid_findpasslinkbybothnodes')
@@ -184,6 +185,8 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        # 默认配置中第二个形点为引导点，据此修改强制引导路径（补丁）：
+        # 引导点之后的路径保留；引导点之前的路径仅保留与之相连的link，其他删除。
         self.CreateTable2('mid_temp_patch_link_tbl')
         self.CreateFunction2('mid_update_force_guide_temp_patch_link_tbl')
         self.pg.callproc('mid_update_force_guide_temp_patch_link_tbl')
@@ -254,6 +257,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()  
         
+        # 若补丁与元数据提供的强制引导数据存在相同的路径，优先保留补丁数据
         sqlcmd = """
                 INSERT INTO force_guide_tbl (
                     force_guide_id, nodeid, inlinkid, outlinkid, passlid,

@@ -5,6 +5,7 @@ Created on 2015-10-26
 @author: hcz
 '''
 from component.rdf.hwy.hwy_prepare_rdf import HwyPrepareRDF
+from component.rdf.hwy.hwy_link_mapping import HwyLinkMapping
 
 
 class HwyPrepareNiPro(HwyPrepareRDF):
@@ -18,10 +19,10 @@ class HwyPrepareNiPro(HwyPrepareRDF):
         '''
         HwyPrepareRDF.__init__(self, ItemName)
 
-    def _DoCreateTable(self):
+    def _DoCreateIndex(self):
         return 0
 
-    def _DoCreateIndex(self):
+    def _DoCreateTable(self):
         return 0
 
     def _Do(self):

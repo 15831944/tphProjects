@@ -328,6 +328,11 @@ CREATE INDEX temp_simplifying_admin_zone_edge_simple_b_polygon_gid_idx
   USING btree
   (b_polygon_gid );
 
+CREATE INDEX temp_simplifying_admin_zone_edge_simple_i_geom_idx
+  ON temp_simplifying_admin_zone_edge_simple
+  USING gist
+  (i_geom );
+
 CREATE INDEX temp_simplifying_admin_zone_simple_ad_code_polygon_gid_idx
   ON temp_simplifying_admin_zone_simple
   USING btree

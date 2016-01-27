@@ -1228,7 +1228,7 @@ class rdb_traffic(ItemBase):
                 select  type as info_flag,
                     dir as direction,
                     eventcode as code,
-                    null::smallint as quantifier,
+                    quantifier,
                     ref as reference_flag,
                     null::smallint as referent,
                     urgency,

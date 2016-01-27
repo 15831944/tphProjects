@@ -222,12 +222,15 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                           FROM org_gc
                           WHERE nametyp & 4 <> 4
                           ORDER BY id,
-                                   sol,  -- left, right
                                    (nametyp & 1) desc,   -- official name
                                    (nametyp & 16) desc,  -- Street Name
                                    (nametyp & 8) desc,   -- Brunnel Name
                                    (nametyp & 32) desc,  -- Locality Name
                                    (nametyp & 64) desc,  -- Postal Street Name
+                                   (case when mid_get_phoneme(id::bigint, 4110, sol, fullname, 
+                                                         namelc, nametyp::character varying) is null then 1
+                                         else 0 end),                                
+                                   sol,  -- left, right
                                    namelc,
                                    fullname
                    ) AS A

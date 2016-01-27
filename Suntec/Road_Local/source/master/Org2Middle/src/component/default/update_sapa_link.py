@@ -18,12 +18,10 @@ class comp_update_sapa_link(component.component_base.comp_base):
         Constructor
         '''
         component.component_base.comp_base.__init__(self, 'Update_sapa_link')
-#        self.proj_name = common.common_func.GetProjName()  
-#        self.proj_country = common.common_func.getProjCountry()
+
         
     
-    
-    
+     
     def _Do(self):
         
         self.__backup_link_tbl_before_update_sapa()
@@ -34,8 +32,13 @@ class comp_update_sapa_link(component.component_base.comp_base):
 #        self.__updata_sapa_link()
         
         #method 2
+#        self.__find_sapa_link()
+#        self.__update_sapa_link_rev2()
+
+        #method 3
         self.__find_sapa_link()
-        self.__update_sapa_link_rev2()
+        self.__update_sapa_link_rev3()
+
         self.__backup_link_tbl_after_update_sapa()
         
         
@@ -162,14 +165,14 @@ class comp_update_sapa_link(component.component_base.comp_base):
         self.pg.commit2()
        
     
-    def __find_sapa_link(self):   
+    def __find_sapa_link_bak(self):   
         self.log.info('find sapa link...')
         self.CreateFunction2('mid_find_sapa_links_rev2')
         self.CreateFunction2('mid_change_sapa')
         self.CreateTable2('temp_sapa_link')
         
         sqlcmd = '''
-            select mid_change_sapa(40)
+            select mid_change_sapa(30)
             '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
@@ -192,7 +195,40 @@ class comp_update_sapa_link(component.component_base.comp_base):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+
+    def __find_sapa_link(self):   
+        self.log.info('find sapa link...')
+        self.CreateFunction2('mid_statistic_sapa_link_length')
+        self.CreateFunction2('mid_find_sapa_links_rev3')
+        self.CreateFunction2('mid_change_sapa')
+        self.CreateTable2('temp_sapa_link')
+        
+        sqlcmd = '''
+            select mid_change_sapa(30,100)
+            '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
     
+        sqlcmd = '''
+            drop table if exists temp_general_change_to_sapa_link;
+            create table temp_general_change_to_sapa_link
+            as
+            (
+                select b.* 
+                from link_tbl as b
+                join 
+                (
+                    select distinct unnest(a.link_array) as link_id 
+                    from temp_sapa_link as a
+                    where a.general_sapa_percent < 14
+                ) as c
+                on b.link_id = c.link_id
+                where b.link_type not in (3,5,7)
+            )
+            
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()    
         
     def __updata_sapa_link(self):
         
@@ -223,10 +259,35 @@ class comp_update_sapa_link(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+    def __update_sapa_link_rev3(self):
+        self.log.info('update link_type by method 3...')
+        sqlcmd = '''
+            update link_tbl as a
+            set link_type = 7
+            from temp_general_change_to_sapa_link as b
+            where a.link_id = b.link_id and b.link_type not in (3,5)
+            and 
+            not ( b.road_type in (0,1) and b.link_type = 0 )
+            and not ( a.link_type in (1,2) and a.road_type in (0,1) )
+
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
         
+    def __change_ic_to_sapa(self):
+        self.log.info('change ic links which surround sapa link...')
+        self.CreateFunction2('mid_find_sapa_paths_start_ic')
+        self.CreateFunction2('mid_find_sapa_paths_start_ic_exec')
+        self.CreateTable2('temp_sapa_paths_start_ic')
         
+        sqlcmd = '''
+            select mid_find_sapa_paths_start_ic_exec(15)
         
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         
+
         
         
         

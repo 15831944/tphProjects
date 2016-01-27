@@ -1721,10 +1721,10 @@ class HwyFacilityNiPro(HwyFacilityRDF):
           select distinct a.road_code, a.updown_c, a.road_seq,
                  b.name as facil_name
           from mid_temp_hwy_ic_path as a
-          left join temp_hwy_facil_name_ni as b
+          inner join temp_hwy_facil_name_ni as b
           on a.road_seq = b.junction_id
-          left join mid_hwy_org_hw_junction_mid_linkid_merged as c
-          on a.road_seq = c.hw_pid and b.junction_id = c.id
+          inner join mid_hwy_org_hw_junction_mid_linkid_merged as c
+          on a.road_code = c.hw_pid and b.junction_id = c.id
           where b.name is not null
           )
         """
@@ -1735,14 +1735,11 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         INSERT INTO mid_temp_hwy_facil_name(road_code, updown_c,
                                             road_seq, facil_name)
         (
-            select road_code, updown_c, road_seq, t.toward_name as facil_name
+            SELECT road_code, updown_c, road_seq, t.name as facil_name
             from mid_temp_hwy_ic_path as ic
-            left join towardname_tbl as t
-            on ic.node_id = t.nodeid
-            where facilcls_c = 6 and
-                  t.guideattr = 7 and
-                  t.namekind = 2 and
-                  t.toward_name is not null
+            left join hwy_tollgate_name as t
+            on ic.node_id = t.node_id
+            where facilcls_c = 6 and t.name is not null
         )
         '''
         self.pg.execute1(sqlcmd)

@@ -13,7 +13,7 @@ from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
 from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.jdb.hwy.hwy_graph import HwyGraph
-from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NUM
+from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NUM, HWY_IC_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY0
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY1
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NAME
@@ -198,6 +198,11 @@ class HwyGraphRDF(HwyGraph):
 #             elif self._is_conn_hwy_both_link(child):  # 到达双向通行高速
 #                 stack.pop()
 #                 visited.pop()
+            elif not self.check_regulation([u] + visited + [child]):
+                # print visited[-1]
+                yield visited
+                stack.pop()
+                visited.pop()
             elif (self._outlink_is_hov(child) and
                   self._inlink_exist_hov(child)):
                 stack.pop()
@@ -253,6 +258,12 @@ class HwyGraphRDF(HwyGraph):
 #             elif self._is_conn_hwy_both_link(parent):  # 到达双向通行高速
 #                 stack.pop()
 #                 visited.pop()
+            elif not self.check_regulation([v] + visited + [parent],
+                                           reverse=True):
+                # print visited[-1]
+                yield visited
+                stack.pop()
+                visited.pop()
             elif (self._outlink_exist_hov(parent) and
                   self._inlink_is_hov(parent)):
                 stack.pop()
@@ -650,6 +661,9 @@ class HwyGraphRDF(HwyGraph):
                     self.exit_nwy_inner_link(path, reverse=True))
                    ):
                     continue
+                if(facilcls in HWY_IC_TYPE_SAPA and
+                   self.sapa_inout_on_one_line(path)):
+                    continue
                 types.add((facilcls, HWY_INOUT_TYPE_IN))
         if len(out_nodes) > 1:
             raise nx.NetworkXError('Multi Out Main Links. node=%s ' % node)
@@ -669,10 +683,30 @@ class HwyGraphRDF(HwyGraph):
                     self.exit_nwy_inner_link(path, reverse=False))
                    ):
                     continue
+                if(facilcls in HWY_IC_TYPE_SAPA and
+                   self.sapa_inout_on_one_line(path)):
+                    continue
                 types.add((facilcls, HWY_INOUT_TYPE_OUT))
         if len(in_nodes) > 1:
             raise nx.NetworkXError('Multi In Main Links. node=%s ' % node)
         return types
+
+    def sapa_inout_on_one_line(self, path):
+        '''SAPA出入口同条线上。'''
+        first_link = path[0:2]
+        last_link = path[-2:]
+        last_link.reverse()
+        if first_link == last_link:
+            return True
+        first_link.reverse()
+        first_link = tuple(first_link)
+        last_link = tuple(last_link)
+        all_links = zip(path[0:], path[1:])
+        if first_link in all_links[1:]:
+            return True
+        if last_link in all_links[:-1]:
+            return True
+        return False
 
     def get_all_facil(self, node, road_code, code_field=HWY_ROAD_CODE,
                       cutoff=MAX_CUT_OFF):
@@ -892,9 +926,9 @@ class HwyGraphRDF(HwyGraph):
             # print 'Not UTurn:', in_edge, out_edge, self.get_angle(in_edge, out_edge, reverse)
         return False
 
-    def is_uturn_angle(self, angle):
+    def is_uturn_angle(self, angle, default_angle=ANGLE_30):
         # 小于30度/大于330度
-        if angle < ANGLE_30 or angle > ANGLE_360 - ANGLE_30:
+        if angle < default_angle or angle > ANGLE_360 - default_angle:
             return True
         return False
 

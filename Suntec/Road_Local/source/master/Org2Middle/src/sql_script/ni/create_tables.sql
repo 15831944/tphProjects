@@ -468,3 +468,26 @@ CREATE TABLE hwy_extend_sapa_poi_ni
   x               float,
   y               float
 ); SELECT AddGeometryColumn('','hwy_extend_sapa_poi_ni','the_geom','4326','POINT',2);
+
+------------------------------------------------------------------------
+CREATE TABLE temp_hwy_urban_jct_enter_ni
+(
+  junc_id         bigint not null
+);
+------------------------------------------------------------------------
+CREATE TABLE temp_hwy_jct_exit_name_ni
+(
+  junc_id         bigint not null,
+  seq_nm          bigint not null,
+  language        integer not null,
+  name            character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_toll_poi_relation
+(
+  poi_id          bigint not null primary key,
+  link_id         bigint not null,
+  node_id         bigint not null,
+  road_type       smallint not null
+);

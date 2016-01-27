@@ -420,8 +420,8 @@ BEGIN
 			select	(case when s_node = tmpLastNodeArray[tmpPathIndex] then e_node else s_node end) as nextnode, 
 					link_id as nextlink, 
 					link_type, road_type, function_class,one_way_code,
-					case when s_node=tmpLastNodeArray[tmpPathIndex] then fazm 
-					     when e_node=tmpLastNodeArray[tmpPathIndex] then tazm
+					case when s_node=tmpLastNodeArray[tmpPathIndex] then mid_cal_zm(the_geom, 1) 
+					     when e_node=tmpLastNodeArray[tmpPathIndex] then mid_cal_zm(the_geom, -1)
 					     end as azm 
 			from link_tbl
 			where	(
@@ -453,21 +453,19 @@ BEGIN
 					)
 		loop
 			-- set road end flag, current link is road end point
-			bRoadEnd	:= False;
+			bRoadEnd	:= False; 
 			-- raise INFO 'nextnode = %', rec.nextnode;
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 			if tmpPath is not null then
 				tmpPatharr=(string_to_array(tmpPath,'|'))::bigint[];
-				select case when s_node = tmpLastNodeArray[tmpPathIndex] then fazm
-							when e_node = tmpLastNodeArray[tmpPathIndex] then tazm
+				select case when s_node = tmpLastNodeArray[tmpPathIndex] then mid_cal_zm(the_geom, 1)
+							when e_node = tmpLastNodeArray[tmpPathIndex] then mid_cal_zm(the_geom, -1)
 							end into azm
 				from link_tbl
 				where link_id=(tmpPatharr[array_upper(tmpPatharr,1)]::bigint);
 				-- raise info 'rec.azm= % ,azm= %, angle= %',rec.azm,azm,mid_get_angle_sequence_temp(rec.azm,azm);
-				if mid_get_angle_sequence_temp(rec.azm,azm)>100 then
-					continue;
-				end if;
-			end if;     
+			end if;  
+			  
 			-- no proper connected link, here is a complete path
 			if not (
 				        (rec.road_type in (0, 1, 2, 3, 4, 5, 6, 14)) 
@@ -480,7 +478,7 @@ BEGIN
 				            )
 				                    
 				        )
-				    )  then
+				    )  or mid_get_angle_sequence_temp(rec.azm,azm)>=130 then
 			
                                                              
             if tmpPath is not null then
@@ -4082,247 +4080,6 @@ END;
 $$;
 
 
-CREATE OR REPLACE FUNCTION mid_find_sapa_links_rev2_bak( link bigint, max_num integer,dir integer)
-	RETURNS integer
-        LANGUAGE plpgsql
-	AS $$
-	DECLARE        	
-		slink 		bigint;
-		temp_link 	bigint;
-		temp_node	bigint;
-		snode 	 	bigint;
-		enode  		bigint;
-		direction 	integer; 
-		rec 		record;
-		link_arrayA	bigint[];
-		link_arrayB	bigint[];
-		link_arrayC	bigint[];
-		flag		integer;
-		link_num	integer;
-		i		integer;
-		leng		integer;
-		link_searched	bigint[];	
-BEGIN
-	--flag := 1;
-	link_num := 0;
-	link_arrayB := array_append(link_arrayB,link);
-	while link_num < max_num loop
-      leng := array_length(link_arrayB,1);
-      if leng is null then
-          leng := 0;
-      end if;
-      raise info 'link_arrayA = %',link_arrayA;
-      raise info 'link_arrayB = %',link_arrayB;
-      for i in 1..leng loop
-          slink := link_arrayB[i];
-          if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
-              link_searched := array_append(link_searched,slink);
-          else
-            continue;
-          end if;
-          if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
-              link_arrayA := array_append(link_arrayA,slink);
-          end if;
-          raise info 'slink = %',slink;
-          select link_id, s_node, e_node, one_way_code
-          from link_tbl as a
-          where a.link_id = slink
-          into  temp_link, snode, enode, direction;
-          if slink = link then
-              direction = dir;
-              --end if;
-              if direction = 4 then
-                  exit;
-              end if;
-              if direction = 3 then
-                  temp_node = snode;
-                  snode = enode;
-                  enode = temp_node;
-              end if;
-              --if slink = link then
-              --	direction = dir;
-          end if; 
-          for rec in 
-              select link_id,link_type
-              from link_tbl as a
-              where 	( ( a.s_node = enode or a.e_node = enode ) and slink = link
-                        or
-                        ( a.s_node in (snode, enode) or a.e_node in (snode,enode ) ) and slink <> link
-                      )
-              
-                    and (
-                      not (a.road_type in (0,1) and a.link_type in (1,2))
-                        )
-                    
-                    and a.link_id <> temp_link
-          loop
-            if rec.link_id is not null then
-              --raise info 'rec is not null';
-              --raise info 'rec = %',rec;
-              raise info 'link_searched = %',link_searched;
-              if not (rec.link_id = any(link_searched)) and rec.link_type <> 7 then
-                link_arrayC := array_append(link_arrayC, rec.link_id);
-                --raise info 'rec.link_id = %',rec.link_id;
-      
-              end if;
-            end if;
-          end loop;
-          
-      end loop;
-      flag := 1;
-      raise info 'link_arrayC = %',link_arrayC;
-      leng := array_length(link_arrayC,1);
-      if leng is null then
-        flag := 1;
-      else
-        for rec in 
-          select distinct link_type from link_tbl as a 
-          where a.link_id = any(link_arrayC)
-        loop
-          raise info 'rec_C = %', rec.link_type;
-          if rec.link_type <> 7 then
-            flag := 0;
-          end if;
-        end loop;
-      end if;
-
-      raise info 'flag = %', flag;
-      if flag = 1 then
-        insert into temp_sapa_link(link_array)
-          values(link_arrayA);
-        return 0;
-        
-      else
-        link_arrayB = link_arrayC;
-        link_arrayC = array[]::bigint[];
-      end if;
-
-
-      link_num := array_length(link_arrayA,1);
-      
-	end loop;
-
-	return 1;
-
-   
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION mid_find_sapa_links_rev2_bak0114( link bigint, max_num integer,dir integer)
-	RETURNS integer
-        LANGUAGE plpgsql
-	AS $$
-	DECLARE        	
-		slink 		bigint;
-		temp_link 	bigint;
-		temp_node	bigint;
-		snode 	 	bigint;
-		enode  		bigint;
-		direction 	integer; 
-		rec 		record;
-		link_arrayA	bigint[];
-		link_arrayB	bigint[];
-		link_arrayC	bigint[];
-		flag		integer;
-		link_num	integer;
-		i		integer;
-		leng		integer;
-		link_searched	bigint[];
-		hw_jct_ic_flag integer;
-		temp_link_array bigint[];	
-BEGIN
-	link_num := 0;
-	link_arrayB := array_append(link_arrayB,link);
-	while link_num < max_num loop
-      leng := array_length(link_arrayB,1);
-      if leng is null then
-          leng := 0;
-      end if;
-      raise info 'link_arrayA = %',link_arrayA;
-      raise info 'link_arrayB = %',link_arrayB;
-      
-      for i in 1..leng loop
-          slink := link_arrayB[i];
-          if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
-              link_searched := array_append(link_searched,slink);
-          else
-            continue;
-          end if;
-          if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
-              link_arrayA := array_append(link_arrayA,slink);
-          end if;
-          raise info 'slink = %',slink;
-          select link_id, s_node, e_node, one_way_code
-          from link_tbl as a
-          where a.link_id = slink
-          into  temp_link, snode, enode, direction;
-          if slink = link then
-              direction = dir;
-              --end if;
-              if direction = 4 then
-                  exit;
-              end if;
-              if direction = 3 then
-                  temp_node = snode;
-                  snode = enode;
-                  enode = temp_node;
-              end if;
-          end if;
-           
-          hw_jct_ic_flag = 0;
-          temp_link_array = array[]::bigint[];
-          for rec in 
-              select link_id,link_type,road_type,one_way_code
-              from link_tbl as a
-              where 	( ( a.s_node = enode or a.e_node = enode ) and slink = link
-                        or
-                        ( a.s_node in (snode, enode) or a.e_node in (snode,enode ) ) and slink <> link
-                      )
-                    and a.link_id <> temp_link
-          loop
-              if rec.link_id is not null then
-                  raise info 'link_searched = %',link_searched;
-                  if rec.link_type in (3,5) or ( rec.link_type in (1,2) and rec.road_type in (0,1) ) then
-                      hw_jct_ic_flag = 1;
-                      exit;
-                  end if;
-                  
-                  if not (rec.link_id = any(link_searched)) and rec.link_type <> 7 and rec.one_way_code <> 4 then
-                      --link_arrayC := array_append(link_arrayC, rec.link_id);
-                      temp_link_array := array_append(temp_link_array, rec.link_id);
-                  end if;
-              end if;
-          end loop;
-          
-          if hw_jct_ic_flag <> 1 then
-               link_arrayC = link_arrayC || temp_link_array;
-          end if;
-          
-      end loop;
-      
-
-      leng := array_length(link_arrayC,1);
-      if leng is null then
-          insert into temp_sapa_link(link_array)
-            values(link_arrayA);
-          return 0;
-      else
-          link_arrayB = link_arrayC;
-          link_arrayC = array[]::bigint[];
-      end if;
-
-
-      link_num := array_length(link_arrayA,1);
-      
-	end loop;
-
-	return 1;
- 
-END;
-$$;
-
-
 CREATE OR REPLACE FUNCTION mid_find_sapa_links_rev2_0115( link bigint, max_num integer,dir integer)
 	RETURNS integer
         LANGUAGE plpgsql
@@ -4524,7 +4281,6 @@ BEGIN
                   end if;
                   
                   if not (rec.link_id = any(link_searched)) and rec.link_type not in (3,5,7) and rec.one_way_code <> 4 then
-                      --link_arrayC := array_append(link_arrayC, rec.link_id);
                       temp_link_array := array_append(temp_link_array, rec.link_id);
                   end if;
               end if;
@@ -4542,7 +4298,7 @@ BEGIN
       if leng is null then
           insert into temp_sapa_link(link_array)
             values(link_arrayA);
-           raise info 'insert======================= ,%',link_arrayA;
+          
           return 0;
       else
           link_arrayB = link_arrayC;
@@ -4559,7 +4315,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_change_sapa(max_num integer)
+CREATE OR REPLACE FUNCTION mid_change_sapa_bak(max_num integer)
 	RETURNS smallint
 	LANGUAGE plpgsql volatile
 AS $$
@@ -4578,6 +4334,34 @@ BEGIN
 
 		if rec.one_way_code in (2,3) then
 			perform mid_find_sapa_links_rev2(rec.link_id::bigint, max_num, rec.one_way_code);
+			
+		end if;
+	end loop;
+	
+	
+	RETURN 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_change_sapa(max_num integer,stat_sapa_max_num integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in
+		select link_id, one_way_code
+		from temp_highway_sapa_link	
+	loop
+		if rec.one_way_code = 1 then
+			perform mid_find_sapa_links_rev3(rec.link_id::bigint, 2, max_num, stat_sapa_max_num);
+			perform mid_find_sapa_links_rev3(rec.link_id::bigint, 3, max_num, stat_sapa_max_num);
+			
+		end if;
+
+		if rec.one_way_code in (2,3) then
+			perform mid_find_sapa_links_rev3(rec.link_id::bigint, rec.one_way_code, max_num, stat_sapa_max_num);
 			
 		end if;
 	end loop;
@@ -6852,8 +6636,9 @@ BEGIN
 
 	if highway_count = 1 then
     for rec in  
-      select (case when (a.s_node = node and a.one_way_code in (1,2) or a.e_node = node and a.one_way_code in (1,3) ) then  1
-                    when (a.e_node = node and a.one_way_code in (1,2) or a.s_node = node and a.one_way_code in (1,3) ) then  2  end ) as highway_dir
+      select (case when (a.s_node = node and a.one_way_code = 2  or a.e_node = node and a.one_way_code = 3 ) then  1
+                    when (a.e_node = node and a.one_way_code = 2  or a.s_node = node and a.one_way_code = 3 ) then  2
+                    when (node in (a.s_node,a.e_node) and a.one_way_code = 1 ) then  3  end ) as highway_dir
       from link_tbl as a
       where link_id = highway_link
     loop
@@ -6900,23 +6685,6 @@ BEGIN
     if general_count = 0 then
         return 0;
      else
-     /*
-        angle = 0;
-        for i in 1..array_length(general_link_array,1) loop
-          select mid_calc_jct_steering_angle(general_link_array[i],highway_link,node) into temp_angle;
-          if temp_angle > angle then
-              angle = temp_angle;
-          end if;
-        end loop;
-     end if;
-     
-     if angle > highway_angle then
-        return 1;
-     else
-        return 0;
-     end if;
-        
-      */
       if highway_dir <> dir then
           return 0;
       else
@@ -7328,5 +7096,726 @@ BEGIN
 	END LOOP;
 	
 	RETURN 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_statistic_sapa_link_length(link bigint,max_num integer,suspect_link_array bigint[])
+	RETURNS double precision
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE        	
+	
+		slink 		bigint;
+		snode 	 	bigint;
+		enode  		bigint;
+		rec 		record;
+		link_arrayA	bigint[];
+		link_arrayB	bigint[];
+		link_arrayC	bigint[];
+		link_num	integer;
+		i		integer;
+		leng		integer;
+		link_searched	bigint[];
+		hw_flag     integer;
+		temp_link_array bigint[];
+		sapa_length	double precision;
+	
+BEGIN
+	sapa_length = 0;
+	link_num = 0;
+	link_arrayB := array_append(link_arrayB,link);
+	while link_num < max_num loop
+		leng := array_length(link_arrayB,1);
+		if leng is null then
+			leng := 0;
+		end if;
+		for i in 1..leng loop
+			slink := link_arrayB[i];
+
+			if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
+				link_searched := array_append(link_searched,slink);
+			else
+				continue;
+			end if;
+			
+			if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
+				link_arrayA := array_append(link_arrayA,slink);
+			end if;
+
+			select s_node, e_node
+			from link_tbl as a
+			where a.link_id = slink into  snode, enode;
+
+			hw_flag = 0;
+			temp_link_array = array[]::bigint[];
+			for rec in 
+				select link_id,link_type,road_type,one_way_code
+				from link_tbl as a
+				where 
+					( a.s_node in (snode, enode) or a.e_node in (snode,enode ) ) 
+					and not (a.link_id = any(link_searched))
+					and (
+						a.link_id = any(suspect_link_array) 
+						or 
+						 a.link_type in (3,5,7) 
+						 
+						)
+			loop
+				if rec.link_id is not null then
+					if rec.one_way_code <> 4 then
+						temp_link_array := array_append(temp_link_array, rec.link_id);
+					end if;
+
+				end if;
+			end loop;
+
+				link_arrayC = link_arrayC || temp_link_array;
+
+		end loop;
+
+		leng := array_length(link_arrayC,1);
+		if leng is null then
+			for rec in
+				select link_id,link_type,length
+				from link_tbl as a
+				where a.link_id = any(link_arrayA)
+			loop
+				if rec.link_type = 7 then
+					sapa_length = sapa_length + rec.length;
+					raise info 'sapa_length = %',sapa_length;
+					raise info 'sapa_link = %',rec.link_id;
+					
+				end if;
+
+			end loop;
+
+			return sapa_length;
+
+		else
+			link_arrayB = link_arrayC;
+			link_arrayC = array[]::bigint[];
+		end if;
+
+
+		link_num := array_length(link_arrayA,1);
+
+	end loop;
+
+	for rec in
+		select link_id,link_type,length
+			from link_tbl as a
+		where a.link_id = any(link_arrayA)
+	loop
+		if rec.link_type = 7 then
+			sapa_length = sapa_length + rec.length;
+			raise info 'sapa_length = %',sapa_length;
+			raise info 'sapa_link = %',rec.link_id;
+		end if;
+
+	end loop;
+
+	return sapa_length;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_statistic_sapa_link_length_bak(link bigint,max_num integer)
+	RETURNS double precision
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE        	
+	
+		slink 		bigint;
+		snode 	 	bigint;
+		enode  		bigint;
+		rec 		record;
+		link_arrayA	bigint[];
+		link_arrayB	bigint[];
+		link_arrayC	bigint[];
+		link_num	integer;
+		i		integer;
+		leng		integer;
+		link_searched	bigint[];
+		hw_flag     integer;
+		temp_link_array bigint[];
+		sapa_length	double precision;
+	
+BEGIN
+	sapa_length = 0;
+	link_num = 0;
+	link_arrayB := array_append(link_arrayB,link);
+	while link_num < max_num loop
+		leng := array_length(link_arrayB,1);
+		if leng is null then
+			leng := 0;
+		end if;
+		for i in 1..leng loop
+			slink := link_arrayB[i];
+
+			if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
+				link_searched := array_append(link_searched,slink);
+			else
+				continue;
+			end if;
+			
+			if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
+				link_arrayA := array_append(link_arrayA,slink);
+			end if;
+
+			select s_node, e_node
+			from link_tbl as a
+			where a.link_id = slink into  snode, enode;
+
+			hw_flag = 0;
+			temp_link_array = array[]::bigint[];
+			for rec in 
+				select link_id,link_type,road_type,one_way_code
+				from link_tbl as a
+				where 
+					( a.s_node in (snode, enode) or a.e_node in (snode,enode ) ) 
+					and not (a.link_id = any(link_searched))
+			loop
+				if rec.link_id is not null then
+					if rec.link_type in (1,2) and rec.road_type in (0,1) then
+						hw_flag = 1;
+						exit;
+					end if; 
+
+					if rec.one_way_code <> 4 then
+						temp_link_array := array_append(temp_link_array, rec.link_id);
+					end if;
+
+				end if;
+			end loop;
+		
+			if  hw_flag = 0 then
+				link_arrayC = link_arrayC || temp_link_array;
+			end if;
+
+		end loop;
+
+		leng := array_length(link_arrayC,1);
+		if leng is null then
+			for rec in
+				select link_id,link_type,length
+				from link_tbl as a
+				where a.link_id = any(link_arrayA)
+			loop
+				if rec.link_type = 7 then
+					sapa_length = sapa_length + rec.length;
+					--raise info 'sapa_length = %',sapa_length;
+					--raise info 'sapa_link = %',rec.link_id;
+					
+				end if;
+
+			end loop;
+
+			return sapa_length;
+
+		else
+			link_arrayB = link_arrayC;
+			link_arrayC = array[]::bigint[];
+		end if;
+
+
+		link_num := array_length(link_arrayA,1);
+
+	end loop;
+
+	for rec in
+		select link_id,link_type,length
+			from link_tbl as a
+		where a.link_id = any(link_arrayA)
+	loop
+		if rec.link_type = 7 then
+			sapa_length = sapa_length + rec.length;
+			--raise info 'sapa_length = %',sapa_length;
+			--raise info 'sapa_link = %',rec.link_id;
+		end if;
+
+	end loop;
+
+	return sapa_length;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION  mid_find_sapa_paths_start_ic(link bigint, dir integer,len integer)
+	RETURNS smallint
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE 
+		rec record;
+		link_array bigint[];
+		link_type1 integer;
+		road_type1 integer;
+		link_path_array varchar[];
+		i integer;
+		length integer;	
+		sapa_count integer;
+		next_node    bigint;
+		slink		bigint;
+              		
+BEGIN
+    link_path_array := array_append(link_path_array,link::varchar);
+    i := 1;
+    while i <= array_length(link_path_array,1) loop
+        link_array := string_to_array(link_path_array[i],'|');
+        if array_length(link_array,1) > 1 then
+            for rec in
+                select (case when a.s_node in (b.s_node,b.e_node) then a.e_node
+                              else a.s_node end ) as next_node
+                from link_tbl as a
+                join link_tbl as b
+                on a.link_id = link_array[array_upper(link_array,1)] and b.link_id = link_array[array_upper(link_array,1) - 1]
+            loop
+                if rec.next_node is not null then
+                    next_node = rec.next_node;
+                end if;
+            end loop;
+         else
+            select ( case when dir = 2 then a.e_node
+                            when dir = 3 then a.s_node end ) as next_node
+            from link_tbl as a
+            where link_id = link_array[array_upper(link_array,1)] into next_node;
+         end if;
+        
+        
+        sapa_count := 0;
+        for rec in 
+            select distinct link_id,link_type from link_tbl as a
+            where a.link_id = any(link_array)
+        loop
+            if rec.link_type = 7 then
+                sapa_count := sapa_count + 1;
+            end if;
+        end loop;
+        raise info 'sapa count = %',sapa_count;
+        if sapa_count > len then
+            i := i + 1;
+            continue;
+        end if;
+        slink = (link_array[array_upper(link_array,1)])::bigint;
+        select link_type,road_type
+        from link_tbl as a
+        where a.link_id = slink  into  link_type1, road_type1;
+        
+        if link_type1 in (1,2) and road_type1 in (0,1) then
+            if  sapa_count > 1 then
+                  insert into temp_sapa_paths_start_ic(link_path) 
+                        values((string_to_array(link_path_array[i],'|'))::bigint[]);
+             else
+                i = i + 1;
+                continue;
+             end if;	
+	
+        else
+            for rec in 
+              select link_id
+              from link_tbl as a
+              where 	(
+                  a.s_node = next_node and a.one_way_code in (1,2)
+                  or
+                  a.e_node = next_node and a.one_way_code in (1,3)
+                )
+                and ( a.link_type in (5,7) or (a.link_type in (1,2) and a.road_type in (0,1) and a.one_way_code <> 4))
+                and a.link_id <> slink
+            loop
+              link_path_array := array_append(link_path_array,(link_path_array[i] || '|' || (rec.link_id)::varchar)::varchar);  
+
+
+            end loop;
+
+        end if;		
+              
+    i := i + 1;
+				
+    end loop;
+  return 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_find_sapa_links_rev3( link bigint, dir integer, max_num integer, stat_sapa_max_num integer)
+	RETURNS integer
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE        	
+		slink 		bigint;
+		temp_link 	bigint;
+		temp_node	bigint;
+		snode 	 	bigint;
+		enode  		bigint;
+		direction 	integer; 
+		rec 		record;
+		link_arrayA	bigint[];
+		link_arrayB	varchar[];
+		link_arrayC	varchar[];
+		flag		integer;
+		link_num	integer;
+		i		integer;
+		leng		integer;
+		link_searched	bigint[];
+		jct_ic_flag integer;
+		hw_flag     integer;
+		temp_link_array varchar[];
+		flag_ic		integer;
+		flag_jct_sapa_hw	integer;
+		flag_end	integer;
+		flag_rec_null	integer;
+		all_sapa_length	double precision;
+		all_general_length	double precision;
+		general_sapa_percent 	double precision;	
+		slink_node		bigint;
+		link_node		bigint;
+BEGIN
+	link_num := 0;
+	flag_ic	:= 0;
+	flag_jct_sapa_hw := 0;
+	flag_end := 0;
+	
+	select (case when dir = 2 then a.e_node
+		when dir = 3 then a.s_node end ) as link_node
+	from link_tbl as a
+	where a.link_id = link into link_node;
+	
+	link_arrayB := array_append(link_arrayB,(link::varchar || '|' || link_node::varchar)::varchar);
+      while link_num < max_num loop
+      leng := array_length(link_arrayB,1);
+      if leng is null then
+          leng := 0;
+      end if;
+      raise info 'link_arrayA = %',link_arrayA;
+      raise info 'link_arrayB = %',link_arrayB;
+
+      for i in 1..leng loop
+          slink :=  (split_part(link_arrayB[i],'|',1))::bigint;
+          slink_node := (split_part(link_arrayB[i],'|',2))::bigint;
+          
+          if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
+              link_searched := array_append(link_searched,slink);
+          else
+            continue;
+          end if;
+          if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
+              link_arrayA := array_append(link_arrayA,slink);
+          end if;
+
+          raise info 'slink = %',link_arrayB[i];
+          flag_rec_null := 1; 
+          jct_ic_flag = 1;
+          hw_flag = 0;
+          temp_link_array = array[]::varchar[];
+          for rec in 
+              select link_id,link_type,road_type,one_way_code,
+                      (case when a.s_node = slink_node then a.e_node
+			   when a.e_node = slink_node then a.s_node end ) as join_node
+              from link_tbl as a
+	      where (	(a.s_node = slink_node or a.e_node = slink_node)
+			and 
+			a.link_id <> slink 
+                        and 
+                        not (a.link_id = any(link_searched))
+		    )
+          loop
+              if rec.link_id is not null then
+                  flag_rec_null = 0;
+                  raise info 'link_searched = %',link_searched;
+                  if rec.link_type = 5 then
+                      flag_ic = 1;
+                  end if;
+                  if rec.link_type in (3,7) then
+                      flag_jct_sapa_hw = 1;
+                  end if;
+                  if rec.link_type in (1,2) and rec.road_type in (0,1) then
+                      flag_jct_sapa_hw = 1;
+                      hw_flag = 1;
+                      exit;
+                  end if; 
+                  if not (rec.link_type in (3,5,7) or ( rec.link_type in (1,2) and rec.road_type in (0,1) )) then
+                      jct_ic_flag = 0;
+                     
+                  end if;
+                  
+                  if not (rec.link_id = any(link_searched)) and rec.link_type not in (3,5,7) and rec.one_way_code <> 4 then
+
+                      temp_link_array := array_append(temp_link_array, (rec.link_id::varchar || '|' || rec.join_node::varchar)::varchar);
+                  end if;
+
+              end if;
+          end loop;
+          if flag_rec_null = 1 then
+              flag_end = 1;
+          end if;
+          
+          
+          if jct_ic_flag = 0 and hw_flag = 0 then
+               link_arrayC = link_arrayC || temp_link_array;
+          end if;
+
+          raise info 'flag_ic = %',flag_ic;
+          raise info 'flag_jct_sapa_hw = %',flag_jct_sapa_hw;
+          raise info 'flag_end = %',flag_end;
+    
+      end loop;
+      
+
+      leng := array_length(link_arrayC,1);
+      if leng is null then
+      all_general_length = 0;
+          if  flag_end = 1 then
+              select mid_statistic_sapa_link_length(link ,stat_sapa_max_num,link_arrayA ) into all_sapa_length;
+              for rec in
+                  select distinct link_id, length,link_type
+                  from link_tbl as a
+                  where link_id = any(link_arrayA)
+              loop
+                  if rec.link_type <> 7 then
+                    all_general_length = all_general_length + rec.length;
+                  end if;
+
+              end loop;
+              raise info 'all_sapa_length = %',all_sapa_length;
+              raise info 'all_general_length = %',all_general_length;
+              general_sapa_percent = all_general_length / all_sapa_length;
+              raise info 'general_sapa_percent = %',general_sapa_percent;
+              insert into temp_sapa_link(link_array,road_end,general_sapa_percent)
+                values(link_arrayA,1,general_sapa_percent);
+                return 0;
+             
+          else
+                insert into temp_sapa_link(link_array,road_end,general_sapa_percent)
+                values(link_arrayA,0,0);
+                return 1;
+          end if;
+      else
+          link_arrayB = link_arrayC;
+          link_arrayC = array[]::varchar[];
+      end if;
+
+
+      link_num := array_length(link_arrayA,1);
+      
+	end loop;
+
+	return 1;
+ 
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_find_sapa_links_rev3_bak( link bigint, dir integer, max_num integer, stat_sapa_max_num integer)
+	RETURNS integer
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE        	
+		slink 		bigint;
+		temp_link 	bigint;
+		temp_node	bigint;
+		snode 	 	bigint;
+		enode  		bigint;
+		direction 	integer; 
+		rec 		record;
+		link_arrayA	bigint[];
+		link_arrayB	varchar[];
+		link_arrayC	varchar[];
+		flag		integer;
+		link_num	integer;
+		i		integer;
+		leng		integer;
+		link_searched	bigint[];
+		jct_ic_flag integer;
+		hw_flag     integer;
+		temp_link_array varchar[];
+		flag_ic		integer;
+		flag_jct_sapa_hw	integer;
+		flag_end	integer;
+		flag_rec_null	integer;
+		all_sapa_length	double precision;
+		all_general_length	double precision;
+		general_sapa_percent 	double precision;	
+		slink_node		bigint;
+BEGIN
+	link_num := 0;
+	flag_ic	:= 0;
+	flag_jct_sapa_hw := 0;
+	flag_end := 0;
+
+	
+	link_arrayB := array_append(link_arrayB,(link::varchar || '|' || '0')::varchar);
+      while link_num < max_num loop
+      leng := array_length(link_arrayB,1);
+      if leng is null then
+          leng := 0;
+      end if;
+      raise info 'link_arrayA = %',link_arrayA;
+      raise info 'link_arrayB = %',link_arrayB;
+
+      for i in 1..leng loop
+          slink :=  (split_part(link_arrayB[i],'|',1))::bigint;
+          slink_node := (split_part(link_arrayB[i],'|',2))::bigint;
+          
+          if not (slink = any(link_searched)) or array_length(link_searched,1) is null then
+              link_searched := array_append(link_searched,slink);
+          else
+            continue;
+          end if;
+          if not (slink = any(link_arrayA))  or array_length(link_arrayA,1) is null then
+              link_arrayA := array_append(link_arrayA,slink);
+          end if;
+
+          select link_id, s_node, e_node, one_way_code
+          from link_tbl as a
+          where a.link_id = slink
+          into  temp_link, snode, enode, direction;
+          if slink = link then
+              direction = dir;
+
+              if direction = 4 then
+                  exit;
+              end if;
+              if direction = 3 then
+                  temp_node = snode;
+                  snode = enode;
+                  enode = temp_node;
+              end if;
+          end if;
+          raise info 'slink = %',slink;
+          flag_rec_null := 1; 
+          jct_ic_flag = 1;
+          hw_flag = 0;
+          temp_link_array = array[]::varchar[];
+          for rec in 
+              select link_id,link_type,road_type,one_way_code,
+                      (case when a.s_node in (enode,snode) then a.s_node
+                            else a.e_node end ) as join_node
+              from link_tbl as a
+              where 	( ( a.s_node = enode or a.e_node = enode ) and slink = link 
+                        or
+                        ( a.s_node in (snode, enode) and a.s_node <> slink_node or a.e_node in (snode,enode ) and a.e_node <> slink_node ) and slink <> link 
+                        )
+                      and a.link_id <> slink 
+                      and not (a.link_id = any(link_searched))
+          loop
+              if rec.link_id is not null then
+                  flag_rec_null = 0;
+                  raise info 'link_searched = %',link_searched;
+                  if rec.link_type = 5 then
+                      flag_ic = 1;
+                  end if;
+                  if rec.link_type in (3,7) then
+                      flag_jct_sapa_hw = 1;
+                  end if;
+                  if rec.link_type in (1,2) and rec.road_type in (0,1) then
+                      flag_jct_sapa_hw = 1;
+                      hw_flag = 1;
+                      exit;
+                  end if; 
+                  if not (rec.link_type in (3,5,7) or ( rec.link_type in (1,2) and rec.road_type in (0,1) )) then
+                      jct_ic_flag = 0;
+                     
+                  end if;
+                  
+                  if not (rec.link_id = any(link_searched)) and rec.link_type not in (3,5,7) and rec.one_way_code <> 4 then
+
+                      temp_link_array := array_append(temp_link_array, (rec.link_id::varchar || '|' || rec.join_node::varchar)::varchar);
+                  end if;
+
+              end if;
+          end loop;
+          if flag_rec_null = 1 then
+              flag_end = 1;
+          end if;
+          
+          
+          if jct_ic_flag = 0 and hw_flag = 0 then
+               link_arrayC = link_arrayC || temp_link_array;
+          end if;
+
+          raise info 'flag_ic = %',flag_ic;
+          raise info 'flag_jct_sapa_hw = %',flag_jct_sapa_hw;
+          raise info 'flag_end = %',flag_end;
+    
+      end loop;
+      
+
+      leng := array_length(link_arrayC,1);
+      if leng is null then
+      all_general_length = 0;
+          if  flag_end = 1 then
+              select mid_statistic_sapa_link_length(link ,stat_sapa_max_num,link_arrayA ) into all_sapa_length;
+              for rec in
+                  select distinct link_id, length,link_type
+                  from link_tbl as a
+                  where link_id = any(link_arrayA)
+              loop
+                  if rec.link_type <> 7 then
+                    all_general_length = all_general_length + rec.length;
+                  end if;
+
+              end loop;
+              raise info 'all_sapa_length = %',all_sapa_length;
+              raise info 'all_general_length = %',all_general_length;
+              general_sapa_percent = all_general_length / all_sapa_length;
+              raise info 'general_sapa_percent = %',general_sapa_percent;
+              insert into temp_sapa_link(link_array,road_end,general_sapa_percent)
+                values(link_arrayA,1,general_sapa_percent);
+                return 0;
+             
+          else
+                insert into temp_sapa_link(link_array,road_end,general_sapa_percent)
+                values(link_arrayA,0,0);
+                return 1;
+          end if;
+      else
+          link_arrayB = link_arrayC;
+          link_arrayC = array[]::varchar[];
+      end if;
+
+
+      link_num := array_length(link_arrayA,1);
+      
+	end loop;
+
+	return 1;
+ 
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION mid_find_sapa_paths_start_ic_exec(max_num integer)
+	RETURNS integer
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE  
+
+		rec record;
+
+BEGIN
+	for rec in
+		select distinct a.link_id,a.one_way_code
+		from 
+		(
+			select *
+			from link_tbl 
+			where link_type = 5
+		) as a
+		 join
+		(
+			select * from link_tbl 
+			where link_type in (1,2) and road_type in (0,1)
+
+		) as b
+		on a.s_node in (b.s_node,b.e_node) or  a.e_node in (b.s_node,b.e_node)
+	loop
+		if rec.one_way_code = 1 then
+			perform mid_find_sapa_paths_start_ic(rec.link_id::bigint, 2, max_num);
+			perform mid_find_sapa_paths_start_ic(rec.link_id::bigint, 3, max_num);
+			
+		else
+			perform mid_find_sapa_paths_start_ic(rec.link_id::bigint, rec.one_way_code, max_num);
+			
+		end if;
+
+	end loop;
+
 END;
 $$;

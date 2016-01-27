@@ -936,8 +936,8 @@ class comp_factory_ni(comp_factory):
 
     def CreateOneComponent(self, comp_name):
         if comp_name == 'Highway_Prepare':
-            from component.ni.hwy.hwy_prepare_ni import HwyPrepareNi
-            return HwyPrepareNi()  # Create a empty table: mid_all_highway_node
+            from component.ni.hwy_pro.hwy_prepare_pro import HwyPrepareNiPro
+            return HwyPrepareNiPro()  # Create a empty table: mid_all_highway_node
         if comp_name == 'Highway':
             from component.ni.hwy_pro.highway_pro import HighwayNiPro
             return HighwayNiPro()

@@ -16,11 +16,10 @@ class rdb_slope(ItemBase):
         '''
         Constructor
         '''        
-        ItemBase.__init__(self,'slope','','','','')
+        ItemBase.__init__(self,'slope')
        
     def Do_CreateTable(self):
         self.CreateTable2('rdb_slope_tbl')
-        self.CreateTable2('temp_org_slope')
         self.CreateTable2('temp_rdb_slope')
          
         return 0
@@ -42,122 +41,115 @@ class rdb_slope(ItemBase):
         '''
         if not self.pg.IsExistTable('grad'):
             return 0
-
-#        slope_data_status = rdb_common.GetPath('slope_data_support')
-#        if slope_data_status.lower() != 'true':
-#            return 0
         
-        # step 1: insert info to temp_org_slope
+        self.GetMiddleLinkSlope()
+        self.GetRdbLinkSlope()
+        
+    def GetMiddleLinkSlope(self):
+        self.log.info('get middle slope start...')
+
+        self.CreateTable2('temp_org2middle_slope')
         sqlcmd = """
-            INSERT INTO temp_org_slope(
-                rdb_link_id,
-                org_link_id,
-                slope_value,
-                slope_shape,
-                link_geom)
+            INSERT INTO temp_org2middle_slope(middle_link_id, org_link_id, slope_value,
+                                              slope_shape, middle_geom)
             (
-                SELECT 
-                    b.target_link_id,
-                    a.link_id,
-                    a.grad_value,    
-                    st_transform( a.shape, 4326 ),
-                    b.target_geom
-                FROM (
-                    SELECT 
-                        link_id,
-                        grad_value,
-                        (ST_Dump(shape)).geom AS shape
+                SELECT b.mid_link_id, a.link_id, a.grad_value,    
+                       st_transform( a.shape, 4326 ), b.mid_geom
+                FROM 
+                (
+                    SELECT link_id, grad_value, (ST_Dump(shape)).geom AS shape
                     FROM grad
                 ) AS a
                 INNER JOIN temp_link_org_rdb AS b
                 ON a.link_id = b.org_link_id
             );
             """
-        rdb_log.log(self.ItemName, 'Now it is inserting to temp_org_slope...', 'info')
+        if self.pg.execute2(sqlcmd) == -1:
+            return -1
+        else:
+            self.pg.commit2()
+
+        self.CreateFunction2('rdb_get_fraction_for_slope')
+        self.CreateTable2('temp_middle_slope')           
+        sqlcmd = """
+                insert into temp_middle_slope(middle_link_id, link_pos_s, link_pos_e, 
+                                              slope_value, middle_shape)
+                (
+                    select middle_link_id, 
+                          (case when slope_array[1] > slope_array[2] then slope_array[2] else slope_array[1] end),
+                          (case when slope_array[1] > slope_array[2] then slope_array[1] else slope_array[2] end),
+                          (case when slope_array[1] > slope_array[2] then -slope_value else slope_value end),
+                          middle_geom
+                    from
+                    (
+                        select middle_link_id, slope_value, middle_geom, slope_shape, 
+                            rdb_get_fraction_for_slope(slope_shape, middle_geom) as slope_array
+                        from temp_org2middle_slope
+                    )temp
+                );
+            """
+
         if self.pg.execute2(sqlcmd) == -1:
             return -1
         else:
             self.pg.commit2()
             
-        # step 2: create rdb_slope info into temp_rdb_slope
+    def GetRdbLinkSlope(self):
+        self.log.info('get rdb slope start...')
+#        self.CreateFunction2('rdb_get_point_num_slope')
+#        self.CreateFunction2('rdb_add_point_in_line_slope')
+#        sqlcmd = """
+#                insert into temp_rdb_slope(rdb_link_id, link_pos_s, link_pos_e, slope_value, link_geom)
+#                (
+#                    select target_link_id as rdb_link_id,
+#                           slope_pos_s as link_pos_s,
+#                           (case when (link_length *(abs(link_pos_e - rdb_pos_e))) < 20.0 then rdb_pos_e
+#                                 else link_pos_e end) as link_pos_e,
+#                            slope_value,  
+#                           (case when (link_length *(abs(link_pos_e - rdb_pos_e))) < 20.0 then target_geom
+#                                 else rdb_add_point_in_line_slope(target_geom, link_pos_e) end) as link_geom
+#                    from
+#                    (
+#                        select target_link_id, slope_value, link_pos_e, rdb_pos_s, link_length,
+#                               (case when (link_length *(abs(link_pos_s - rdb_pos_s))) < 20.0 then rdb_pos_s
+#                                     else link_pos_s end) as slope_pos_s,  
+#                               (case when (link_length *(abs(link_pos_s - rdb_pos_s))) < 20.0 then target_geom
+#                                     else rdb_add_point_in_line_slope(target_geom, link_pos_s) end) as target_geom
+#                        from
+#                        (
+#                            select b.target_link_id, link_pos_s, link_pos_e, slope_value, a.target_geom, c.link_length,
+#                                (case when link_pos_s in (0.0, 1.0) then link_pos_s 
+#                                     else ST_Line_Locate_Point(ST_Line_Interpolate_Point(target_geom, link_pos_s))
+#                                     end) as rdb_pos_s, 
+#                                (case when link_pos_e = (0.0, 1.0) then link_pos_e 
+#                                     else ST_Line_Locate_Point(ST_Line_Interpolate_Point(target_geom, link_pos_e))
+#                                     end) as rdb_pos_e
+#                            from temp_middle_slope as a
+#                            left join temp_link_org_rdb as b
+#                            on a.middle_link_id = b.mid_link_id
+#                            left join rdb_link as c
+#                            on b.target_link_id = c.link_id  
+#                            where  link_pos_s <> link_pos_e
+#                        )a
+#                    )a           
+#                );
+#                """
         sqlcmd = """
-            INSERT INTO temp_rdb_slope(
-                rdb_link_id,
-                link_pos_s, 
-                link_pos_e,
-                slope_value,
-                slope_shape)           
-            (
-                SELECT 
-                    rdb_link_id,
-                    link_pos_s,
-                    link_pos_e,
-                    slope_value,
-                    slope_shape                  
-                FROM(            
-                    SELECT 
-                        rdb_link_id,
-                        link_pos_s,
-                        link_pos_e,
-                        slope_value,
-                        slope_shape,
-                        abs(ST_X(slope_pt_s)-ST_X(link_pt_s)) AS dx_s,
-                        abs(ST_Y(slope_pt_s)-ST_Y(link_pt_s)) AS dy_s,
-                        abs(ST_X(slope_pt_e)-ST_X(link_pt_e)) AS dx_e,
-                        abs(ST_Y(slope_pt_e)-ST_Y(link_pt_e)) AS dy_e                    
-                    FROM(
-                        SELECT 
-                            rdb_link_id,
-                            link_pos_s,
-                            link_pos_e,
-                            slope_value,
-                            slope_shape,
-                            link_pt_s,
-                            link_pt_e,
-                            ST_Line_Interpolate_Point(slope_shape, slope_pos_s) AS slope_pt_s,
-                            ST_Line_Interpolate_Point(slope_shape, slope_pos_e) AS slope_pt_e
-                        FROM(
-                            SELECT 
-                                rdb_link_id,
-                                slope_value,
-                                link_pos_s,
-                                link_pos_e,
-                                link_pt_s,
-                                link_pt_e,
-                                slope_shape,
-                                ST_Line_Locate_Point(slope_shape, link_pt_s) AS slope_pos_s,
-                                ST_Line_Locate_Point(slope_shape, link_pt_e) AS slope_pos_e
-                            FROM(
-                                SELECT  
-                                    rdb_link_id,
-                                    slope_value,
-                                    link_pos_s,
-                                    link_pos_e,
-                                    slope_shape,
-                                    ST_Line_Interpolate_Point(link_geom, link_pos_s) AS link_pt_s,
-                                    ST_Line_Interpolate_Point(link_geom, link_pos_e) AS link_pt_e
-                                FROM(
-                                     SELECT  
-                                        rdb_link_id,
-                                        slope_value,
-                                        slope_shape,
-                                        link_geom,
-                                        ST_Line_Locate_Point(link_geom, ST_startpoint(slope_shape)) AS link_pos_s,
-                                        ST_Line_Locate_Point(link_geom, ST_endpoint(slope_shape))   AS link_pos_e
-                                     FROM temp_org_slope AS a
-                                ) AS b
-                                WHERE link_pos_s <> link_pos_e
-                            ) AS c
-                        ) AS d
-                    ) AS e
-                ) AS f
-                WHERE dx_s < CAST('0.0001' AS float) AND
-                      dy_s < CAST('0.0001' AS float) AND
-                      dx_e < CAST('0.0001' AS float) AND
-                      dY_e < CAST('0.0001' AS float)
-            );           
-            """
-        rdb_log.log(self.ItemName, 'Now it is insert slope info into temp_rdb_slope...', 'info')
+                insert into temp_rdb_slope(rdb_link_id, link_pos_s, link_pos_e, slope_value, slope_shape)
+                (
+                    select b.target_link_id,
+                           (case when flag = TRUE then s_fraction - ((s_fraction - e_fraction) * link_pos_s)
+                                 else s_fraction + ((e_fraction - s_fraction) * link_pos_s)  end) as link_pos_s,
+                           (case when flag = TRUE then s_fraction - ((s_fraction - e_fraction) * link_pos_e)
+                                 else s_fraction + ((e_fraction - s_fraction) * link_pos_e)  end) as link_pos_e,                               
+                           slope_value, b.target_geom
+                    from temp_middle_slope as a
+                    left join temp_link_org_rdb as b
+                    on a.middle_link_id = b.mid_link_id
+                    where  link_pos_s <> link_pos_e
+                );
+                """
+
         if self.pg.execute2(sqlcmd) == -1:
             return -1
         else:
@@ -181,6 +173,7 @@ class rdb_slope(ItemBase):
                     (CASE WHEN link_pos_s > link_pos_e THEN link_pos_s ELSE link_pos_e END),
                     rdb_cnv_slope_value(slope_value, link_pos_s > link_pos_e)
                 FROM temp_rdb_slope
+                where link_pos_s <> link_pos_e
             );
             """
         rdb_log.log(self.ItemName, 'Now it is insert slope info into rdb_slope_tbl...', 'info')
@@ -205,7 +198,7 @@ class rdb_slope(ItemBase):
         # step 4: update rdb_link 
         sqlcmd = """
              UPDATE rdb_link 
-             SET tilt_flag = TRUE 
+             SET tilt_flag = TRUE
              FROM (
                  SELECT DISTINCT link_id
                  FROM rdb_slope_tbl        

@@ -109,8 +109,26 @@ class HwyPathGraphRDF(HwyGraphRDF):
     def get_path_conn_type(self, edge):
         '''路径相接种别'''
         u, v = edge
-        in_pathes = self.in_edges(u)
-        out_pathes = self.out_degree(v)
+        curr_node_list = self.get_node_list(u, v)
+        second_node = curr_node_list[1]
+        in_pathes, out_pathes = [], []
+        for in_u, in_v in self.in_edges_iter(u, False):
+            in_node_list = self.get_node_list(in_u, in_v)
+            temp_path = in_node_list + [second_node]
+            if self.G.check_regulation(temp_path):
+                in_pathes.append((in_u, in_v))
+            else:
+                # print 'regulation: ', u
+                pass
+        for out_u, out_v in self.out_edges_iter(v, False):
+            out_node_list = self.get_node_list(out_u, out_v)
+            second_node = out_node_list[1]
+            temp_path = curr_node_list + [second_node]
+            if self.G.check_regulation(temp_path):
+                out_pathes.append((out_u, out_v))
+            else:
+                # print 'regulation: ', v
+                pass
         if in_pathes and out_pathes:  # 两头相接
             return HWY_PATH_CONN_TYPE_SE
         if in_pathes and not out_pathes:  # 起点相接

@@ -38,6 +38,8 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return -1
         if self.CreateTable2('temp_roundabout_road_type') == -1:
             return -1
+        if self.CreateTable2('link_tbl_bak_ramp_roadtype')== -1:
+            return -1
         return 0
     
     def _DoCreateFunction(self):
@@ -53,6 +55,8 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         if self.CreateFunction2('mid_find_roundabout') == -1:
             return -1
         if self.CreateFunction2('mid_get_angle_sequence_temp') == -1:
+            return -1
+        if self.CreateFunction2('mid_cal_zm')== -1:
             return -1
         return 0
         

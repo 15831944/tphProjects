@@ -11,6 +11,7 @@ import time
 import threading
 import platform.TestCase
 import common.networkx
+import math
 
 mutex = threading.Lock()
 g_path_id = 0
@@ -162,8 +163,8 @@ class CConsistencyCaseManager:
         
         try:
             self.__loadCaseList(self.level14_flag)
-            #self.__doAllCase()
-            self.__doAllCase_parallel()
+            self.__doAllCase()
+            #self.__doAllCase_parallel()
             return True
         except:
             self.logger.exception("error happened...")
@@ -173,53 +174,29 @@ class CConsistencyCaseManager:
         
         self.logger.info('Begin Loading consistency verification cases list(layer_no: ' + str(self.layer_no)+ ')...')
         
-        if False == level14_flag:
-            sqlcmd = """
-                    DROP TABLE IF EXISTS temp_region_consistency_layer[layer_no]_tbl;
-                    CREATE TABLE temp_region_consistency_layer[layer_no]_tbl
-                    (
-                        gid serial primary key,
-                        unique_id bigint not null,
-                        search_s_node bigint not null,
-                        search_e_node bigint not null,
-                        cost double precision,
-                        path_id integer
-                    );
-                    
-                    DROP TABLE IF EXISTS temp_region_consistency_path_layer[layer_no]_tbl;
-                    CREATE TABLE temp_region_consistency_path_layer[layer_no]_tbl
-                    (
-                        gid serial primary key,
-                        path_id bigint not null,
-                        seq_num integer,
-                        link_id bigint,
-                        the_geom geometry
-                    );
-                """
-            sqlcmd = sqlcmd.replace('[layer_no]', self.layer_no)
-        else:
-            sqlcmd = """
-                    DROP TABLE IF EXISTS temp_region_consistency_layer0_tbl;
-                    CREATE TABLE temp_region_consistency_layer0_tbl
-                    (
-                        gid serial primary key,
-                        unique_id bigint not null,
-                        search_s_node bigint not null,
-                        search_e_node bigint not null,
-                        cost double precision,
-                        path_id integer
-                    );
-                    
-                    DROP TABLE IF EXISTS temp_region_consistency_path_layer0_tbl;
-                    CREATE TABLE temp_region_consistency_path_layer0_tbl
-                    (
-                        gid serial primary key,
-                        path_id bigint not null,
-                        seq_num integer,
-                        link_id bigint,
-                        the_geom geometry
-                    );
-                """
+        sqlcmd = """ 
+            DROP TABLE IF EXISTS temp_region_consistency_layer[layer_no]_tbl;
+            CREATE TABLE temp_region_consistency_layer[layer_no]_tbl
+            ( 
+                gid serial primary key,
+                unique_id bigint not null,
+                search_s_node bigint not null,
+                search_e_node bigint not null,
+                cost double precision,
+                path_id integer
+            ); 
+            
+            DROP TABLE IF EXISTS temp_region_consistency_path_layer[layer_no]_tbl;
+            CREATE TABLE temp_region_consistency_path_layer[layer_no]_tbl
+            ( 
+                gid serial primary key,
+                path_id bigint not null,
+                seq_num integer,
+                link_id bigint,
+                the_geom geometry
+            );
+        """
+        sqlcmd = sqlcmd.replace('[layer_no]', self.layer_no)
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
@@ -330,30 +307,33 @@ class CCheckConsistency(platform.TestCase.CTestCase):
     def _do(self):
         
         # test
-        #objGraph = common.networkx.CGraph_Cache(1000)
-        #paths2 = objGraph._searchAStarPaths(2306054119741202925, 2306054119741195017, max_buffer = 10000, max_path_num = 6, get_link_cost = common.networkx.CLinkCost.getCost, link_tbl = 'rdb_region_link_layer6_tbl', node_tbl = 'rdb_region_node_layer6_tbl', link_laneinfo_tbl = 'rdb_region_link_lane_info_layer6_tbl')
-        #paths2 = objGraph._searchBi_AStarPaths(2306054119741199584, 2306054119741205447, max_buffer = 100000, max_path_num = 6, get_link_cost = common.networkx.CLinkCost.getCost, link_tbl = 'rdb_region_link_layer6_tbl', node_tbl = 'rdb_region_node_layer6_tbl', link_laneinfo_tbl = 'rdb_region_link_lane_info_layer6_tbl')
-        #paths2 = objGraph._searchBi_AStarPaths(-9208383021898530074, -9208383021898503100, max_buffer = 10000, max_path_num = 6, get_link_cost = common.networkx.CLinkCost.getCost, link_tbl = 'rdb_region_link_layer4_tbl', node_tbl = 'rdb_region_node_layer4_tbl', link_laneinfo_tbl = 'rdb_region_link_lane_info_layer4_tbl')
-        #return True
+#        self._test_func(6921047589404023245, 6920977220659852533, '4')
+#        self._test_func(2306054119741225359, 2306054119741208558, '6')
+#        return True
         
         region_layer_list = self.pg.GetRegionLayers()
-        #self.__get_paths_between_accessibility_nodes(region_layer_list)
+        #self.__get_paths_between_accessibility_region_nodes(region_layer_list)
+        self.__get_paths_between_accessibility_l14_nodes()
         self.__compare_paths(region_layer_list)      
         return True
     
-    def __get_paths_between_accessibility_nodes(self, region_layer_list):
-        
+    def __get_paths_between_accessibility_region_nodes(self, region_layer_list):
+        self.logger.info('Begin get paths among region nodes...')
         objGraph = common.networkx.CGraph_Cache(1000)
         for layer_no in region_layer_list:
             objManager = CConsistencyCaseManager(layer_no, objGraph)
             objManager.do()
-        
+            self.__update_geom(layer_no)
+        self.logger.info('End get paths among region nodes.')
+        return True
+    
+    def __get_paths_between_accessibility_l14_nodes(self):
+        self.logger.info('Begin get paths among level 14 nodes...')
+        objGraph = common.networkx.CGraph_Cache(3000)
         objManager = CConsistencyCaseManager(None, objGraph)
         objManager.do()
-            
-        for layer_no in region_layer_list:
-            self.__update_geom(layer_no)
         self.__update_geom('0')
+        self.logger.info('End get paths among level 14 nodes.')
         return True
     
     def __update_geom(self, layer_no = '4'):
@@ -396,35 +376,61 @@ class CCheckConsistency(platform.TestCase.CTestCase):
     
     def __compare_paths(self, region_layer_list):
         
+        sqlcmd = """
+                DROP INDEX IF EXISTS temp_region_consistency_layer0_tbl_path_id_idx;
+                CREATE INDEX temp_region_consistency_layer0_tbl_path_id_idx
+                    ON temp_region_consistency_layer0_tbl
+                    USING btree
+                    (path_id);
+                analyze temp_region_consistency_layer0_tbl;
+                
+                DROP INDEX IF EXISTS temp_region_consistency_path_layer0_tbl_path_id_idx;
+                CREATE INDEX temp_region_consistency_path_layer0_tbl_path_id_idx
+                    ON temp_region_consistency_path_layer0_tbl
+                    USING btree
+                    (path_id);
+                DROP INDEX IF EXISTS temp_region_consistency_path_layer0_tbl_link_id_idx;
+                CREATE INDEX temp_region_consistency_path_layer0_tbl_link_id_idx
+                    ON temp_region_consistency_path_layer0_tbl
+                    USING btree
+                    (link_id);
+                analyze temp_region_consistency_path_layer0_tbl;
+            """
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
+        
         for layer_no in region_layer_list:
-            self.__compare_paths_one_layer(layer_no)
+            #self.__compare_paths_one_layer(layer_no)
+            self.__compare_paths_by_region_link_rate(layer_no)
             
         return True
     
-    def __compare_paths_one_layer(self, layer_no = '4'):
+    def __compare_paths_by_region_link_rate(self, layer_no):
         self.logger.info('Begin comparing layer: ' + str(layer_no) + ' Path to level 14 Path...')
+        
         sqlcmd = """
-                DROP INDEX IF EXISTS rdb_region_layer[layer_no]_node_mapping_region_node_id_idx;
-                CREATE INDEX rdb_region_layer[layer_no]_node_mapping_region_node_id_idx
-                    ON rdb_region_layer[layer_no]_node_mapping
+                DROP TABLE IF EXISTS temp_rdb_region_layer[layer_no]_link_mapping;
+                CREATE TABLE temp_rdb_region_layer[layer_no]_link_mapping
+                AS (
+                    SELECT region_link_id, unnest(link_id_14) AS link_id
+                    FROM rdb_region_layer[layer_no]_link_mapping
+                );
+                DROP INDEX IF EXISTS temp_rdb_region_layer[layer_no]_link_mapping_link_id_idx;
+                CREATE INDEX temp_rdb_region_layer[layer_no]_link_mapping_link_id_idx
+                    ON temp_rdb_region_layer[layer_no]_link_mapping
                     USING btree
-                    (region_node_id);
-                analyze rdb_region_layer[layer_no]_node_mapping;
-                
-                DROP INDEX IF EXISTS rdb_region_layer[layer_no]_link_mapping_region_link_id_idx;
-                CREATE INDEX rdb_region_layer[layer_no]_link_mapping_region_link_id_idx
-                    ON rdb_region_layer[layer_no]_link_mapping
-                    USING btree
-                    (region_link_id);
-                analyze rdb_region_layer[layer_no]_link_mapping;
+                    (link_id);
+                analyze temp_rdb_region_layer[layer_no]_link_mapping;
                 
                 DROP TABLE IF EXISTS temp_region_consistency_path_layer[layer_no]_compare_tbl;
                 CREATE TABLE temp_region_consistency_path_layer[layer_no]_compare_tbl
                 (
                     gid serial primary key,
-                    region_path_id integer,
+                    l14_s_node bigint,
+                    l14_e_node bigint,
                     path_id_14 integer,
-                    coincident_link_rate double precision
+                    cost double precision,
+                    region_link_rate double precision
                 );
             """
         sqlcmd = sqlcmd.replace('[layer_no]', layer_no)
@@ -432,14 +438,105 @@ class CCheckConsistency(platform.TestCase.CTestCase):
         self.pg.commit()
         
         insert_sqlcmd = """
-                INSERT INTO temp_region_consistency_path_layer%s_compare_tbl (region_path_id, path_id_14, coincident_link_rate)
-                    VALUES (%s, %s, %s)
+                INSERT INTO temp_region_consistency_path_layer%s_compare_tbl (
+                    l14_s_node, l14_e_node, path_id_14, cost, region_link_rate)
+                    VALUES (%s, %s, %s, %s, %s)
             """
+        sqlcmd = """
+                SELECT search_s_node, search_e_node, 
+                    array_agg(cost) AS array_cost, 
+                    array_agg(path_id) AS array_path_id, 
+                    array_agg(path_link_count) AS array_path_link_count, 
+                    array_agg(region_link_exist_count) AS array_region_link_count
+                FROM (
+                    SELECT search_s_node, search_e_node, cost, f.path_id, 
+                        path_link_count, region_link_exist_count
+                    FROM temp_region_consistency_layer0_tbl f
+                    LEFT JOIN (
+                        SELECT d.path_id, path_link_count, region_link_exist_count
+                        FROM (
+                            SELECT path_id, count(*) AS path_link_count
+                            FROM temp_region_consistency_path_layer0_tbl
+                            GROUP BY path_id
+                            ORDER BY path_id
+                        ) d
+                        LEFT JOIN (
+                            SELECT path_id, count(*) AS region_link_exist_count
+                            FROM (
+                                SELECT path_id, a.link_id, 
+                                    CASE WHEN b.link_id IS NULL THEN False ELSE True END AS region_link_exist_flag
+                                FROM temp_region_consistency_path_layer0_tbl a
+                                LEFT JOIN temp_rdb_region_layer[layer_no]_link_mapping b
+                                    ON a.link_id = b.link_id
+                            ) c
+                            GROUP BY path_id, region_link_exist_flag HAVING region_link_exist_flag = True
+                            ORDER BY path_id
+                        ) e
+                            ON d.path_id = e.path_id
+                    ) g
+                        ON f.path_id = g.path_id
+                    ORDER BY search_s_node, search_e_node, cost
+                ) h
+                GROUP BY search_s_node, search_e_node
+            """
+        sqlcmd = sqlcmd.replace('[layer_no]', layer_no)
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            search_s_node = row[0]
+            search_e_node = row[1]
+            cost_list = row[2] 
+            path_id_list = row[3] 
+            path_link_count_list = row[4] 
+            region_link_count_list = row[5]
+            
+            list_len = len(cost_list)
+            loop = 0
+            max_loop = 0
+            max_region_link_rate = 0.0
+            while loop < list_len:
+                region_link_rate = region_link_count_list[loop] * 1.0 / path_link_count_list[loop] * 100
+                if region_link_rate > max_region_link_rate:
+                    max_region_link_rate = region_link_rate
+                    max_loop = loop
+                loop += 1
+            else:
+                self.pg.execute(insert_sqlcmd, (int(layer_no), 
+                                                search_s_node, search_e_node, path_id_list[max_loop], 
+                                                cost_list[max_loop], max_region_link_rate))
+        self.pg.commit()
+        self.logger.info('End comparing layer: ' + str(layer_no) + ' Path to level 14 Path.')
+        return True
+    
+    def __compare_paths_one_layer(self, layer_no = '4'):
+        self.logger.info('Begin comparing layer: ' + str(layer_no) + ' Path to level 14 Path...')
+        sqlcmd = """
+                DROP TABLE IF EXISTS temp_region_consistency_path_layer[layer_no]_compare_tbl;
+                CREATE TABLE temp_region_consistency_path_layer[layer_no]_compare_tbl
+                (
+                    gid serial primary key,
+                    region_s_node bigint,
+                    region_e_node bigint,
+                    region_path_cost double precision,
+                    region_path_id integer,
+                    l14_s_node bigint,
+                    l14_e_node bigint,
+                    path_cost double precision,
+                    path_id_14 integer,
+                    coincident_link_rate double precision,
+                    path_cost_rate double precision
+                );
+            """
+        sqlcmd = sqlcmd.replace('[layer_no]', layer_no)
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
             
         sqlcmd = """
                 SELECT b.*, f.*
                 FROM (
-                    SELECT search_s_node, search_e_node, array_agg(path_id) AS array_path
+                    SELECT search_s_node, search_e_node, 
+                        array_agg(path_id) AS array_path,
+                        array_agg(cost) AS array_cost
                     FROM (
                         SELECT *
                         FROM temp_region_consistency_layer[layer_no]_tbl
@@ -452,7 +549,9 @@ class CCheckConsistency(platform.TestCase.CTestCase):
                 LEFT JOIN rdb_region_layer[layer_no]_node_mapping d
                     ON b.search_e_node = d.region_node_id
                 LEFT JOIN (
-                    SELECT search_s_node, search_e_node, array_agg(path_id) AS array_path
+                    SELECT search_s_node, search_e_node, 
+                        array_agg(path_id) AS array_path,
+                        array_agg(cost) AS array_cost
                     FROM (
                         SELECT *
                         FROM temp_region_consistency_layer0_tbl
@@ -461,10 +560,20 @@ class CCheckConsistency(platform.TestCase.CTestCase):
                     GROUP BY search_s_node, search_e_node
                 ) f
                     ON c.node_id_14 = f.search_s_node AND d.node_id_14 = f.search_e_node
+                WHERE f.search_s_node IS NOT NULL
             """
         sqlcmd = sqlcmd.replace('[layer_no]', str(layer_no))
         self.pg.execute(sqlcmd)
         region_layer_14_rel_rows = self.pg.fetchall() # region path and level 14 path relation
+        
+        insert_sqlcmd = """
+                INSERT INTO temp_region_consistency_path_layer%s_compare_tbl (
+                    region_s_node, region_e_node, region_path_cost, region_path_id, 
+                    l14_s_node, l14_e_node, path_cost, path_id_14, 
+                    coincident_link_rate, path_cost_rate)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """ 
+            
         row_len = len(region_layer_14_rel_rows)
         row_idx = 0
         for region_layer_14_rel_row in region_layer_14_rel_rows:
@@ -472,58 +581,151 @@ class CCheckConsistency(platform.TestCase.CTestCase):
             self.logger.info(' Begin comparing ' + str(row_idx) + ' / ' + str(row_len) + ' item...')
             region_s_node = region_layer_14_rel_row[0]
             region_e_node = region_layer_14_rel_row[1]
-            region_path_id_list = tuple(region_layer_14_rel_row[2])
-            l14_s_node = region_layer_14_rel_row[3]
-            l14_e_node = region_layer_14_rel_row[4]
-            l14_path_id_list = tuple(region_layer_14_rel_row[5])
+            region_path_id_list = region_layer_14_rel_row[2]
+            region_path_cost_list = region_layer_14_rel_row[3]
+            l14_s_node = region_layer_14_rel_row[4]
+            l14_e_node = region_layer_14_rel_row[5]
+            l14_path_id_list = region_layer_14_rel_row[6]
+            l14_path_cost_list = region_layer_14_rel_row[7]
             
-            region_path_len = len(region_path_id_list)
-            l14_path_len = len(l14_path_id_list)
             sqlcmd = """
-                    SELECT path_id, array_agg(link_id_14) AS array_link_id_14
+                    SELECT path_id, path_cost, array_agg(link_id_14) AS array_link_id_14
                     FROM (
-                        SELECT path_id, seq_num, link_id, unnest(link_id_14) AS link_id_14
+                        SELECT a.path_id, c.path_cost, a.seq_num, a.link_id, unnest(b.link_id_14) AS link_id_14
                         FROM temp_region_consistency_path_layer[layer_no]_tbl a
                         LEFT JOIN rdb_region_layer[layer_no]_link_mapping b
                             ON a.link_id = b.region_link_id
-                        WHERE path_id IN [region_path_id_list]
-                    ) c
-                    GROUP BY path_id
+                        LEFT JOIN (
+                            SELECT unnest(array[region_path_id_list]) AS path_id,
+                                unnest(array[region_path_cost_list]) AS path_cost
+                        ) c
+                            ON a.path_id = c.path_id
+                        WHERE c.path_id IS NOT NULL
+                        ORDER BY a.path_id, a.seq_num
+                    ) d
+                    GROUP BY path_id, path_cost
                 """
             sqlcmd = sqlcmd.replace('[layer_no]', str(layer_no))
             sqlcmd = sqlcmd.replace('[region_path_id_list]', str(region_path_id_list))
+            sqlcmd = sqlcmd.replace('[region_path_cost_list]', str(region_path_cost_list))
             self.pg.execute(sqlcmd)
             region_path_rows = self.pg.fetchall()
             
             sqlcmd = """
-                    SELECT path_id, array_agg(link_id) AS array_link
+                    SELECT path_id, path_cost, array_agg(link_id) AS array_link
                     FROM (
-                        SELECT path_id, link_id
-                        FROM temp_region_consistency_path_layer0_tbl
-                        WHERE path_id IN [l14_path_id_list]
-                        ORDER BY path_id, seq_num
+                        SELECT a.path_id, b.path_cost, link_id
+                        FROM temp_region_consistency_path_layer0_tbl a
+                        LEFT JOIN (
+                            SELECT unnest(array[l14_path_id_list]) AS path_id,
+                                unnest(array[l14_path_cost_list]) AS path_cost
+                        ) b
+                            ON a.path_id = b.path_id
+                        WHERE b.path_id IS NOT NULL
+                        ORDER BY a.path_id, a.seq_num
                     ) a
-                    GROUP BY path_id
+                    GROUP BY path_id, path_cost
                 """
             sqlcmd = sqlcmd.replace('[l14_path_id_list]', str(l14_path_id_list))
+            sqlcmd = sqlcmd.replace('[l14_path_cost_list]', str(l14_path_cost_list))
             self.pg.execute(sqlcmd)
             l14_path_rows = self.pg.fetchall()
             for region_path_row in region_path_rows:
                 region_path_id = region_path_row[0]
-                region_path = region_path_row[1]
-                max_intersect_percent = 0.0
+                region_path_cost = float(region_path_row[1])
+                region_path = region_path_row[2]
+                max_intersect_percent = -1.0
                 max_intersect_percent_path_id = 0
+                max_intersect_cost = 0.0
                 for l14_path_row in l14_path_rows:
                     l14_path_id = l14_path_row[0]
-                    l14_path = l14_path_row[1]
+                    l14_path_cost = float(l14_path_row[1])
+                    l14_path = l14_path_row[2]
                     intersect_path = list(set(region_path).intersection(set(l14_path)))
                     percent = len(intersect_path) * 1.0 / len(l14_path) * 100
                     if percent > max_intersect_percent:
                         max_intersect_percent = percent
                         max_intersect_percent_path_id = l14_path_id
+                        max_intersect_cost = l14_path_cost
                         if int(max_intersect_percent) == 100:
                             break
-                self.pg.execute(insert_sqlcmd, (int(layer_no), region_path_id, max_intersect_percent_path_id, max_intersect_percent))
+                cost_rate = math.fabs(region_path_cost-max_intersect_cost) / max_intersect_cost * 100
+                self.pg.execute(insert_sqlcmd, (int(layer_no), 
+                                                region_s_node, region_e_node, region_path_cost, region_path_id, 
+                                                l14_s_node, l14_e_node, max_intersect_cost, max_intersect_percent_path_id, 
+                                                max_intersect_percent, cost_rate))
         self.pg.commit()
-        self.logger.info('End comparing layer: ' + str(layer_no) + ' Path to level 14 Path...')
+        self.logger.info('End comparing layer: ' + str(layer_no) + ' Path to level 14 Path.')
+        return True
+    
+    def _test_func(self, s_node, e_node, layer_no = '4'):
+        logger = common.Logger.CLogger.instance().logger('TEST')
+        self.pg = common.database.CDB()
+        self.pg.connect()
+        sqlcmd = """
+                DROP TABLE IF EXISTS temp_region_layer[layer_no]_test_tbl;
+                CREATE TABLE temp_region_layer[layer_no]_test_tbl
+                (
+                    path_id integer,
+                    seq_num integer,
+                    link_id bigint,
+                    the_geom geometry
+                );
+            """
+        sqlcmd = sqlcmd.replace('[layer_no]', str(layer_no))
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
+        
+        insert_sqlcmd = """
+                INSERT INTO temp_region_layer%s_test_tbl (path_id, seq_num, link_id)
+                    VALUES (%s, %s, %s)
+            """
+        objGraph = common.networkx.CGraph_Cache(1000)
+        if int(layer_no) == 0:
+            link_tbl = 'rdb_link'
+            node_tbl = 'rdb_node'
+            link_laneinfo_tbl = 'rdb_linklane_info'
+        else:
+            link_tbl = """rdb_region_link_layer%s_tbl""" % (str(layer_no))
+            node_tbl = """rdb_region_node_layer%s_tbl""" % (str(layer_no))
+            link_laneinfo_tbl = """rdb_region_link_lane_info_layer%s_tbl""" % (str(layer_no))
+        paths = objGraph._searchBi_AStarPaths(s_node, e_node, 
+                                              max_buffer = 50000, 
+                                              max_path_num = 6,
+                                              get_link_cost = common.networkx.CLinkCost.getCost,
+                                              log = logger, 
+                                              link_tbl = link_tbl, 
+                                              node_tbl = node_tbl, 
+                                              link_laneinfo_tbl = link_laneinfo_tbl)
+        if not paths:
+            logger.warning('No Road To Go!!!!!')
+        else:
+            path_id = 0
+            for (cost, path) in paths:
+                path_id += 1
+                seq_num = 0
+                for link in path:
+                    seq_num += 1 
+                    self.pg.execute(insert_sqlcmd, (int(layer_no), path_id, seq_num, link))
+        self.pg.commit()
+        
+        if int(layer_no) == 0:
+            sqlcmd = """
+                    UPDATE temp_region_layer[layer_no]_test_tbl a
+                    SET the_geom = b.the_geom
+                    FROM rdb_link b
+                    WHERE a.link_id = b.link_id;
+                """
+        else:
+            sqlcmd = """
+                    UPDATE temp_region_layer[layer_no]_test_tbl a
+                    SET the_geom = b.the_geom
+                    FROM rdb_region_link_layer[layer_no]_tbl b
+                    WHERE a.link_id = b.link_id;
+                """
+        sqlcmd = sqlcmd.replace('[layer_no]', layer_no)
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
+            
+        self.pg.close()
         return True

@@ -1,0 +1,8 @@
+2016-01-27 16:39:04,604 - INFO: proj_rdf_module----start to process rdf_hkg original data.
+2016-01-27 16:39:04,604 - INFO: spotguide_tbl----Start make spotguide_tbl.
+2016-01-27 16:39:25,119 - INFO: spotguide_tbl----End make spotguide_tbl.
+2016-01-27 16:39:25,119 - INFO: proj_rdf_module----process rdf_hkg original data end.
+2016-01-27 16:39:25,119 - INFO: proj_rdf_module----start to check rdf_hkg middle data.
+2016-01-27 16:39:25,134 - INFO: spotguide_tbl----Start check spotguide_tbl.
+2016-01-27 16:39:25,134 - INFO: spotguide_tbl----End check spotguide_tbl.
+2016-01-27 16:39:25,134 - INFO: proj_rdf_module----check result of middle data is ok.

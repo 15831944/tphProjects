@@ -163,6 +163,24 @@ class CCheckTollFlag(platform.TestCase.CTestCase):
 
 
 # =============================================================================
+# CCheckFacilityNumNI -- 设施数>0
+# ==============================================================================
+class CCheckFacilityNumNI(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        SELECT COUNT(facility_num)
+          FROM rdb_highway_node_add_info
+          WHERE facility_num = 0 or
+                facility_num is null;
+        """
+        self.pg.execute(sqlcmd)
+        row = self.pg.fetchone()
+        if row and row[0] == 0:
+            return True
+        return False
+
+
+# =============================================================================
 # CCheckFacilityNum -- 设施数0，或者1
 # ==============================================================================
 class CCheckFacilityNum(platform.TestCase.CTestCase):

@@ -10,7 +10,7 @@ import codecs
 import common.cache_file
 import component.default.multi_lang_name
 import component.default.guideinfo_building
-
+import common.common_func
 class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guideinfo_building):
     def __init__(self):
         '''
@@ -19,10 +19,17 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
         
     def _Do(self):
-        
+        proj_country = common.common_func.getProjCountry()
         self._loadBrandIcon()
         self._loadPOICategory_new()
-        self._make_poi_category_mapping()
+        
+        if proj_country.lower() == 'saf8' :
+            self._make_poi_category_mapping_saf8()
+        else :
+            self._make_poi_category_mapping_aus()
+
+
+         
         self._loadCategoryPriority() 
         self._findLogmark()
         self._makePOIName()
@@ -30,7 +37,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         return 0
 
 
-    def _make_poi_category_mapping(self):
+    def _make_poi_category_mapping_saf8(self):
         self.log.info('make temp_poi_category_mapping ...')
         
         sqlcmd = '''
@@ -122,7 +129,113 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         self.pg.commit2()
         self.CreateIndex2('temp_poi_category_mapping_org_id1_org_id2_idx')
         
-    
+    def _make_poi_category_mapping_aus(self):
+        self.log.info('make temp_poi_category_mapping ...')
+        
+        sqlcmd = '''
+            drop table if exists temp_poi_category_bak;
+            create table temp_poi_category_bak
+            as
+            select * from temp_poi_category;
+            
+            drop table if exists temp_poi_category;
+            create table temp_poi_category
+            as
+            select a.*, b.brandname as filename
+            from temp_poi_category_bak as a
+            left join temp_brand_icon as b
+            on a.brand_name = b.brandname
+            order by a.per_code;
+        
+        
+            drop table if exists temp_poi_category_mapping;
+            
+            create table temp_poi_category_mapping
+            as
+            (
+        
+               with cat1 as 
+                (
+                    select  distinct org_code, sub_category, genre_type, brand_name, per_code,filename, COALESCE(country, '') as country
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category <> 0 and brand_name <> '0'
+                ),
+                cat2 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename, COALESCE(country, '') as country
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category != 0 and brand_name = '0'
+                ),
+                cat3 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename, COALESCE(country, '') as country
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category = 0 and brand_name != '0'
+                ),
+                cat4 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename, COALESCE(country, '') as country
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category = 0 and brand_name = '0'
+                ),
+                temp_poi_all as
+                (
+                    select iso, id, feattyp, subcat, brandname
+                    from 
+                    (
+                        select distinct COALESCE(a9.order00, a8.order00) as iso, p.id, p.feattyp, p.subcat, p.brandname
+                        from org_mnpoi_pi as p
+                        join org_pisa     as sa
+                        on p.id = sa.id
+                        left join org_a8       as a8
+                        on sa.aretyp = 1119 and sa.areid = a8.id and sa.aretyp = a8.feattyp
+                        left join org_a9       as a9
+                        on sa.aretyp = 1120 and sa.areid = a9.id and sa.aretyp = a9.feattyp
+                    ) as t
+                    where iso is not null 
+                )
+                
+                select org_id1, org_id2, per_code,filename
+                from (
+                    select org_id1, org_id2, per_code, filename,row_number() over ( partition by org_id1, org_id2 order by pref ) as seq
+                    from 
+                    (
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 1 as pref
+                        from temp_poi_all as p
+                        join cat1
+                        on  p.feattyp = cat1.org_code and p.subcat = cat1.sub_category and p.brandname = cat1.brand_name 
+                        and cat1.country in (p.iso, '')
+                        
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 2 as pref
+                        from temp_poi_all as p
+                        join cat2
+                        on  p.feattyp = cat2.org_code and p.subcat = cat2.sub_category
+                        and cat2.country in (p.iso, '')
+                        
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 3 as pref
+                        from temp_poi_all as p
+                        join cat3
+                        on  p.feattyp = cat3.org_code and p.brandname = cat3.brand_name
+                        and cat3.country in (p.iso, '')
+                        
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 4 as pref
+                        from temp_poi_all as p
+                        join cat4
+                        on  p.feattyp = cat4.org_code
+                        and cat4.country in (p.iso, '')
+                    ) as b 
+                ) as t
+                where seq = 1
+            )
+
+         '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_poi_category_mapping_org_id1_org_id2_idx')
+            
     # find poi with logmark
     def _findLogmark(self):
         self.log.info('make temp_poi_logmark...')

@@ -1,6 +1,6 @@
 ﻿﻿# config file of project
-db1=host='192.168.10.14' dbname='post13_ASE_RDF_CI' user='postgres' password='pset123456'
-db2=host='192.168.10.14' dbname='post13_ASE_RDF_CI' user='postgres' password='pset123456'
+db1=host='192.168.10.14' dbname='17cy_HKGMAC_RDF_CI' user='postgres' password='pset123456'
+db2=host='192.168.10.14' dbname='17cy_HKGMAC_RDF_CI' user='postgres' password='pset123456'
 language_table=..\docs\language.xls
 sql_script=.\sql_script\
 run_mode=debug
@@ -8,7 +8,7 @@ run_mode=debug
 # proj_name=axf/jdb/jpn/mmi/msm/nostra/rdf/ta/ni/zenrin/...
 # proj_country=chn/jpn/ind/mys/tha/na/sgp/hkg/twn/...
 proj_name=rdf
-proj_country=ase
+proj_country=hkg
 park_flag=false
 safetyzone_flag=false
 accident_flag=false

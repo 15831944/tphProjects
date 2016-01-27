@@ -10,7 +10,10 @@ import component.component_base
 from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
@@ -771,6 +774,22 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     return True
         return False
 
+    def _uturn_only_normal_sapa_link(self, inout, path):
+        '''路径只经过非高速sapa link'''
+        if not path:
+            self.log.error('no path')
+            return False
+        if inout == HWY_INOUT_TYPE_IN:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            data = self.G[u][v]
+            road_code = data.get(HWY_ROAD_TYPE)
+            link_type = data.get(HWY_LINK_TYPE)
+            if not (road_code not in HWY_ROAD_TYPE_HWY and
+                    link_type == HWY_LINK_TYPE_SAPA):
+                return False
+        return True
+
     def _deal_with_uturn(self):
         '''处理U-turn
         1. 有其他设施，且两边是配对的，那么U-turn情报做到其他设施里
@@ -819,9 +838,12 @@ class HwyFacilityRDF(component.component_base.comp_base):
                                            path, path_type,
                                            updown)
                 else:
+                    # 过滤只经过非高速sapa link的路径
+                    if self._uturn_only_normal_sapa_link(u_inout, path):
+                        continue
                     if self._uturn_in_other_path(path,
                                                  path[0], path[-1]):
-                        print('node_id=%s' % path[0])
+                        #print('node_id=%s' % path[0])
                         continue
                     self._store_facil_path(u_roadcode, u_roadseq,
                                            HWY_IC_TYPE_JCT, u_inout,
@@ -1514,11 +1536,13 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 if join_node in node_lid[1:-1]:  # 忽略头尾, 因为头尾在高速本线上
                     e_node = node_lid[-1]
                     # 所有SAPA路径都经过该汇合点
-                    if(path_type == HWY_PATH_TYPE_SAPA and
-                       self._all_path_pass_join_node(node_lids, join_node,
-                                                     e_node) and
-                       not self._pass_inout(node_lid, inout, join_node)):
-                        continue
+                    if path_type == HWY_PATH_TYPE_SAPA:
+                        if self._filter_sapa_by_join_node(node_lids, node_lid,
+                                                          join_node, inout,
+                                                          e_node):
+                            pass  # 删除
+                        else:
+                            continue  # 不删除
                     # JCT/UTurn
                     if path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN):
                         if not self._filter_JCT_UTurn(node_lids, node_lid,
@@ -1571,6 +1595,19 @@ class HwyFacilityRDF(component.component_base.comp_base):
             return True
         else:
             return False
+
+    def _filter_sapa_by_join_node(self, node_lids, node_lid,
+                                  join_node, inout, e_node):
+        # 要对称：两头都有高速link(road_type=0), 要么都没有高速link
+        if self._check_sapa_symmetrical(node_lid, join_node,
+                                        inout):
+            # print node_lid
+            return True
+        if(not self._pass_inout(node_lid, inout, join_node) and
+           self._all_path_pass_join_node(node_lids, join_node,
+                                         e_node)):
+            return False
+        return True
 
     def _pass_inout(self, node_lid, inout, join_node):
         # ## 和一般道的交点
@@ -1729,6 +1766,55 @@ class HwyFacilityRDF(component.component_base.comp_base):
             if node_lid[-1] == t_node and join_node not in node_lid:
                 return False
         return True
+
+    def _check_sapa_symmetrical(self, path, join_node, inout):
+        '''要对称：两头都有高速link(road_type=0), 要么都没有高速link'''
+        if inout == HWY_INOUT_TYPE_IN:
+            path = path[::-1]
+        count = path.count(join_node)
+        if count <= 0:
+            return False
+        elif count > 1:
+            pass
+        first_hwy_links = self._get_hwy_links(path)
+        idx = len(first_hwy_links)
+        # 所有link都是高速link
+        if len(first_hwy_links) == len(path) - 1:
+            return False
+        second_path = path[idx:]
+        second_hwy_links = self._get_hwy_links(second_path, True)
+        if first_hwy_links and not second_hwy_links:  # 前一段有高速，后一段没有高速
+            return True
+        if not first_hwy_links and second_hwy_links:  # 前一段没有高速，后一段有高速
+            return True
+        if first_hwy_links and second_hwy_links:
+            if set(first_hwy_links).intersection(second_hwy_links):
+                return True
+#             for u, v in zip(second_path[:-1], second_path[1:]):
+#                 data = self.G[u][v]
+#                 road_type = data.get(HWY_ROAD_TYPE)
+#                 if road_type not in HWY_ROAD_TYPE_HWY:
+#                     link_type = data.get(HWY_LINK_TYPE)
+#                     if link_type == HWY_LINK_TYPE_SAPA:
+#                         if set(first_hwy_links).intersection(second_hwy_links):
+#                             return True
+#                         break
+        return False
+
+    def _get_hwy_links(self, path, reverse=False):
+        hwy_links = []
+        links = zip(path[:-1], path[1:])
+        if reverse:
+            links = links[::-1]
+        for u, v in links:
+            data = self.G[u][v]
+            road_type = data.get(HWY_ROAD_TYPE)
+            if road_type in HWY_ROAD_TYPE_HWY:
+                link_id = self.G.get_linkid(u, v)
+                hwy_links.append(link_id)
+            else:
+                break
+        return hwy_links
 
     def _get_filter_ic_by_join_node(self):
         '''过滤出入口:到达出入口汇合点，又转变回去，再转一圈才出来'''
@@ -3089,8 +3175,17 @@ class HwyFacilityRDFMea(HwyFacilityRDF):
 
     def _get_filter_path_types(self):
         # 中东: JCT, UTurn进行过滤，但不对SAPA过滤
-        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN,
+                      HWY_PATH_TYPE_SAPA]
         return path_types
+
+    def _filter_sapa_by_join_node(self, node_lids, node_lid,
+                                  join_node, inout, e_node):
+        # 要对称：两头都有高速link(road_type=0), 要么都没有高速link
+        if self._check_sapa_symmetrical(node_lid, join_node,
+                                        inout):
+            return True  # 删除
+        return False  # 不删除
 
 
 # ===============================================================================
@@ -3108,8 +3203,17 @@ class HwyFacilityRDFAse(HwyFacilityRDF):
 
     def _get_filter_path_types(self):
         # 东南亚: JCT, UTurn进行过滤，但不对SAPA过滤
-        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN,
+                      HWY_PATH_TYPE_SAPA]
         return path_types
+
+    def _filter_sapa_by_join_node(self, node_lids, node_lid,
+                                  join_node, inout, e_node):
+        # 要对称：两头都有高速link(road_type=0), 要么都没有高速link
+        if self._check_sapa_symmetrical(node_lid, join_node,
+                                        inout):
+            return True  # 删除
+        return False  # 不删除
 
 
 # ===============================================================================
@@ -3127,7 +3231,8 @@ class HwyFacilityRDFBra(HwyFacilityRDF):
 
     def _get_filter_path_types(self):
         # 东南亚: JCT, UTurn进行过滤，但不对SAPA过滤
-        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN,
+                      HWY_PATH_TYPE_SAPA]
         return path_types
 
     def _filter_JCT_UTurn(self, pathes, curr_path, inout,
@@ -3171,6 +3276,33 @@ class HwyFacilityRDFBra(HwyFacilityRDF):
             return True
         else:
             return False
+
+    def _filter_sapa_by_join_node(self, node_lids, node_lid,
+                                  join_node, inout, e_node):
+        # 要对称：两头都有高速link(road_type=0), 要么都没有高速link
+        if self._check_sapa_symmetrical(node_lid, join_node,
+                                        inout):
+            if not self._only_one_pair_sapa(node_lid[0], node_lid[-1]):
+                return True  # 删除
+        return False  # 不删除
+
+    def _only_one_pair_sapa(self, s_node, e_node):
+        '''只有一对SAPA'''
+        sapa = set()
+        sqlcmd = """
+        select distinct node_id, to_node_id
+          from mid_temp_hwy_ic_path
+          where facilcls_c in (1, 2) and path_type = 'SAPA' and
+                (node_id = %s or to_node_id = %s)
+        """
+        for node in [s_node, e_node]:
+            for row in self.get_batch_data(sqlcmd, (node, node)):
+                node1, node2 = row[0], row[1]
+                if (node1, node2) not in sapa and (node2, node1) not in sapa:
+                    sapa.add((node1, node2))
+        if len(sapa) == 1:
+            return True
+        return False
 
 
 # ===============================================================================

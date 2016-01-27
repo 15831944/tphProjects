@@ -24,6 +24,7 @@ from component.ni.hwy_pro.hwy_facil_name_pro import HwyFacilNameNiPro
 from component.ni.hwy_pro.hwy_sapa_info_pro import HwySaPaInfoNiPro
 from component.ni.hwy_pro.hwy_node_add_info_pro import HwyNodeAddInfoNiPro
 from component.ni.hwy_pro.hwy_parallel_path_pro import HwyParallelPathNiPro
+from component.ni.hwy_pro.hwy_junction import HwyJunction
 
 
 class HighwayNiPro(HighwayRDF):
@@ -55,22 +56,26 @@ class HighwayNiPro(HighwayRDF):
         self.sapa_info = HwySaPaInfoNiPro()
         self.hwy_toll = HwyTollgateRDF()
         self.hwy_parallel = HwyParallelPathNiPro()
+        self.hwy_juntion = HwyJunction()
 
     def _Do(self):
         self.initialize()
         from component.default.dictionary import comp_dictionary
         dictionary = comp_dictionary()
         dictionary.set_language_code()
-        # ## 设施名称
-        if self.hwy_facil_name:
-            self.hwy_facil_name.Make()
-            del self.hwy_facil_name
-            self.hwy_facil_name = None
         # ## 原link id ==> Middle link id
         if self.link_id_mapping:
             self.link_id_mapping.Make()  # ORG Link_id ==> Middle Link_id
             del self.link_id_mapping
             self.link_id_mapping = None
+        # ## 设施名称
+        if self.hwy_facil_name:
+            self.hwy_facil_name.Make()
+            del self.hwy_facil_name
+            self.hwy_facil_name = None
+        # ## 合理Org设施，转化设施的inlinkid和outlinkid到新的linkId.
+        if self.hwy_juntion:
+            self.hwy_juntion.Make()
         # ## 高速线路名称
         if self.hwy_line_name:
             self.hwy_line_name.Make()

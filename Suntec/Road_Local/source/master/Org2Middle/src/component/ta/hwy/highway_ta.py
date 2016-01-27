@@ -15,6 +15,7 @@ from component.ta.hwy.hwy_exit_name_ta import HwyExitNameTa
 from component.ta.hwy.hwy_sapa_info_ta import HwySapaInfoTa
 from component.rdf.hwy.hwy_service_info_rdf import HwyServiceInfoRDF
 from component.rdf.hwy.hwy_store_rdf import HwyStoreRDF
+from component.ta.hwy.hwy_store_ta import HwyStoreTa
 from component.rdf.hwy.hwy_adjust_link_type_rdf import HwyAdjustLinkType
 from common.common_func import getProjCountry
 
@@ -46,5 +47,5 @@ class HighwayTa(HighwayRDF):
             self.log.error('Wrong PROJ Country.')
         self.hwy_mapping = HwyMappingRDF(self)
         self.service_info = HwyServiceInfoRDF()
-        self.store = HwyStoreRDF()
+        self.store = HwyStoreTa()
         self.adjust_link = HwyAdjustLinkType()

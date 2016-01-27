@@ -20,6 +20,7 @@ distance_limit = {
                   ('rdf', 'hkg') : {'4' : 10000.0, '6' : 10000.0},
                   ('zenrin', 'twn') : {'4' : 10000.0, '6' : 100000.0},
                   ('ni', 'chn') : {'4' : 2000000.0, '6' : 3000000.0},
+                  ('ta', 'aus') : {'4' : 1000000.0, '6' : 2000000.0, '8' : 3000000.0},
                   ('default') : {'4' : 10000.0, '6' : 50000.0}
                   }
 
@@ -105,7 +106,7 @@ class CReachabilityCase(threading.Thread):
             except:
                 self.logger.error('   layer_no: ' + str(self.layer_no) + '---exception happened From Node ' + str(self.search_start_node) + ' To Node ' + str(self.search_end_node) + ' route calculation !!!')
                 raise
-            
+                        
             self.pg.commit()
         else:
             update_sqlcmd = """
@@ -222,8 +223,8 @@ class CReachabilityCaseManager:
         try:
             
             self.__loadCaseList()
-            #self.__doAllCase()
-            self.__doAllCase_parallel()
+            self.__doAllCase()
+            #self.__doAllCase_parallel()
             
             return 0
         except:
@@ -367,6 +368,7 @@ class CReachabilityCaseManager:
                 CREATE TABLE temp_region_selectd_node_layer[layer_no]_tbl
                 (
                     node_id bigint not null,
+                    island_id bigint not null,
                     the_geom geometry
                 );
             """
@@ -396,7 +398,7 @@ class CReachabilityCaseManager:
                         ST_Distance_Sphere(a.the_geom, b.the_geom) as distance
                     FROM temp_region_selectd_node_layer[layer_no]_tbl a
                     LEFT JOIN temp_region_selectd_node_layer[layer_no]_tbl b
-                        ON a.node_id != b.node_id
+                        ON a.island_id = b.island_id AND a.node_id != b.node_id
                     WHERE ST_Distance_Sphere(a.the_geom, b.the_geom) > [distance_limit]
                 );
                 
@@ -415,12 +417,19 @@ class CReachabilityCaseManager:
         
         sqlcmd = """
                 INSERT INTO temp_region_selectd_node_layer[layer_no]_tbl
-                SELECT c.node_id, c.the_geom
+                SELECT c.node_id, d.island_id, c.the_geom
                 FROM temp_config_node_list_tbl a
                 LEFT JOIN rdb_region_layer[layer_no]_node_mapping b
                     ON a.node_id = b.node_id_14
                 LEFT JOIN rdb_region_node_layer[layer_no]_tbl c
                     ON b.region_node_id = c.node_id
+                LEFT JOIN (
+                    SELECT DISTINCT unnest(array[start_node_id, end_node_id]) AS node_id, island_id
+                    FROM temp_rdb_region_walked_link_layer[layer_no]_tbl e
+                    LEFT JOIN rdb_region_link_layer[layer_no]_tbl f
+                        ON e.link_id = f.link_id
+                ) d
+                    ON c.node_id = d.node_id
                 WHERE c.node_id is not null
             """
         
@@ -448,22 +457,6 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
     def _do(self):
         
         # 验证Region各层道路连通性
-        objGraph = common.networkx.CGraph_Cache(1000)
-        #paths = objGraph._searchBi_AStarPaths(-1397842792050327544, -1393620817723522458, max_buffer = 50000, max_path_num = 1, get_link_cost = common.networkx.CLinkCost.getCost)
-        #print paths
-#        paths = objGraph._searchBi_AStarPaths(6921047589404023245, 
-#                                              6920977220659852533, 
-#                                              max_buffer = 50000, 
-#                                              max_path_num = 6, 
-#                                              get_link_cost = common.networkx.CLinkCost.getCost,
-#                                              log = common.Logger.CLogger.instance().logger("   Reachability Test"),
-#                                              link_tbl = 'rdb_region_link_layer4_tbl',
-#                                              node_tbl = 'rdb_region_node_layer4_tbl',
-#                                              link_laneinfo_tbl = 'rdb_region_link_lane_info_layer4_tbl')
-#        for cost, path in paths:
-#            print path
-#        print paths
-#        return True
         self._ReadShapePointList()
         region_layer_list = self.pg.GetRegionLayers()
         
@@ -483,7 +476,7 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
         # region层道路网可达性验证---
         # region层可达性验证仅使用region层路网，不涉及其他层路网数据，可达性验证失败的留待后续处理
         self.logger.info('Begin proving layer reachability...')
-        objGraph = common.networkx.CGraph_Cache(1000)
+        objGraph = common.networkx.CGraph_Cache(2500)
         for layer_no in region_layer_list:
             objManager = CReachabilityCaseManager(layer_no, objGraph)
             objManager.do()

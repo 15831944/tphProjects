@@ -41,6 +41,7 @@ class HwyDataMngTa(HwyDataMngRDF):
     def initialize(self):
         self._graph = HwyGraphTa()  # 高速link图
         self._path_graph = HwyPathGraphRDF(self._graph)  # 高速路径图
+        self._building_graph = HwyGraphTa()
 
     def load_exit_poi_name(self):
         pass
