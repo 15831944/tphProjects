@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 import os
 import psycopg2
+from NodeDataItem import NodeDataItem
 from GuideDataManager import GuideDataManager
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
@@ -35,12 +36,14 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
                                     18: self.btnHookturn, # hook_turn诱导情报有无flag
                                     #19: # Bifurcation诱导情报有无flag
                                     }
-        self.mTheCanvas = theCanvas
-        self.mTheLayer = theLayer
-        self.mSelFeatureIds = selFeatureIds
+        self.theCanvas = theCanvas
+        self.theLayer = theLayer
+        self.selFeatureIds = selFeatureIds
+        self.nodeDataItemList = self.fillNodeDataList()
         self.disableAllGuideBtns()
         self.enableGuideBtns()
-        #self.dataManager = GuideDataManager()
+        self.dataManager = GuideDataManager(self.pg, self.nodeDataItemList)
+        self.dataManager.initData()
         # todo: new a thread to initialise self.dataManager.
 
         self.btnSpotguide.clicked.connect(self.onBtnSpotguide)
@@ -69,7 +72,7 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
 
     def onBtnSpotguide(self):
         self.tabWidgetMain.setCurrentWidget(self.tabSpotguide)
-        self.graphicsViewSpotguide
+        self.spotguidePixmapList
         return
 
     def onBtnSignpost(self):
@@ -111,14 +114,23 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
 
     def enableGuideBtns(self):
         errMsg = ['']
-        for theFeatureId in self.mSelFeatureIds:
+        for oneNodeItem in self.nodeDataItemList:
+            for key, value in self.mBitToFeatureDict.items():
+                if oneNodeItem.extend_flag & 2**key:
+                    value.setEnabled(True)
+        return
+
+    def fillNodeDataList(self):
+        errMsg = ['']
+        for theFeatureId in self.selFeatureIds:
             theFeature = self.getFeatureByFeatureId(errMsg, theFeatureId)
             if errMsg[0] <> '':
-                return
-            extend_flag = theFeature.attribute('extend_flag')
-            for key, value in self.mBitToFeatureDict.items():
-                if extend_flag & 2**key:
-                    value.setEnabled(True)
+                continue
+
+            nodeDataItem = self.featureToNodeDataItem(errMsg, theFeature)
+            if errMsg[0] <> '':
+                continue
+            self.nodeDataItemList.append(nodeDataItem)
         return
 
     def disableAllGuideBtns(self):
@@ -138,7 +150,7 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
         return
 
     def getFeatureByFeatureId(self, errMsg, theFeatureId):
-        featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest(theFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
+        featureIter = self.theLayer.getFeatures(QgsFeatureRequest(theFeatureId).setFlags(QgsFeatureRequest.NoGeometry))
         theFeature = QgsFeature()
         if featureIter.nextFeature(theFeature) == False:
             errMsg[0] = '''can't get feature by specified feature id: %s.''' % theFeatureId
@@ -162,6 +174,22 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
         except Exception, ex:
             return False
         return True
+
+    def featureToNodeDataItem(self, errMsg, theFeature):
+        if self.mIsMyFeature(theFeature) == False:
+            errMsg[0] = """input feature is not Rdb_Node feature."""
+            return None
+
+        gid = theFeature.attribute('gid')
+        node_id = theFeature.attribute('node_id')
+        node_id_t = theFeature.attribute('node_id_t')
+        extend_flag = theFeature.attribute('extend_flag')
+        link_num = theFeature.attribute('link_num')
+        branches = theFeature.attribute('branches')
+        nodeDataItem = NodeDataItem()
+        nodeDataItem.initNormal(gid, node_id, node_id_t, extend_flag, link_num, branches)
+        return nodeDataItem
+
 
 
 

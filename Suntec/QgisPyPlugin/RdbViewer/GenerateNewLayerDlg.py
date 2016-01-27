@@ -32,7 +32,7 @@ as
 (
     select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
             c.image_id as arrow_name, c.data as arrow_dat, 
-            st_union(array[e.the_geom, f.the_geom]) as the_geom
+            st_collect(array[e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_spotguidepoint as a
     left join rdb_guideinfo_pic_blob_bytea as b
@@ -53,7 +53,7 @@ as
 (
     select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
             c.image_id as arrow_name, c.data as arrow_dat, 
-            st_union(array[e.the_geom, f.the_geom]) as the_geom
+            st_collect(array[e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_signpost as a
     left join rdb_guideinfo_pic_blob_bytea as b
@@ -73,7 +73,7 @@ drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, st_union(array[c.the_geom, d.the_geom]) as the_geom
+    select a.*, st_collect(array[c.the_geom, d.the_geom]) as the_geom
     from
     rdb_guideinfo_lane as a
     left join rdb_link as c
@@ -102,7 +102,7 @@ using btree
 (link_id);
 
 drop table if exists temp_regulation_link_list_geom;
-select a.record_no, st_union(array_agg(b.the_geom)) as the_geom
+select a.record_no, st_collect(array_agg(b.the_geom)) as the_geom
 into temp_regulation_link_list_geom
 from
 temp_regulation_link_seqnr as a
@@ -174,7 +174,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_crossname as a
     left join rdb_link as b
@@ -189,7 +189,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_forceguide as a
     left join rdb_link as b
@@ -204,7 +204,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_hook_turn as a
     left join rdb_link as b
@@ -218,7 +218,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_natural_guidence as a
     left join rdb_link as b
@@ -232,7 +232,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_road_structure as a
     left join rdb_link as b
@@ -270,7 +270,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_signpost_uc as a
     left join rdb_link as b
@@ -284,7 +284,7 @@ drop table if exists %s;
 create table %s
 as
 (
-    select a.*, st_union(b.the_geom, c.the_geom) as the_geom
+    select a.*, st_collect(b.the_geom, c.the_geom) as the_geom
     from
     rdb_guideinfo_towardname as a
     left join rdb_link as b
