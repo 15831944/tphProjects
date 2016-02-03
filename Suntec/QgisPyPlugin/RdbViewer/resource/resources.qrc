@@ -96,6 +96,9 @@
      <file>lane/8192_gray.png</file>
   </qresource>
   <qresource>
+     <file>lane/lane_background.png</file>
+  </qresource>
+  <qresource>
      <file>caution/0.png</file>
   </qresource>
   <qresource>

@@ -37,6 +37,12 @@
     <Compile Include="GuideDataManager.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GuideinfoCommon.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LaneDataItem.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LaneShowImageDlg.py">
       <SubType>Code</SubType>
     </Compile>
@@ -44,6 +50,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DatGetBinType.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LaneShowImageWidget.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NodeDataItem.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RdbViewer.py" />

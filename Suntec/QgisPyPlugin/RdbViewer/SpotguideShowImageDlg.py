@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
 from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
+from qgis.gui import QgsHighlight
 import DatGetBinType
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
@@ -20,6 +21,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mTheLayer = theLayer
         self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
+        self.highlightList = []
 
         # members shown in graphic view.
         self.mScene = QGraphicsScene()
@@ -93,15 +95,13 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             arrowDatParser.initFromMemory(errMsg, arrow_dat) # arrow picture
             arrowPixmap = QPixmap()
             arrowPixmap.loadFromData(arrowDatParser.getDatContentByIndex(errMsg, 0))
-            self.mPixmapList.append(arrowPixmap)
-
             if arrowDatParser.hasPointlist():
                 # draw the point list on the arrow picture
                 vecCoors = arrowDatParser.getPointListCoordinatesByIndex(errMsg, arrowDatParser.getPointlistIndex())
                 if errMsg[0] != '':
                     QMessageBox.information(self, "Show Spotguide", errMsg[0])
                     return
-                with QPainter(self.mArrowPixmap) as thePainter:
+                with QPainter(arrowPixmap) as thePainter:
                     for oneXYPair in vecCoors:
                         thePainter.setPen(QPen(QColor(255, 0, 0)))
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1])
@@ -119,6 +119,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strTemp += """\n\npointlist:\n"""
                 strTemp += strPointList
                 self.textEditFeatureInfo.setText(strTemp)
+            self.mPixmapList.append(arrowPixmap)
 
         self.showImageInGraphicsView()
         return
@@ -222,6 +223,8 @@ where %s
         if bZoomToSelected == True:
             center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
             self.mTheCanvas.refresh()
+        self.clearHighlight()
+        self.highlightFeature(self.mTheLayer.selectedFeatures()[0])
         return
 
     def getPixMapSizedByWidgt(self, pixmap, theWidgt):
@@ -271,5 +274,21 @@ where %s
             return False
         return True
 
+    def highlightFeature(self, theFeature):
+        highlight = QgsHighlight(self.mTheCanvas, theFeature.geometry(), self.mTheLayer)
+        highlight.setColor(QColor(255,0,0,128))
+        highlight.setFillColor(QColor(255,0,0,128))
+        highlight.setBuffer(0.5)
+        highlight.setMinWidth(6)
+        highlight.setWidth(6)
+        highlight.show()
+        self.highlightList.append(highlight)
+        return
+
+    def clearHighlight(self):
+        for oneHighlight in self.highlightList:
+            del oneHighlight
+        self.highlightList = []
+        return
 
 

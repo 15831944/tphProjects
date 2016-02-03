@@ -2,6 +2,7 @@
 import os
 import psycopg2
 from DatParser import DatParser
+from LaneDataItem import LaneDataItem
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap
@@ -12,42 +13,6 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
-    arrowImagesMap_highlight = {
-            0: ":/lane/0.png",
-            2**0 : ":/lane/1.png",
-            2**1 : ":/lane/2.png",
-            2**2 : ":/lane/4.png",
-            2**3 : ":/lane/8.png",
-            2**4 : ":/lane/16.png",
-            2**5 : ":/lane/32.png",
-            2**6 : ":/lane/64.png",
-            2**7 : ":/lane/128.png",
-            2**8 : ":/lane/256.png",
-            2**9 : ":/lane/512.png",
-            2**10 : ":/lane/1024.png",
-            2**11 : ":/lane/2048.png",
-            2**12 : ":/lane/4096.png",
-            2**13 : ":/lane/8192.png"
-            }
-
-    arrowImagesMap_gray = {
-            0: ":/lane/0_gray.png",
-            2**0 : ":/lane/1_gray.png",
-            2**1 : ":/lane/2_gray.png",
-            2**2 : ":/lane/4_gray.png",
-            2**3 : ":/lane/8_gray.png",
-            2**4 : ":/lane/16_gray.png",
-            2**5 : ":/lane/32_gray.png",
-            2**6 : ":/lane/64_gray.png",
-            2**7 : ":/lane/128_gray.png",
-            2**8 : ":/lane/256_gray.png",
-            2**9 : ":/lane/512_gray.png",
-            2**10 : ":/lane/1024_gray.png",
-            2**11 : ":/lane/2048_gray.png",
-            2**12 : ":/lane/4096_gray.png",
-            2**13 : ":/lane/8192_gray.png"
-            }
-
     def __init__(self, theCanvas, theLayer, selFeatureIds, parent=None):
         super(LaneShowImageDlg, self).__init__(parent)
         self.setupUi(self)
@@ -267,12 +232,12 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
     def drawLaneHighlight(self, errMsg, totalLaneCount, whichLane, arrowInfo):
         self.drawLane(errMsg, totalLaneCount, whichLane, 
-                      arrowInfo, LaneShowImageDlg.arrowImagesMap_highlight)
+                      arrowInfo, LaneDataItem.arrowImagesMap_highlight)
         return
 
     def drawLaneGray(self, errMsg, totalLaneCount, whichLane, arrowInfo):
         self.drawLane(errMsg, totalLaneCount, whichLane, 
-                      arrowInfo, LaneShowImageDlg.arrowImagesMap_gray)
+                      arrowInfo, LaneDataItem.arrowImagesMap_gray)
         return
 
     def drawLane(self, errMsg, totalLaneCount, whichLane, arrowInfo, arrowImagesMap):
