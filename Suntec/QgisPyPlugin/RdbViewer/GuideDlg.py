@@ -176,7 +176,17 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
                              QtCore.Qt.SmoothTransformation)
 
     def onBtnSignpost(self):
-        self.tabWidgetMain.setCurrentWidget(self.tabSignpost)
+        if self.tabWidgetMain.currentWidget() == self.tabSpotguide:
+            return
+
+        self.tabWidgetMain.setCurrentWidget(self.tabSpotguide)
+        self.initComboBoxSpotguideOutlinkid()
+        self.comboBoxSpotguideOutlinkid.setFocus()
+        errMsg = ['']
+        self.showSignpostDetail(errMsg, self.comboBoxSpotguideOutlinkid.currentText())
+        if errMsg[0] != '':
+            QMessageBox.information(self, "Show Signpost", errMsg[0])
+            return
         return
 
     def onBtnLane(self):
