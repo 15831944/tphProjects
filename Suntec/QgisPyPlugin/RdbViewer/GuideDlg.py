@@ -81,6 +81,15 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
                      QtCore.SIGNAL('activated(QString)'), 
                      self.comboBoxSpotguideOutlinkidChanged)
 
+        #signpost ui controls
+        self.signpostScene = QGraphicsScene()
+        self.signpostPixmapList = []
+        self.graphicsViewSignpost.setScene(self.signpostScene)
+        self.connect(self.comboBoxSignpostOutlinkid, 
+                     QtCore.SIGNAL('activated(QString)'), 
+                     self.comboBoxSignpostOutlinkidChanged)
+
+
         # lane ui controls
         self.laneCtrl = LaneShowImageWidget()
         self.comboBoxLaneOutlinkid = QtGui.QComboBox()
@@ -100,6 +109,8 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
     def resizeEvent(self, event):
         if self.tabWidgetMain.currentWidget() == self.tabSpotguide:
             self.showSpotguidePixmaps()
+        elif self.tabWidgetMain.currentWidget() == self.tabSignpost:
+            self.showSignpostPixmaps()
         return
 
     def onBtnSpotguide(self):
@@ -147,11 +158,11 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
 
         arrowPixmap = QPixmap()
         arrowData = spotguideItem.getArrowPicture(errMsg)
-        if errMsg[0] == '':
+        if errMsg[0] <> '':
+            pass
+        else:
             arrowPixmap.loadFromData(arrowData)
             self.spotguidePixmapList.append(arrowPixmap)
-        else:
-            errMsg[0] = ''
         self.showSpotguidePixmaps()
         self.clearHighlight()
         self.highlightByLinkIdList(errMsg, [spotguideItem.in_link_id], QColor(0, 255, 0, 128))
@@ -176,18 +187,72 @@ class GuideDlg(QtGui.QDialog, FORM_CLASS):
                              QtCore.Qt.SmoothTransformation)
 
     def onBtnSignpost(self):
-        if self.tabWidgetMain.currentWidget() == self.tabSpotguide:
+        if self.tabWidgetMain.currentWidget() == self.tabSignpost:
             return
 
-        self.tabWidgetMain.setCurrentWidget(self.tabSpotguide)
-        self.initComboBoxSpotguideOutlinkid()
-        self.comboBoxSpotguideOutlinkid.setFocus()
+        self.tabWidgetMain.setCurrentWidget(self.tabSignpost)
+        self.initComboBoxSignpostOutlinkid()
+        self.comboBoxSignpostOutlinkid.setFocus()
         errMsg = ['']
-        self.showSignpostDetail(errMsg, self.comboBoxSpotguideOutlinkid.currentText())
+        self.showSignpostDetail(errMsg, self.comboBoxSignpostOutlinkid.currentText())
         if errMsg[0] != '':
             QMessageBox.information(self, "Show Signpost", errMsg[0])
             return
         return
+
+    def initComboBoxSignpostOutlinkid(self):
+        while(self.comboBoxSignpostOutlinkid.count() > 0):
+            self.comboBoxSignpostOutlinkid.removeItem(0)
+        for oneKey in self.dataManager.signpostDataItemDict:
+            self.comboBoxSignpostOutlinkid.addItem(oneKey)
+
+    def comboBoxSignpostOutlinkidChanged(self, txt):
+        errMsg = ['']
+        self.showSignpostDetail(errMsg, txt)
+        if errMsg[0] != '':
+            QMessageBox.information(self, "Show Signpost", errMsg[0])
+        return
+
+    def showSignpostDetail(self, errMsg, signpostItemKey):
+        if self.dataManager.signpostDataItemDict.has_key(signpostItemKey) == False:
+            errMsg[0] = """has no key: %s.""" % signpostItemKey
+            return
+
+        signpostItem = self.dataManager.signpostDataItemDict[signpostItemKey]
+        self.textEditSignpostInfo.setText(signpostItem.toString())
+
+        self.signpostPixmapList = []
+        patternPixmap = QPixmap()
+        patternData = signpostItem.getPatternPicture(errMsg)
+        if errMsg[0] <> '':
+            return
+        patternPixmap.loadFromData(patternData)
+        self.signpostPixmapList.append(patternPixmap)
+
+        arrowPixmap = QPixmap()
+        arrowData = signpostItem.getArrowPicture(errMsg)
+        if errMsg[0] <> '':
+            pass
+        else:
+            arrowPixmap.loadFromData(arrowData)
+            self.signpostPixmapList.append(arrowPixmap)
+        self.showSignpostPixmaps()
+        self.clearHighlight()
+        self.highlightByLinkIdList(errMsg, [signpostItem.in_link_id], QColor(0, 255, 0, 128))
+        self.highlightByLinkIdList(errMsg, [signpostItem.out_link_id], QColor(255, 0, 0, 128))
+        return
+    
+    def showSignpostPixmaps(self):
+        # remove all items in signpost graphics view.
+        for oneItem in self.signpostScene.items():
+            self.signpostScene.removeItem(oneItem)
+
+        for onePixmap in self.signpostPixmapList:
+            self.signpostScene.addPixmap(self.getPixMapSizedByWidget(onePixmap, self.graphicsViewSignpost))
+
+        self.signpostScene.setSceneRect(0, 0, self.graphicsViewSignpost.width()-5, self.graphicsViewSignpost.height()-5)
+        return
+
 
     def onBtnLane(self):
         if self.tabWidgetMain.currentWidget() == self.tabLane:

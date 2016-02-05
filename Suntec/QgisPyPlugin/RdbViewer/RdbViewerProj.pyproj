@@ -63,6 +63,9 @@
     <Compile Include="RegulationShowInfoDlg.py" />
     <Compile Include="resources.py" />
     <Compile Include="GuideInfoCommonDlg.py" />
+    <Compile Include="SignpostDataItem.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SignpostShowImageDlg.py" />
     <Compile Include="GuideDlg.py" />
     <Compile Include="SpotguideDataItem.py">
