@@ -265,7 +265,6 @@ where %s
             pattern_id = theFeature.attribute('pattern_id')
             arrow_id = theFeature.attribute('arrow_id')
             is_exist_sar = theFeature.attribute('is_exist_sar')
-            order_id = theFeature.attribute('order_id')
             pattern_name = theFeature.attribute('pattern_name')
             arrow_name = theFeature.attribute('arrow_name')
         except KeyError, kErr:

@@ -1,8 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 import os
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMessageBox
+from PyQt4.QtGui import QMessageBox, QPen, QColor
 from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
+from qgis.gui import QgsHighlight
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'GuideInfoCommonDlgDesign.ui'))
@@ -17,6 +18,8 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         self.setWindowTitle(self.mCategory)
         self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
+        self.highlightList = []
+
         featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
         inti = 0
         theFeature = QgsFeature()
@@ -108,6 +111,8 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         if bZoomToSelected == True:
             center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
             self.mTheCanvas.refresh()
+        self.clearHighlight()
+        self.highlightFeature(self.mTheLayer.selectedFeatures()[0])
         return
 
     def mIsMyFeature(self, theFeature):
@@ -123,6 +128,23 @@ class GuideInfoCommonDlg(QtGui.QDialog, FORM_CLASS):
         except Exception, ex:
             return False
         return True
+
+    def highlightFeature(self, theFeature):
+        highlight = QgsHighlight(self.mTheCanvas, theFeature.geometry(), self.mTheLayer)
+        highlight.setColor(QColor(255,0,0,128))
+        highlight.setFillColor(QColor(255,0,0,128))
+        highlight.setBuffer(0.5)
+        highlight.setMinWidth(6)
+        highlight.setWidth(6)
+        highlight.show()
+        self.highlightList.append(highlight)
+        return
+
+    def clearHighlight(self):
+        for oneHighlight in self.highlightList:
+            del oneHighlight
+        self.highlightList = []
+        return
 
 
 

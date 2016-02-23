@@ -1,8 +1,9 @@
 #encoding=utf-8
 import os
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap
+from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QPen, QColor
 from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
+from qgis.gui import QgsHighlight
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'CautionShowInfoDlgDesign.ui'))
@@ -125,6 +126,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         self.mTheLayer = theLayer
         self.mSelFeatureIds = selFeatureIds
         self.mAllFeatureIds = []
+        self.highlightList = []
         self.setWindowTitle("Caution")
         self.labelOutlinkid.setText("Inlinkid:")
         self.graphicsViewCaution.setScene(QGraphicsScene())
@@ -163,6 +165,8 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         for oneItem in scene.items():
             scene.removeItem(oneItem)
         scene.addPixmap(QPixmap(CautionShowInfoDlg.cautionImageDict[theFeature.attribute('data_kind')]))
+        self.clearHighlight()
+        self.highlightFeature(theFeature)
         return
     
     def getFeatureInfoString(self, theFeature):
@@ -181,7 +185,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         inti = self.comboBoxOutlinkid.currentIndex()
         self.selectFeatureById(errMsg, self.mSelFeatureIds[inti], bZoomToSelected=False)
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Caution Info", """error:\n%s"""%errMsg[0])
             return
         return
 
@@ -191,7 +195,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         errMsg = ['']
         self.selectFeatureById(errMsg, prevFeatureId)
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Caution Info", """error:\n%s"""%errMsg[0])
             return
         return
 
@@ -201,7 +205,7 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
         errMsg = ['']
         self.selectFeatureById(errMsg, nextFeatureId)
         if errMsg[0] <> '':
-            QMessageBox.information(self, "Lane Info", """error:\n%s"""%errMsg[0])
+            QMessageBox.information(self, "Caution Info", """error:\n%s"""%errMsg[0])
             return
         return
 
@@ -252,7 +256,22 @@ class CautionShowInfoDlg(QtGui.QDialog, FORM_CLASS):
             return False
         return True
 
+    def highlightFeature(self, theFeature):
+        highlight = QgsHighlight(self.mTheCanvas, theFeature.geometry(), self.mTheLayer)
+        highlight.setColor(QColor(255,0,0,128))
+        highlight.setFillColor(QColor(255,0,0,128))
+        highlight.setBuffer(0.5)
+        highlight.setMinWidth(6)
+        highlight.setWidth(6)
+        highlight.show()
+        self.highlightList.append(highlight)
+        return
 
+    def clearHighlight(self):
+        for oneHighlight in self.highlightList:
+            del oneHighlight
+        self.highlightList = []
+        return
 
 
 
