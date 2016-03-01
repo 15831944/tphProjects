@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SpotguideShowImageDlgDesign</class>
+ <widget class="QDialog" name="SpotguideShowImageDlgDesign">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>667</width>
+    <height>507</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Spotguide Image</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
+   <item row="0" column="0" rowspan="4">
+    <widget class="QGraphicsView" name="graphicsViewShowImage"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QSplitter" name="splitter_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Outlink</string>
+      </property>
+      <property name="indent">
+       <number>-1</number>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBoxOutlinkid"/>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QTextEdit" name="textEditFeatureInfo">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QSplitter" name="splitter_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QSpinBox" name="spinBoxFeatureIndex"/>
+     <widget class="QPushButton" name="pushButtonPrev">
+      <property name="text">
+       <string>Prev</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonNext">
+      <property name="text">
+       <string>Next</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QDialogButtonBox" name="button_box">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      </property>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>SpotguideShowImageDlgDesign</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>SpotguideShowImageDlgDesign</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

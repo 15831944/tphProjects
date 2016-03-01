@@ -1,0 +1,16 @@
+[general]
+name=NostraIllustCheck
+qgisMinimumVersion=2.0
+description=For Nostra Original Data Check
+version=0.1
+author=Tang Pinghui
+email=tangph006@gmail.com
+
+tags=
+homepage=
+tracker=
+repository=
+icon=icon.png
+experimental=True
+deprecated=False
+

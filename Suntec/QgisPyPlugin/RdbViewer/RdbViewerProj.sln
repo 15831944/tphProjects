@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01-ErrorShow", "..\01-Error
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloworldAsm", "..\HelloworldAsm\HelloworldAsm.vcxproj", "{3D4D4584-4D85-42A0-AEA6-2C316821FE68}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "NostraIllustCheck", "..\NostraIllustCheck\NostraIllustCheck.pyproj", "{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,16 @@ Global
 		{3D4D4584-4D85-42A0-AEA6-2C316821FE68}.Release|Win32.Build.0 = Release|Win32
 		{3D4D4584-4D85-42A0-AEA6-2C316821FE68}.Release|x64.ActiveCfg = Release|Win32
 		{3D4D4584-4D85-42A0-AEA6-2C316821FE68}.Release|x86.ActiveCfg = Release|Win32
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Release|Win32.ActiveCfg = Release|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF544A8B-2971-43B6-AC3B-ED0E9A569CB1}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
