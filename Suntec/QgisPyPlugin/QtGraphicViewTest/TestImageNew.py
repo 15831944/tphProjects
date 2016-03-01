@@ -4,6 +4,12 @@ import sys
 sys.path.append(r"C:\Users\hexin\.qgis2\python\plugins\RdbViewer")
 import DatGetBinType
 
+def qsort(L):
+    if len(L) <= 1:
+        return L  
+    return qsort([lt for lt in L[1:] if lt < L[0]]) + [L[0]] + qsort([ge for ge in L[1:] if ge >= L[0]])
+
+
 def main():
     srcDir = r"C:\Users\hexin\Desktop\20151218_jpg_png_get_size"
     errMsg = ['']

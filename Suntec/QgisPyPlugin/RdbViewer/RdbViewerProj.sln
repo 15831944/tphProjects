@@ -7,8 +7,6 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "QtGraphicViewTest", "..\QtG
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "RdbNaviSimulator", "..\RdbNaviSimulator\RdbNaviSimulator.pyproj", "{DED120CE-CBFD-4CBC-BDFB-68067F322A80}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dl", "..\..\..\..\Desktop\20160107_deep_learning\caffe\dl.vcxproj", "{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01-ErrorShow", "..\01-ErrorShow\01-ErrorShow.vcxproj", "{1F169C3B-A907-402D-B2EF-C0BB21E90AF9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloworldAsm", "..\HelloworldAsm\HelloworldAsm.vcxproj", "{3D4D4584-4D85-42A0-AEA6-2C316821FE68}"
@@ -57,20 +55,6 @@ Global
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|Win32.ActiveCfg = Release|Any CPU
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|x64.ActiveCfg = Release|Any CPU
 		{DED120CE-CBFD-4CBC-BDFB-68067F322A80}.Release|x86.ActiveCfg = Release|Any CPU
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|Win32.Build.0 = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|x64.ActiveCfg = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Debug|x86.ActiveCfg = Debug|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|Any CPU.ActiveCfg = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|Win32.ActiveCfg = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|Win32.Build.0 = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|x64.ActiveCfg = Release|Win32
-		{E6BE43E7-95F2-49C8-9EBA-4968A501EA78}.Release|x86.ActiveCfg = Release|Win32
 		{1F169C3B-A907-402D-B2EF-C0BB21E90AF9}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{1F169C3B-A907-402D-B2EF-C0BB21E90AF9}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
 		{1F169C3B-A907-402D-B2EF-C0BB21E90AF9}.Debug|Mixed Platforms.Build.0 = Debug|x64

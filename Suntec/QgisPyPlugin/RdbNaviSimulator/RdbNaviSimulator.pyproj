@@ -5,8 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ded120ce-cbfd-4cbc-bdfb-68067f322a80</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>ComputePath\RdbComputePath.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,19 +22,33 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ComputePath\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DrawPoint.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LatLonPoint.py" />
+    <Compile Include="ComputePath\LatLonPoint.py" />
+    <Compile Include="PythonTest.py" />
+    <Compile Include="ComputePath\RdbComputePath.py" />
+    <Compile Include="ComputePath\RdbDiGraph.py" />
+    <Compile Include="ComputePath\RdbLinkObject.py" />
+    <Compile Include="ComputePath\RdbLinkRegulationObject.py" />
     <Compile Include="RdbNaviSimulator.py" />
+    <Compile Include="RdbWebViewDlg.py" />
     <Compile Include="RdbNaviSimulatorDlg.py" />
     <Compile Include="RdbNaviSimulatorMapTool.py" />
+    <Compile Include="ComputePath\RdbCheckGraphConnectivity.py" />
     <Compile Include="resources.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="metadata.txt" />
+    <Content Include="RdbWebViewDlgDesign.ui" />
     <Content Include="RdbNaviSimulatorDlgDesign.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ComputePath\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

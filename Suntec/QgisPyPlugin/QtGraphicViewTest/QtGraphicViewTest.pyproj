@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{58fdc484-9684-4da9-82b7-4eccab1d689b}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>TestImageNew.py</StartupFile>
+    <StartupFile>PythonMultiThreadTest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,9 +22,18 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="PythonMultiThreadTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RdbNewTick.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="QtGraphicViewTest2.py" />
     <Compile Include="QtGraphicViewTest.py" />
     <Compile Include="resources.py" />
+    <Compile Include="Test1.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestImageNew.py">
       <SubType>Code</SubType>
     </Compile>

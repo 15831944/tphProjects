@@ -25,6 +25,7 @@ class RdbViewer:
         actionGenerateLayer.setEnabled(True)
         self.actions.append(actionGenerateLayer)
 
+        self.guideInfoMapTool = GuideInfoCommonMapTool(self.iface.mapCanvas())
         icon_path = ':/icons/GuideIcon.png' 
         actionShowGuideInfo = QAction(QIcon(icon_path), u"Show GuideInfo", None)
         actionShowGuideInfo.triggered.connect(self.showGuideInfo)
@@ -35,7 +36,6 @@ class RdbViewer:
         actionShowGuideInfo.setEnabled(True)
         actionShowGuideInfo.setCheckable(True)
         self.actions.append(actionShowGuideInfo)
-        self.guideInfoMapTool = GuideInfoCommonMapTool(self.iface.mapCanvas())
         self.guideInfoMapTool.setAction(actionShowGuideInfo)
         return
 

@@ -3,7 +3,7 @@ from qgis.gui import QgsMapTool, QgsMapToolIdentify
 from qgis.core import QgsMapLayer, QgsFeature
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QCursor, QMessageBox
-from RdbLinkObject import RdbLinkObject
+from ComputePath.RdbLinkObject import RdbLinkObject
 
 class RdbNaviSimulatorMapTool(QgsMapTool):
     def __init__(self, canvas, naviDlg):

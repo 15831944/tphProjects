@@ -13,7 +13,7 @@ class RdbInformationPool(object):
         return
 
     def newTickCome(self, theTick):
-
+        theTick
         return
 
 

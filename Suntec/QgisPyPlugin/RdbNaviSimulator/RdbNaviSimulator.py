@@ -3,12 +3,13 @@ import resources
 from PyQt4.QtGui import QAction, QIcon
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from RdbNaviSimulatorDlg import RdbNaviSimulatorDlg
+from RdbWebViewDlg import RdbWebViewDlg
 from RdbNaviSimulatorMapTool import RdbNaviSimulatorMapTool
 
 class RdbNaviSimulator:
     def __init__(self, iface):
         self.iface = iface
-        self.naviDlg = RdbNaviSimulatorDlg(iface)
+        self.naviDlg = RdbWebViewDlg(iface)
         self.naviSimulatorMapTool = RdbNaviSimulatorMapTool(self.iface.mapCanvas(), self.naviDlg)
         self.actions = []
         self.menu = u'&Rdb Navi Simulator'
