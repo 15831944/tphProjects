@@ -70,7 +70,8 @@ class NostraIllustCheckDlg(QtGui.QDialog, FORM_CLASS):
             if featureIter.nextFeature(theFeature) == False:
                 return
             if self.mIsMyFeature(theFeature):
-                self.comboBoxOutlinkid.addItem(str(theFeature.attribute('arc1')) + str(theFeature.attribute('arc2')))
+                strTemp = "%.0f, %.0f" % (theFeature.attribute('arc1'), theFeature.attribute('arc2'))
+                self.comboBoxOutlinkid.addItem(strTemp)
 
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
