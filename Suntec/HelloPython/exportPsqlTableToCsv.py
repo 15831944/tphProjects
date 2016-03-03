@@ -88,14 +88,14 @@ class PsqlTablesExporter(object):
         return tableList
          
 if __name__ == '__main__':
-    dbIP = '''192.168.10.20'''
-    dbNameList = ['C_NIMIF_15SUM_0082_0003']
+    dbIP = '''192.168.10.14'''
+    dbNameList = ['post13_ASE_RDF_CI']
     userName = '''postgres'''
     password = '''pset123456'''
     for dbName in dbNameList:
         try:
             datMaker = PsqlTablesExporter(dbIP, dbName, userName, password)
-            datMaker.exportTablesToDir(r"""C:\My\text_db_src""")
+            datMaker.exportTablesToDir(r"""C:\Users\hexin\Desktop\20160122_debug_15-110-1-02764\table_list""")
         except Exception, ex:
             print '''%s/%s.\nmsg:\t%s\n''' % (dbIP, dbName, ex)
     

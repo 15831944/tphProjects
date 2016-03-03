@@ -1,10 +1,5 @@
 # -*- coding: cp936 -*-
-'''
-Created on 2012-11-26
-@author: liuxinxing
-'''
 import os
-import psycopg2
 
 # 将sar元数据里的所有png图片名列出
 # srcDir: sar元数据的路径
