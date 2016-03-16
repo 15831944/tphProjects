@@ -1,0 +1,15 @@
+/.vs/
+/*.tlog/
+/[Dd]ebug/
+/[Rr]elease/
+/ipch/
+*.obj
+*.pdb
+*.ipdb
+*.ipch
+*.ilk
+*.bat
+*.user
+*.opensdf
+*.sdf
+*.aps

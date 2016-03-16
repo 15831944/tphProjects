@@ -1,0 +1,5 @@
+{
+	'org':'boc', 
+	'imagedata': FS.readFileSync(imagefile).toString('base64'),
+	'ext': PATH.extname(imagefile)
+}

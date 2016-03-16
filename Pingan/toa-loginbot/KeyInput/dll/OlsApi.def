@@ -1,0 +1,59 @@
+EXPORTS 
+
+GetDllStatus			@1
+GetDllVersion			@2
+GetDriverVersion		@3
+GetDriverType			@4
+
+InitializeOls			@7
+DeinitializeOls			@8
+
+IsCpuid					@11
+IsMsr					@12
+IsTsc					@13
+
+Hlt						@20
+Rdmsr					@21
+Wrmsr					@22
+Rdpmc					@23
+Cpuid					@24
+Rdtsc					@25
+
+HltEx					@30
+RdmsrEx					@31
+WrmsrEx					@32
+RdpmcEx					@33
+CpuidEx					@34
+RdtscEx					@35
+
+ReadIoPortByte			@41
+ReadIoPortWord			@42
+ReadIoPortDword			@43
+WriteIoPortByte			@44
+WriteIoPortWord			@45
+WriteIoPortDword		@46
+
+ReadIoPortByteEx		@51
+ReadIoPortWordEx		@52
+ReadIoPortDwordEx		@53
+WriteIoPortByteEx		@54
+WriteIoPortWordEx		@55
+WriteIoPortDwordEx		@56
+
+SetPciMaxBusIndex		@60
+
+ReadPciConfigByte		@61
+ReadPciConfigWord		@62
+ReadPciConfigDword		@63
+WritePciConfigByte		@64
+WritePciConfigWord		@65
+WritePciConfigDword		@66
+FindPciDeviceById		@67
+FindPciDeviceByClass	@68
+
+ReadPciConfigByteEx		@71
+ReadPciConfigWordEx		@72
+ReadPciConfigDwordEx	@73
+WritePciConfigByteEx	@74
+WritePciConfigWordEx	@75
+WritePciConfigDwordEx	@76

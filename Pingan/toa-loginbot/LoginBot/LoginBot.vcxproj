@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CustDispatch.cpp" />
+    <ClCompile Include="CustIE.cpp" />
+    <ClCompile Include="CustIEDoc.cpp" />
+    <ClCompile Include="CustIETools.cpp" />
+    <ClCompile Include="CustIEView.cpp" />
+    <ClCompile Include="DocHostHtmlView.cpp" />
+    <ClCompile Include="DocHostSite.cpp" />
+    <ClCompile Include="jsoncpp\src\json_reader.cpp" />
+    <ClCompile Include="jsoncpp\src\json_value.cpp" />
+    <ClCompile Include="jsoncpp\src\json_writer.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CustDispatch.h" />
+    <ClInclude Include="CustIE.h" />
+    <ClInclude Include="CustIEDoc.h" />
+    <ClInclude Include="CustIETools.h" />
+    <ClInclude Include="CustIEView.h" />
+    <ClInclude Include="detours\include\detours.h" />
+    <ClInclude Include="detours\include\detver.h" />
+    <ClInclude Include="detours\include\syelog.h" />
+    <ClInclude Include="DocHostHtmlView.h" />
+    <ClInclude Include="DocHostSite.h" />
+    <ClInclude Include="jsoncpp\include\json\assertions.h" />
+    <ClInclude Include="jsoncpp\include\json\autolink.h" />
+    <ClInclude Include="jsoncpp\include\json\config.h" />
+    <ClInclude Include="jsoncpp\include\json\features.h" />
+    <ClInclude Include="jsoncpp\include\json\forwards.h" />
+    <ClInclude Include="jsoncpp\include\json\json.h" />
+    <ClInclude Include="jsoncpp\include\json\reader.h" />
+    <ClInclude Include="jsoncpp\include\json\value.h" />
+    <ClInclude Include="jsoncpp\include\json\version.h" />
+    <ClInclude Include="jsoncpp\include\json\writer.h" />
+    <ClInclude Include="jsoncpp\src\json_tool.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="openssl\include\openssl\aes.h" />
+    <ClInclude Include="openssl\include\openssl\asn1.h" />
+    <ClInclude Include="openssl\include\openssl\asn1t.h" />
+    <ClInclude Include="openssl\include\openssl\async.h" />
+    <ClInclude Include="openssl\include\openssl\bio.h" />
+    <ClInclude Include="openssl\include\openssl\blowfish.h" />
+    <ClInclude Include="openssl\include\openssl\bn.h" />
+    <ClInclude Include="openssl\include\openssl\buffer.h" />
+    <ClInclude Include="openssl\include\openssl\camellia.h" />
+    <ClInclude Include="openssl\include\openssl\cast.h" />
+    <ClInclude Include="openssl\include\openssl\cmac.h" />
+    <ClInclude Include="openssl\include\openssl\cms.h" />
+    <ClInclude Include="openssl\include\openssl\comp.h" />
+    <ClInclude Include="openssl\include\openssl\conf.h" />
+    <ClInclude Include="openssl\include\openssl\conf_api.h" />
+    <ClInclude Include="openssl\include\openssl\crypto.h" />
+    <ClInclude Include="openssl\include\openssl\des.h" />
+    <ClInclude Include="openssl\include\openssl\dh.h" />
+    <ClInclude Include="openssl\include\openssl\dsa.h" />
+    <ClInclude Include="openssl\include\openssl\dso.h" />
+    <ClInclude Include="openssl\include\openssl\dtls1.h" />
+    <ClInclude Include="openssl\include\openssl\ebcdic.h" />
+    <ClInclude Include="openssl\include\openssl\ec.h" />
+    <ClInclude Include="openssl\include\openssl\ecdh.h" />
+    <ClInclude Include="openssl\include\openssl\ecdsa.h" />
+    <ClInclude Include="openssl\include\openssl\engine.h" />
+    <ClInclude Include="openssl\include\openssl\err.h" />
+    <ClInclude Include="openssl\include\openssl\evp.h" />
+    <ClInclude Include="openssl\include\openssl\e_os2.h" />
+    <ClInclude Include="openssl\include\openssl\hmac.h" />
+    <ClInclude Include="openssl\include\openssl\idea.h" />
+    <ClInclude Include="openssl\include\openssl\jpake.h" />
+    <ClInclude Include="openssl\include\openssl\lhash.h" />
+    <ClInclude Include="openssl\include\openssl\md2.h" />
+    <ClInclude Include="openssl\include\openssl\md4.h" />
+    <ClInclude Include="openssl\include\openssl\md5.h" />
+    <ClInclude Include="openssl\include\openssl\mdc2.h" />
+    <ClInclude Include="openssl\include\openssl\modes.h" />
+    <ClInclude Include="openssl\include\openssl\objects.h" />
+    <ClInclude Include="openssl\include\openssl\obj_mac.h" />
+    <ClInclude Include="openssl\include\openssl\ocsp.h" />
+    <ClInclude Include="openssl\include\openssl\opensslconf.h" />
+    <ClInclude Include="openssl\include\openssl\opensslv.h" />
+    <ClInclude Include="openssl\include\openssl\ossl_typ.h" />
+    <ClInclude Include="openssl\include\openssl\pem.h" />
+    <ClInclude Include="openssl\include\openssl\pem2.h" />
+    <ClInclude Include="openssl\include\openssl\pkcs12.h" />
+    <ClInclude Include="openssl\include\openssl\pkcs7.h" />
+    <ClInclude Include="openssl\include\openssl\pqueue.h" />
+    <ClInclude Include="openssl\include\openssl\rand.h" />
+    <ClInclude Include="openssl\include\openssl\rc2.h" />
+    <ClInclude Include="openssl\include\openssl\rc4.h" />
+    <ClInclude Include="openssl\include\openssl\rc5.h" />
+    <ClInclude Include="openssl\include\openssl\ripemd.h" />
+    <ClInclude Include="openssl\include\openssl\rsa.h" />
+    <ClInclude Include="openssl\include\openssl\safestack.h" />
+    <ClInclude Include="openssl\include\openssl\seed.h" />
+    <ClInclude Include="openssl\include\openssl\sha.h" />
+    <ClInclude Include="openssl\include\openssl\srp.h" />
+    <ClInclude Include="openssl\include\openssl\srtp.h" />
+    <ClInclude Include="openssl\include\openssl\ssl.h" />
+    <ClInclude Include="openssl\include\openssl\ssl2.h" />
+    <ClInclude Include="openssl\include\openssl\ssl3.h" />
+    <ClInclude Include="openssl\include\openssl\stack.h" />
+    <ClInclude Include="openssl\include\openssl\store.h" />
+    <ClInclude Include="openssl\include\openssl\symhacks.h" />
+    <ClInclude Include="openssl\include\openssl\tls1.h" />
+    <ClInclude Include="openssl\include\openssl\ts.h" />
+    <ClInclude Include="openssl\include\openssl\txt_db.h" />
+    <ClInclude Include="openssl\include\openssl\ui.h" />
+    <ClInclude Include="openssl\include\openssl\whrlpool.h" />
+    <ClInclude Include="openssl\include\openssl\x509.h" />
+    <ClInclude Include="openssl\include\openssl\x509v3.h" />
+    <ClInclude Include="openssl\include\openssl\x509_vfy.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="statuscode.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CustIE.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="jsoncpp\src\json_valueiterator.inl" />
+    <None Include="res\CustIEDoc.ico" />
+    <None Include="res\Toolbar.bmp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4C9FBD42-989A-49F0-ADCB-A844CA81EFCE}</ProjectGuid>
+    <RootNamespace>Temp</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+    <ProjectName>LoginBot</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\bot</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\bin\bot</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>jsoncpp/include;curl/include;openssl/include;detours/include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>.\curl\lib;.\openssl\lib;.\detours\lib.X86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl.lib;wldap32.lib;libeay32.lib;ssleay32.lib</AdditionalDependencies>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>jsoncpp/include;curl/include;openssl/include;detours/include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <AdditionalDependencies>libcurl.lib;wldap32.lib;libeay32.lib;ssleay32.lib;detours.lib;syelog.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\curl\lib;.\openssl\lib;.\detours\lib.X86</AdditionalLibraryDirectories>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="CustIE.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
