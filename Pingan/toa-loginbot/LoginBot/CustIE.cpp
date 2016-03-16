@@ -15,7 +15,7 @@
 #include "CustDispatch.h"
 
 #include "CustIETools.h"
-#include "stdlib.h"
+
 // CCustIEApp
 
 BEGIN_MESSAGE_MAP(CCustIEApp, CWinApp)
@@ -84,7 +84,6 @@ BOOL CCustIEApp::InitInstance()
 	/*
 	* Setup locale to zh_CN.GBK
 	*/
-    Sleep(30000);
 	wchar_t * curlocale = _wsetlocale(LC_ALL, L"Chinese_People's Republic of China.936");
 	int err = GetLastError();
 	curlocale = _wsetlocale(LC_ALL, NULL);
