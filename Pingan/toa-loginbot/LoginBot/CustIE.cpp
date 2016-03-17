@@ -232,7 +232,7 @@ BOOL CCustIEApp::InitInstance()
 	if (dwTimeout < 200000) {  // Lock for 2 minutes
 		SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 200000, (LPVOID)0, SPIF_SENDCHANGE | SPIF_UPDATEINIFILE);  
 	}
-
+  
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
 	CSingleDocTemplate* pDocTemplate;
@@ -267,13 +267,21 @@ BOOL CCustIEApp::InitInstance()
 		return FALSE;
 	}
 	LocalFree(argv);
-
+    while(!CCustIETools::GetKeyInputLock())
+    {
+        auto id = GetCurrentProcessId();
+        PUTLOG("%ld ----------------wait for create", id);
+        PUTLOG("%ld ----------------app thread id", GetCurrentThreadId());
+        Sleep(100);
+        continue;
+    }
 	// Dispatch commands specified on the command line.  Will return FALSE if
 	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
 	if (!ProcessShellCommand(cmdInfo)){
 		Json::Value voucherMap;
 		voucherMap["errmsg"] = "Failed to ProcessShellCommand";
 		CCustIETools::StatusReport(m_userConfig, StatusCode(OPEN_FAILE), voucherMap.toStyledString());
+        CCustIETools::ReleaseKeyInputLock();
 		return FALSE;
 	}
 
@@ -285,6 +293,7 @@ BOOL CCustIEApp::InitInstance()
 		m_pMainWnd->SetWindowPos(NULL, GetSystemMetrics(SM_CXSCREEN)>>2, 0, 0, 0, SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOZORDER);
 	}
 
+    CCustIETools::ReleaseKeyInputLock();
 	Json::Value voucherMap;
 	voucherMap["errmsg"] = "InitInstance OK";
 	CCustIETools::StatusReport(m_userConfig, StatusCode(OPEN_SUCCESS), voucherMap.toStyledString());

@@ -81,8 +81,12 @@ public:
 	static bool AESEncrypt(const std::string & text, const std::string & key, std::vector<unsigned char > & vecInput);
 
 	static int  HandleAlerts(const std::string & jsonConfig, const std::string & alertMsg);
+
     static void string_replace(std::string & strBig, const std::string & strsrc, const std::string &strdst);
 
+	static void Hook_Abc();
+
+	static void HookInput_Abc(char cValue);
 
 #ifdef USE_CURL
 	static bool HttpRequest(const std::string & url, std::string & response);

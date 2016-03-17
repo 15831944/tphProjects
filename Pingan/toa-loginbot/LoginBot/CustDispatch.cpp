@@ -287,7 +287,29 @@ STDMETHODIMP CImpIDispatch::Invoke(
 			int nInputInterval = pDispParams->rgvarg[1].intVal;
 			CString sValue = pDispParams->rgvarg[0].bstrVal; // in case you want a CString copy
 
-			bool fStat = CCustIETools::KeyInput(nInputInterval, TOANSI(sValue.GetBuffer()), true);
+			bool fStat = true;
+			if (nInputInterval == 0){
+				std::string strValue = TOANSI(sValue.GetBuffer());
+
+				std::string sType = "";
+				if (theApp.m_userConfig.isObject() && theApp.m_userConfig.isMember("type")){
+					sType = theApp.m_userConfig["type"].asString();
+				}
+				if (sType == "abc"){
+					for (std::string::iterator it = strValue.begin(); it != strValue.end(); it++){
+						CCustIETools::HookInput_Abc(*it);
+					}
+				}else{
+					PUTLOG("* Hook not supported");
+				}
+				PUTLOG("* Notify KeyInput done");
+				CCustIETools::SetKeyInputDone();
+
+				PUTLOG("* Release KeyInput Lock, TID: %u", GetCurrentThreadId());
+				CCustIETools::ReleaseKeyInputLock();
+			}else{
+				fStat = CCustIETools::KeyInput(nInputInterval, TOANSI(sValue.GetBuffer()), true);
+			}
 
 			if (pVarResult != NULL) {
 				VariantInit(pVarResult);

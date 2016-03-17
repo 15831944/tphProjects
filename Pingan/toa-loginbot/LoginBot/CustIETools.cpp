@@ -1269,6 +1269,128 @@ void CCustIETools::string_replace(std::string& strBig, const std::string& strsrc
     }
 }
 
+static DWORD BinaryCode_GetAddrByModule(const char * lpModuleName, DWORD nModuleOffset)
+{	
+	HMODULE hModule = GetModuleHandleA(lpModuleName);
+	DWORD nModuleAddress = (DWORD )hModule;
+	if (0 != nModuleAddress)
+	{
+		DWORD nPhysical = nModuleAddress + nModuleOffset;
+		return nPhysical;
+	}
+	return 0;
+}
+
+static BOOL Mem_ReadAddressByteSet(DWORD nBase, BYTE* byszValue, int nNum)
+{
+	DWORD dwOLD = 0;
+	MEMORY_BASIC_INFORMATION  mbi = {0};
+	VirtualQuery((LPCVOID )nBase, &mbi, sizeof(mbi));
+	VirtualProtect((LPVOID )nBase, sizeof(BYTE) * nNum, PAGE_EXECUTE_READWRITE, &dwOLD);
+	memcpy((void *)byszValue, (void *)nBase, nNum);
+	VirtualProtect((LPVOID )nBase, sizeof(BYTE) * nNum, dwOLD,0);
+	return TRUE;
+}
+
+static BOOL Mem_ModifyAddressByteSet(DWORD nBase, BYTE* byszValue, int nNum)
+{
+	DWORD dwOLD = 0;
+	MEMORY_BASIC_INFORMATION  mbi = {0};
+	VirtualQuery((LPCVOID )nBase, &mbi, sizeof(mbi));
+	VirtualProtect((LPVOID )nBase, sizeof(BYTE) * nNum, PAGE_EXECUTE_READWRITE, &dwOLD);
+	memcpy((void *)nBase, (void *)byszValue, nNum);
+	VirtualProtect((LPVOID )nBase, sizeof(BYTE) * nNum, dwOLD,0);
+	return TRUE;
+}
+
+static DWORD l_nHookABCSetFocusOnPsdCtrlAddress = 0;
+static DWORD l_dwPasswordCtrlObjectAddr = 0;
+
+void CCustIETools::HookInput_Abc(char cValue)
+{
+	if (0 == l_dwPasswordCtrlObjectAddr)
+		return ;
+
+	static DWORD nCall = BinaryCode_GetAddrByModule("POWERE~1.OCX", 0x23710);
+
+	if (0 == nCall) {
+		return ;
+	}
+
+	DWORD dwValue = (DWORD )cValue;
+	if (!isprint(cValue)){
+		return ;
+	}
+	
+	_asm {
+		pushad;
+		pushfd;
+		push 0;
+		push dwValue;
+		mov ecx, dword ptr ds:[l_dwPasswordCtrlObjectAddr];
+		call nCall;
+		popfd;
+		popad;
+	}
+
+	return ;
+}
+
+void _cdecl TraceAndCollectABCSetFocusOnPsdCtrl(DWORD dwEcx)
+{
+	l_dwPasswordCtrlObjectAddr = dwEcx;
+}
+
+void __declspec(naked) CodeABCSetFocusOnPsdCtrl(void)
+{
+	_asm
+	{
+		mov ecx,dword ptr ds:[esi+0x234];
+
+		pushad;
+		pushfd;
+		push ecx;
+		call TraceAndCollectABCSetFocusOnPsdCtrl;
+		add esp,4;
+		popfd;
+		popad;
+
+		push l_nHookABCSetFocusOnPsdCtrlAddress;
+		add dword ptr ss:[esp], 0x6;
+		retn;
+	}
+}
+
+void CCustIETools::Hook_Abc()
+{
+	// long JUMP instruction
+	BYTE byValue[5] = {0xe9, 0x00, 0x00, 0x00, 0x00};
+
+	static BOOL s_hooked = FALSE;
+
+	if (s_hooked){
+		return ;
+	}
+
+	if (0 == l_nHookABCSetFocusOnPsdCtrlAddress) {
+		l_nHookABCSetFocusOnPsdCtrlAddress = BinaryCode_GetAddrByModule("POWERE~1.OCX", 0x1B037);
+	}
+
+	if (0 == l_nHookABCSetFocusOnPsdCtrlAddress) {
+		return ;
+	}
+
+	// the distance between original and detoured, (vector, e.g. jump back if minus, jump forward if postive);
+	*(DWORD* )&byValue[1] = (DWORD )CodeABCSetFocusOnPsdCtrl - ((DWORD )l_nHookABCSetFocusOnPsdCtrlAddress + 5);
+
+	if (!s_hooked) {
+		Mem_ModifyAddressByteSet(l_nHookABCSetFocusOnPsdCtrlAddress, byValue, sizeof(byValue));
+		s_hooked = TRUE;
+	}
+
+	return ;
+}
+
 int CCustIETools::HandleAlerts(const std::string & jsonConfig, const std::string & alertMsg)
 {
 	std::string strParams;

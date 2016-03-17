@@ -99,7 +99,11 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 	}
 
 	// TODO: more strict, only load script for LoginUrl, PhoneUrl & WelcomeUrl
-	if ( strState == "complete" && (lpszURL == wcsstr(lpszURL, L"https://")) ) {
+	if ( strState == "complete" ) {
+		do {
+			CCustIETools::Hook_Abc();
+		}while(0);
+
 		do {
 			std::string userConfig = "";
 			userConfig += "if ('undefined' === typeof GlobalSettings) { ";
