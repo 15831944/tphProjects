@@ -9,40 +9,40 @@
 class CCustIEDoc : public CDocument
 {
 protected: // create from serialization only
-	CCustIEDoc();
-	DECLARE_DYNCREATE(CCustIEDoc)
+    CCustIEDoc();
+    DECLARE_DYNCREATE(CCustIEDoc)
 
-// Attributes
+    // Attributes
 public:
 
-// Operations
+    // Operations
 public:
 
-// Overrides
+    // Overrides
 public:
-	virtual BOOL OnNewDocument();
-	virtual void Serialize(CArchive& ar);
+    virtual BOOL OnNewDocument();
+    virtual void Serialize(CArchive& ar);
 #ifdef SHARED_HANDLERS
-	virtual void InitializeSearchContent();
-	virtual void OnDrawThumbnail(CDC& dc, LPRECT lprcBounds);
+    virtual void InitializeSearchContent();
+    virtual void OnDrawThumbnail(CDC& dc, LPRECT lprcBounds);
 #endif // SHARED_HANDLERS
 
-// Implementation
+    // Implementation
 public:
-	virtual ~CCustIEDoc();
+    virtual ~CCustIEDoc();
 #ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+    virtual void AssertValid() const;
+    virtual void Dump(CDumpContext& dc) const;
 #endif
 
 protected:
 
-// Generated message map functions
+    // Generated message map functions
 protected:
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 
 #ifdef SHARED_HANDLERS
-	// Helper function that sets search content for a Search Handler
-	void SetSearchContent(const CString& value);
+    // Helper function that sets search content for a Search Handler
+    void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
 };
