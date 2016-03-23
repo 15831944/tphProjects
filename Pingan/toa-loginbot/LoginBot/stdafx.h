@@ -112,3 +112,12 @@ using namespace Gdiplus;
 
 // Default Configuration
 #define DEFAULT_TIMEOUT_SECONDS         (5 * 60)
+
+#define ORG_ABC ("abc")
+#define ORG_BCM ("bcm")
+#define ORG_BOC ("boc")
+#define ORG_CCB ("ccb")
+#define ORG_CMB ("cmb")
+#define ORG_ICBC ("icbm")
+#define SUBTYPE_DEBIT ("debit")
+#define SUBTYPE_CREDIT ("credit")

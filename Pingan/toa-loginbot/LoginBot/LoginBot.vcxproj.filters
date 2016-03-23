@@ -28,6 +28,9 @@
     <Filter Include="detours">
       <UniqueIdentifier>{fc63327c-31a5-4997-bffa-599bb7a2edd4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Hook">
+      <UniqueIdentifier>{e1f3e406-9989-4946-a762-4e70573affa2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustDispatch.cpp">
@@ -65,6 +68,15 @@
     </ClCompile>
     <ClCompile Include="jsoncpp\src\json_writer.cpp">
       <Filter>jsoncpp\source</Filter>
+    </ClCompile>
+    <ClCompile Include="hook\dllload.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="hook\MemoryModule.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="hook\myhook.cpp">
+      <Filter>Hook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -367,6 +379,15 @@
     </ClInclude>
     <ClInclude Include="statuscode.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hook\dllload.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="hook\MemoryModule.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="hook\myhook.h">
+      <Filter>Hook</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

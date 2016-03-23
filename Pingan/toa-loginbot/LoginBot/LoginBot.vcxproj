@@ -18,6 +18,9 @@
     <ClCompile Include="CustIEView.cpp" />
     <ClCompile Include="DocHostHtmlView.cpp" />
     <ClCompile Include="DocHostSite.cpp" />
+    <ClCompile Include="hook\dllload.cpp" />
+    <ClCompile Include="hook\MemoryModule.cpp" />
+    <ClCompile Include="hook\myhook.cpp" />
     <ClCompile Include="jsoncpp\src\json_reader.cpp" />
     <ClCompile Include="jsoncpp\src\json_value.cpp" />
     <ClCompile Include="jsoncpp\src\json_writer.cpp" />
@@ -35,6 +38,9 @@
     <ClInclude Include="detours\include\syelog.h" />
     <ClInclude Include="DocHostHtmlView.h" />
     <ClInclude Include="DocHostSite.h" />
+    <ClInclude Include="hook\dllload.h" />
+    <ClInclude Include="hook\MemoryModule.h" />
+    <ClInclude Include="hook\myhook.h" />
     <ClInclude Include="jsoncpp\include\json\assertions.h" />
     <ClInclude Include="jsoncpp\include\json\autolink.h" />
     <ClInclude Include="jsoncpp\include\json\config.h" />
