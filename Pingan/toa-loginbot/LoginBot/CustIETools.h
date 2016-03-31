@@ -88,9 +88,15 @@ public:
 
 #pragma region hook
 	static void Hook_Abc();
+
 	static void HookInput_Abc(char cValue);
+	
+	static void Hook_Boc();
+	
+	static void HookInput_Boc(char cValue);
 
     static bool Hook_Bcm(const std::string hookFilePath);
+
     static void HookInput_Bcm(const char* cValue, int len);
 #pragma endregion
 
@@ -194,6 +200,8 @@ private:
 	};
 
 	static DWORD __stdcall ThreadDelayMessage(void * param);
+
+	static DWORD __stdcall ThreadHookBoc(void * param);
 
 private:
 	static HANDLE m_hKeyInputLock;

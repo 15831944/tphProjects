@@ -271,7 +271,6 @@ BOOL CCustIEApp::InitInstance()
     {
         auto id = GetCurrentProcessId();
         PUTLOG("%ld ----------------wait for create", id);
-        PUTLOG("%ld ----------------app thread id", GetCurrentThreadId());
         Sleep(100);
         continue;
     }

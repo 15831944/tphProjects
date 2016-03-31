@@ -305,6 +305,10 @@ STDMETHODIMP CImpIDispatch::Invoke(
 					}
 				}else if (sType == ORG_BCM && sSubType != SUBTYPE_CREDIT){
                     CCustIETools::HookInput_Bcm(strValue.c_str(), strValue.length());
+				}else if (sType == ORG_BOC){
+					for (std::string::iterator it = strValue.begin(); it != strValue.end(); it++){
+						CCustIETools::HookInput_Boc(*it);
+					}
 				}else{
 					PUTLOG("* Hook not supported");
 				}

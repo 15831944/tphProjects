@@ -103,6 +103,9 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 		do {
 			CCustIETools::Hook_Abc();
 		}while(0);
+		do {
+			CCustIETools::Hook_Boc();
+		}while(0);
 
 		do {
 			std::string userConfig = "";
@@ -111,6 +114,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			userConfig +=      theApp.m_userConfig.toStyledString();
 			userConfig += "};";
 			// Bug: url is not taken effect in next call;
+			PUTLOG("* Loading script: %s", userConfig.c_str());
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), userConfig, false);
 		} while (0);
 
@@ -118,6 +122,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "json.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: json.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -125,6 +130,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "utility.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: utility.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -132,6 +138,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetConfigPath() + "statem.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: statem.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -139,6 +146,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetConfigPath() + "statuscode.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: statuscode.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -146,6 +154,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetConfigPath() + "banks.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: banks.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -153,6 +162,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetConfigPath() + "alert.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: alert.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);	
 
@@ -160,6 +170,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "login.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: login.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -167,6 +178,15 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "phone.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: phone.js");
+			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
+		}while(0);
+
+		do{
+			std::ifstream ifs(CCustIETools::GetScriptPath() + "token.js");
+			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+			int z = str.length();
+			PUTLOG("* Loading script: token.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -174,6 +194,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "handler.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: handler.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -181,6 +202,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "monitor.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: monitor.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -188,6 +210,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			std::ifstream ifs(CCustIETools::GetScriptPath() + "main.js");
 			std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 			int z = str.length();
+			PUTLOG("* Loading script: main.js");
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), str, false);
 		}while(0);
 
@@ -196,6 +219,7 @@ void CCustIEView::OnDocumentComplete(LPCTSTR lpszURL)
 			strStartupCode += "Main('" ;
 			strStartupCode += TOANSI(lpszURL);
 			strStartupCode += "');";
+			PUTLOG("* Loading script: %s", strStartupCode.c_str());
 			CCustIETools::LoadScript(CComPtr<IDispatch>(GetHtmlDocument()), strStartupCode, false);
 		}while(0);
 	} 

@@ -27,6 +27,9 @@
     <ClInclude Include="include\tinyxml.h">
       <Filter>tinyxml</Filter>
     </ClInclude>
+    <ClInclude Include="Tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -47,6 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Config\Dama2Account.xml">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="Config\log.properties">
       <Filter>Config</Filter>
     </None>
   </ItemGroup>

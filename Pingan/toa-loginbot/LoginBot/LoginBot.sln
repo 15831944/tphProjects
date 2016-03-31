@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LoginBot", "LoginBot.vcxproj", "{4C9FBD42-989A-49F0-ADCB-A844CA81EFCE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KbdInput", "..\KbdInput\KbdInput.vcxproj", "{76EF9711-1228-4DFE-AB33-553D64E8468E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyInput", "..\KeyInput\KeyInput.vcxproj", "{74CB1F21-0C89-44CB-9DD6-24B9B9010CC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +17,14 @@ Global
 		{4C9FBD42-989A-49F0-ADCB-A844CA81EFCE}.Debug|Win32.Build.0 = Debug|Win32
 		{4C9FBD42-989A-49F0-ADCB-A844CA81EFCE}.Release|Win32.ActiveCfg = Release|Win32
 		{4C9FBD42-989A-49F0-ADCB-A844CA81EFCE}.Release|Win32.Build.0 = Release|Win32
+		{76EF9711-1228-4DFE-AB33-553D64E8468E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{76EF9711-1228-4DFE-AB33-553D64E8468E}.Debug|Win32.Build.0 = Debug|Win32
+		{76EF9711-1228-4DFE-AB33-553D64E8468E}.Release|Win32.ActiveCfg = Release|Win32
+		{76EF9711-1228-4DFE-AB33-553D64E8468E}.Release|Win32.Build.0 = Release|Win32
+		{74CB1F21-0C89-44CB-9DD6-24B9B9010CC6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{74CB1F21-0C89-44CB-9DD6-24B9B9010CC6}.Debug|Win32.Build.0 = Debug|Win32
+		{74CB1F21-0C89-44CB-9DD6-24B9B9010CC6}.Release|Win32.ActiveCfg = Release|Win32
+		{74CB1F21-0C89-44CB-9DD6-24B9B9010CC6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

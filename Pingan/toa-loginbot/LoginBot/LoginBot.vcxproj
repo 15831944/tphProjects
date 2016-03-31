@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bcmhook\dllload.cpp" />
+    <ClCompile Include="bcmhook\MemoryModule.cpp" />
+    <ClCompile Include="bcmhook\myhook.cpp" />
     <ClCompile Include="CustDispatch.cpp" />
     <ClCompile Include="CustIE.cpp" />
     <ClCompile Include="CustIEDoc.cpp" />
@@ -18,9 +21,6 @@
     <ClCompile Include="CustIEView.cpp" />
     <ClCompile Include="DocHostHtmlView.cpp" />
     <ClCompile Include="DocHostSite.cpp" />
-    <ClCompile Include="hook\dllload.cpp" />
-    <ClCompile Include="hook\MemoryModule.cpp" />
-    <ClCompile Include="hook\myhook.cpp" />
     <ClCompile Include="jsoncpp\src\json_reader.cpp" />
     <ClCompile Include="jsoncpp\src\json_value.cpp" />
     <ClCompile Include="jsoncpp\src\json_writer.cpp" />
@@ -28,6 +28,9 @@
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bcmhook\dllload.h" />
+    <ClInclude Include="bcmhook\MemoryModule.h" />
+    <ClInclude Include="bcmhook\myhook.h" />
     <ClInclude Include="CustDispatch.h" />
     <ClInclude Include="CustIE.h" />
     <ClInclude Include="CustIEDoc.h" />
@@ -38,9 +41,6 @@
     <ClInclude Include="detours\include\syelog.h" />
     <ClInclude Include="DocHostHtmlView.h" />
     <ClInclude Include="DocHostSite.h" />
-    <ClInclude Include="hook\dllload.h" />
-    <ClInclude Include="hook\MemoryModule.h" />
-    <ClInclude Include="hook\myhook.h" />
     <ClInclude Include="jsoncpp\include\json\assertions.h" />
     <ClInclude Include="jsoncpp\include\json\autolink.h" />
     <ClInclude Include="jsoncpp\include\json\config.h" />

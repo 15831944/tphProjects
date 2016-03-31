@@ -7,7 +7,7 @@
 #include "getopt.h"
 #pragma warning(disable:4996)
 
-bool GetVCodeFromNetWork(const std::string & imagePath, std::string & sText);
+bool GetVCodeFromNetWork(const std::string & imagePath, std::string & sText, HANDLE & logMutex);
 
 static void PrintHelp(const char * appname);
 
@@ -26,7 +26,7 @@ int main(int argc, char * argv [])
 	int c;
 	while (1)
 	{
-		static struct option long_options[] =
+		static struct option_a long_options[] =
 		{
 			{ "bank",    ARG_REQ,   0, 'b' },
 			{ "text",    ARG_REQ,   0, 't' },
@@ -35,7 +35,7 @@ int main(int argc, char * argv [])
 		};
 
 		int option_index = 0;
-		c = getopt_long(argc, argv, ("t:b:h"), long_options, &option_index);
+		c = getopt_long_a(argc, argv, ("t:b:h"), long_options, &option_index);
 
 		// Check for end of operation or error
 		if (c == -1)
@@ -50,19 +50,19 @@ int main(int argc, char * argv [])
 				break;
 
 			if (!strcmp(long_options[option_index].name, "text")) {
-				textfile = (optarg);
+				textfile = (optarg_a);
 			}
 			break;
 			if (!strcmp(long_options[option_index].name, "bank")) {
-				bankid = (optarg);
+				bankid = (optarg_a);
 			}
 			break;
 
 		case ('t'):
-			textfile = (optarg);
+			textfile = (optarg_a);
 			break;
 		case ('b'):
-			bankid = (optarg);
+			bankid = (optarg_a);
 			break;
 
 		case ('h'):
@@ -95,7 +95,10 @@ int main(int argc, char * argv [])
 	}while(0);
 
 	std::string strText;
-	if (!GetVCodeFromNetWork(sImagePath, strText)){
+	HANDLE logMutex = CreateMutex(NULL, false, (LPCWSTR)"logMutex");  
+	bool ret = GetVCodeFromNetWork(sImagePath, strText, logMutex);
+	CloseHandle(logMutex);
+	if (!ret){
 		return -1;
 	}
 

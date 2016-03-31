@@ -118,6 +118,6 @@ using namespace Gdiplus;
 #define ORG_BOC ("boc")
 #define ORG_CCB ("ccb")
 #define ORG_CMB ("cmb")
-#define ORG_ICBC ("icbm")
+#define ORG_ICBC ("icbc")
 #define SUBTYPE_DEBIT ("debit")
 #define SUBTYPE_CREDIT ("credit")
