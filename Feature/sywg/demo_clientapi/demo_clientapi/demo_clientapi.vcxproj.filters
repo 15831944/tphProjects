@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ApiRsp.cpp" />
+    <ClCompile Include="demo_clientapi.cpp" />
+    <ClCompile Include="demo_clientapiDlg.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <Filter>uimp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\clientapi\clientapi\BusStruct.h" />
+    <ClInclude Include="..\..\clientapi\clientapi\ClientApi.h" />
+    <ClInclude Include="ApiRsp.h" />
+    <ClInclude Include="demo_clientapi.h" />
+    <ClInclude Include="demo_clientapiDlg.h" />
+    <ClInclude Include="requestid.h" />
+    <ClInclude Include="Resource.h">
+      <Filter>uimp</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>uimp</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>uimp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\bitmap2.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\bitmap3.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\login.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="ReadMe.txt">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\demo_clientapi.rc2">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\demo_clientapi.ico">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\title.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\退出.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\列表.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\发送文件.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\取消.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\查询成交.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\查询持仓.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\查询结果.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\查询资金.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\登陆密码.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\登陆用户名.bmp">
+      <Filter>uimp</Filter>
+    </None>
+    <None Include="res\结算.bmp">
+      <Filter>uimp</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="uimp">
+      <UniqueIdentifier>{dcea7f35-60c0-47d1-8bfb-e8ce87d7a85b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="demo_clientapi.rc">
+      <Filter>uimp</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

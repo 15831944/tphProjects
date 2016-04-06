@@ -102,6 +102,18 @@
     <None Include="res\demo_clientapi.ico" />
     <None Include="res\demo_clientapi.rc2" />
     <None Include="res\login.bmp" />
+    <None Include="res\title.bmp" />
+    <None Include="res\列表.bmp" />
+    <None Include="res\发送文件.bmp" />
+    <None Include="res\取消.bmp" />
+    <None Include="res\查询成交.bmp" />
+    <None Include="res\查询持仓.bmp" />
+    <None Include="res\查询结果.bmp" />
+    <None Include="res\查询资金.bmp" />
+    <None Include="res\登陆密码.bmp" />
+    <None Include="res\登陆用户名.bmp" />
+    <None Include="res\结算.bmp" />
+    <None Include="res\退出.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\clientapi\clientapi\BusStruct.h" />
@@ -125,9 +137,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="demo_clientapi.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\Debug\clientapi.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

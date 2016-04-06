@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ApiRsp.cpp" />
+    <ClCompile Include="dbf.cpp" />
+    <ClCompile Include="demo_serverapi.cpp" />
+    <ClCompile Include="demo_serverapiDlg.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <Filter>uu</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\serverapi\BusStruct.h" />
+    <ClInclude Include="..\..\serverapi\ServerApi.h" />
+    <ClInclude Include="ApiRsp.h" />
+    <ClInclude Include="dbf.h" />
+    <ClInclude Include="demo_serverapi.h" />
+    <ClInclude Include="demo_serverapiDlg.h" />
+    <ClInclude Include="Resource.h">
+      <Filter>uu</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>uu</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>uu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="demo_serverapi.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\demo_serverapi.ico" />
+    <None Include="res\demo_serverapi.rc2" />
+    <None Include="res\title.bmp">
+      <Filter>uu</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\Debug\serverapi.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="uu">
+      <UniqueIdentifier>{65da8ea6-9eb4-41f0-ac01-4478185b4692}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

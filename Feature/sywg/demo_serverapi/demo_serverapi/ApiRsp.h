@@ -5,13 +5,13 @@
 class CApiRsp :public CServerApiSpi
 {
 public:
-	CApiRsp();
-	~CApiRsp();
+    CApiRsp();
+    ~CApiRsp();
 
-	//结算状态通知
-	virtual void OnNtyStatus(NTY_STATUS_INFO *pStatus);
-	virtual void OnRcvRspData(CPackage *pPackage,int &nEventHandle);
-	virtual void OnRcvFile(char *FileName);
-	virtual void OnRcvReq(int &ReqNo,CPackage *pPara,USER_HANDLE &handle);
+    //结算状态通知
+    virtual void OnNtyStatus(NTY_STATUS_INFO *pStatus);
+    virtual void OnRcvRspData(CPackage *pPackage,int &nEventHandle);
+    virtual void OnRcvFile(char *FileName);
+    virtual void OnRcvReq(int &ReqNo,CPackage *pPara,USER_HANDLE &handle);
 };
 #endif

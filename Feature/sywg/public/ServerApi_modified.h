@@ -6,15 +6,15 @@
 // 修改历史:
 // 备    注:    
 //----------------------------------------------------------------------
-#ifndef SERVERAPI_H
-#define SERVERAPI_H
-#ifdef SERVERAPI_EXPORTS
-#define SERVERAPI_LIB __declspec(dllexport)
+#ifndef CLIENTAPI_H
+#define CLIENTAPI_H
+#ifdef CLIENTAPI_EXPORTS
+#define CLIENTAPI_LIB __declspec(dllexport)
 #else
 #ifdef WIN32
-#define SERVERAPI_LIB __declspec(dllexport)
+#define CLIENTAPI_LIB __declspec(dllexport)
 #else
-#define SERVERAPI_LIB
+#define CLIENTAPI_LIB
 #endif
 #endif
 
@@ -22,7 +22,7 @@
 #include "Package.h"
 
 //回调接口
-class CServerApiSpi
+class CClientApiSpi
 {
 public:
     //结算状态通知
@@ -33,7 +33,7 @@ public:
 };
 
 
-class SERVERAPI_LIB CServerApi
+class CLIENTAPI_LIB CClientApi
 {
 public:
 
@@ -43,9 +43,9 @@ public:
     //删除数据包
     virtual void ReleasePackage(CPackage * pPackage) = 0;
     //创建api实例
-    static CServerApi *CreateServerApi();
+    static CClientApi *CreateClientApi();
     //注册回调接口
-    virtual void RegisterSpi(CServerApiSpi *pGeneralSpi) = 0;
+    virtual void RegisterSpi(CClientApiSpi *pGeneralSpi) = 0;
     //释放资源
     virtual void Release() = 0;
     //初始化
@@ -69,7 +69,7 @@ public:
     virtual int SendDataToClient(USER_HANDLE *UserHandle,CPackage *pData,ERROR_INFO &ErrMsg)=0;
 
 public:
-    virtual ~CServerApi();
+    virtual ~CClientApi();
 
 };
 

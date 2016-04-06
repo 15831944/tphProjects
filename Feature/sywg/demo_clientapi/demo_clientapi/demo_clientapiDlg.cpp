@@ -55,7 +55,7 @@ void Cdemo_clientapiDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_LIST2, m_ListQry);
     DDX_Control(pDX, IDC_STATIC_QRY, m_QryName);
     DDX_Control(pDX, IDC_BUTTON_LOGIN, m_LoginButton);
-    DDX_Control(pDX, IDC_BUTTON1, m_SendFile);
+    DDX_Control(pDX, IDC_BTN_SENDFILE, m_SendFile);
     DDX_Control(pDX, IDC_BUTTON_QRYMATCH, m_QryMatch);
     DDX_Control(pDX, IDC_BUTTON_QRYPOSI, m_QryPosi);
     DDX_Control(pDX, IDC_BUTTON_QRYFUND, m_QryFund);
@@ -69,11 +69,12 @@ void Cdemo_clientapiDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(Cdemo_clientapiDlg, CDialogEx)
     ON_WM_SYSCOMMAND()
     ON_WM_PAINT()
-    ON_WM_QUERYDRAGICON()
-    ON_BN_CLICKED(IDC_BUTTON1, &Cdemo_clientapiDlg::OnBnClickedButton1)
-    ON_MESSAGE(WM_ADDINFO,OnShowMsg)
-    ON_BN_CLICKED(IDC_BUTTON2, &Cdemo_clientapiDlg::OnBnClickedButton2)
     ON_WM_CLOSE()
+    ON_WM_QUERYDRAGICON()
+    ON_MESSAGE(WM_ADDINFO,OnShowMsg)
+    ON_BN_CLICKED(IDC_BTN_SENDFILE, &Cdemo_clientapiDlg::OnBnClickedSendFile)
+    ON_BN_CLICKED(IDC_BTN_RECVFILE, &Cdemo_clientapiDlg::OnBnClickedRecvFile)
+    ON_BN_CLICKED(IDC_BTN_CANCEL_SENDFILE, &Cdemo_clientapiDlg::OnBnClickedCancelSendFile)
     //ON_BN_CLICKED(IDC_BUTTON3, &Cdemo_clientapiDlg::OnBnClickedButton3)
     ON_BN_CLICKED(IDC_BUTTON_LOGIN, &Cdemo_clientapiDlg::OnBnClickedButtonLogin)
     ON_BN_CLICKED(IDC_BUTTON_QRYMATCH, &Cdemo_clientapiDlg::OnBnClickedButtonQrymatch)
@@ -82,7 +83,6 @@ BEGIN_MESSAGE_MAP(Cdemo_clientapiDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_CANCEL, &Cdemo_clientapiDlg::OnBnClickedButtonCancel)
     ON_BN_CLICKED(IDC_BUTTON_SETTLEMENT, &Cdemo_clientapiDlg::OnBnClickedButtonSettlement)
     ON_BN_CLICKED(IDOK, &Cdemo_clientapiDlg::OnBnClickedOk)
-    ON_BN_CLICKED(IDC_BUTTON4, &Cdemo_clientapiDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 BOOL Cdemo_clientapiDlg::OnInitDialog()
@@ -141,7 +141,7 @@ BOOL Cdemo_clientapiDlg::OnInitDialog()
     }
     SetIcon(m_hIcon, TRUE);
     SetIcon(m_hIcon, FALSE);
-    m_ListCtrl.InsertColumn(0,"信息",DT_LEFT,300);
+    m_ListCtrl.InsertColumn(0, "信息", DT_LEFT, 300);
     pApi = CClientApi::CreateClientApi();
     m_pRsp = new CApiRsp;
     m_EditUser.SetWindowText("test");
@@ -150,7 +150,7 @@ BOOL Cdemo_clientapiDlg::OnInitDialog()
     pApi->Init(errInfo);
     InsertInfo("初始化......");
     pApi->RegisterSpi(m_pRsp);
-    bool bRet = pApi->Connect("172.31.194.40",2008,errInfo);
+    bool bRet = pApi->Connect("172.31.194.40", 2008, errInfo);
     if(bRet == true)
         InsertInfo("连接到总线172.31.194.40:2008成功!");
     else
@@ -201,7 +201,7 @@ HCURSOR Cdemo_clientapiDlg::OnQueryDragIcon()
 
 
 int g_nEventhandle = 100;
-void Cdemo_clientapiDlg::OnBnClickedButton1()
+void Cdemo_clientapiDlg::OnBnClickedSendFile()
 {
     CFileFind finder;
     BOOL bWorking = finder.FindFile("./输入/*.*");
@@ -209,7 +209,10 @@ void Cdemo_clientapiDlg::OnBnClickedButton1()
     while(bWorking)
     {
         bWorking = finder.FindNextFile();
-        if(finder.IsDots()) continue;
+        if(finder.IsDots()) 
+        {
+            continue;
+        }
         CString name = finder.GetFileName();
         CString TransFile = "./输入/";
         TransFile += name;
@@ -223,21 +226,23 @@ void Cdemo_clientapiDlg::OnBnClickedButton1()
         }
     }
 
-    /*InsertInfo("./输入/输入成交.dbf");
+    /*
+    InsertInfo("./输入/输入成交.dbf");
 
     g_nEventhandle = pApi->SendFileToService("./输入/输入成交.dbf",111,errInfo);
     if(g_nEventhandle < 0)
     {
-    InsertInfo(errInfo.strErrMsg);
-    }*/
-
-    /*g_nEventhandle = pApi->SendFileToService("./输入/输入成交.dbf",111,errInfo);
-    if(g_nEventhandle < 0)
-    {
-    InsertInfo(errInfo.strErrMsg);
+        InsertInfo(errInfo.strErrMsg);
     }
     */
-    // 
+
+    /*
+    g_nEventhandle = pApi->SendFileToService("./输入/输入成交.dbf",111,errInfo);
+    if(g_nEventhandle < 0)
+    {
+        InsertInfo(errInfo.strErrMsg);
+    }
+    */
 }
 
 LRESULT Cdemo_clientapiDlg::OnShowMsg(WPARAM wpara,LPARAM lpara)
@@ -247,19 +252,17 @@ LRESULT Cdemo_clientapiDlg::OnShowMsg(WPARAM wpara,LPARAM lpara)
     return 0;
 }
 
-
-void Cdemo_clientapiDlg::OnBnClickedButton2()
-{//取消文件发送
+//取消文件发送
+void Cdemo_clientapiDlg::OnBnClickedCancelSendFile()
+{
     ERROR_INFO ErrMsg;
     PACKAGEHEADER head;
-
     memset(&head,0,sizeof(PACKAGEHEADER));
     head.nEventHandle = g_nEventhandle;
-
     CPackage *pPackage = pApi->CreatePackage();
     int iRec = pPackage->AppendBlankRecord(ErrMsg);
     pPackage->SetPackageHeader(&head);
-    pPackage->SetFieldValue(iRec,"field","取消文件发送",ErrMsg);
+    pPackage->SetFieldValue(iRec, "field", "取消文件发送", ErrMsg);
     pApi->SendRequestToService(SEVICENO,CANCELEVENT,pPackage,ErrMsg);
     pApi->ReleasePackage(pPackage);
 }
@@ -443,7 +446,7 @@ void Cdemo_clientapiDlg::OnBnClickedOk()
 }
 
 
-void Cdemo_clientapiDlg::OnBnClickedButton4()
+void Cdemo_clientapiDlg::OnBnClickedRecvFile()
 {
     ERROR_INFO ErrMsg;
     CPackage *pPackage = pApi->CreatePackage();

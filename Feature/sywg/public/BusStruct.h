@@ -36,45 +36,52 @@ int WriteLog(bool bErrorLog,const char *format,...);
 
 typedef struct _ERROR_INFO
 {
-	int nErrID;
-	char strErrMsg[200];
+    int nErrID;
+    char strErrMsg[200];
 }ERROR_INFO;
 
 typedef struct _NTY_STATUS_INFO
 {
-	int  nMsgType;//应答类型，＝EVENT_RSP是事务应答信息　＝MSG_PROGRESS是传输进度信息
-	int  nEventHandle; //应答的事务号
-	int  nMsgID;
-	char strMsgInfo[300];
+    int nMsgType;       //应答类型，=EVENT_RSP是事务应答信息； =MSG_PROGRESS是传输进度信息
+    int nEventHandle;
+    int nMsgID;
+    char strMsgInfo[300];
 }NTY_STATUS_INFO;
 
 typedef struct __FieldDefine
 {
-	char FieldName[200];//字段名
-	int FieldType;//字段类型
-	char Comment[100];//注释
+    char FieldName[200];//字段名
+    int FieldType;//字段类型
+    char Comment[100];//注释
+}FIELDDEF;
+
+typedef struct __FieldDefine
+{
+    char FieldName[200];        //字段名
+    int FieldType;              //字段类型
+    char Comment[100];          //注释
 }FIELDDEF;
 
 //报文头
 typedef struct __PackageHeader
 {
-	int nFuncType ;        //功能类型，0是请求，1是应答
-	int nFuncNo;           //具体功能号
-	int nPackageIndex;     //包序号
-	int nTotalPackageNum ; //包总数
-	int nTotalRecordNum;   //所有的记录数
-	int nEventHandle;      //事务的句柄，全局唯一
+    int nFuncType;          //功能类型，0是请求，1是应答
+    int nFuncNo;            //具体功能号
+    int nPackageIndex;      //包序号
+    int nTotalPackageNum;   //包总数
+    int nTotalRecordNum;    //所有的记录数
+    int nEventHandle;       //事务的句柄，全局唯一
 }PACKAGEHEADER;
 
 typedef struct _FIELDINFO
 {
-	FIELDDEF FieldDefine;//数据结构
-	int SubIndex;//子类型的序号
-}FIELDINFO;
+    FIELDDEF FieldDefine;   //数据结构
+    int SubIndex;           //子类型的序号
+};
 
 typedef struct _DXPhandle
 {
-	char buf[28];
+    char buf[28];
 }USER_HANDLE;
 
 #endif

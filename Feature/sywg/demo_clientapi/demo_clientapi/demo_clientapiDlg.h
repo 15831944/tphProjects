@@ -20,19 +20,19 @@ protected:
     LRESULT OnShowMsg(WPARAM wpara,LPARAM lpara);
     DECLARE_MESSAGE_MAP()
 public:
-    afx_msg void OnBnClickedButton1();
-public:
     CApiRsp *m_pRsp;
     CListCtrl m_ListCtrl;
     CProgressCtrl m_Progress;
-    afx_msg void OnBnClickedButton2();
     afx_msg void OnClose();
     afx_msg void OnBnClickedButton3();
     afx_msg void OnBnClickedButton6();
     afx_msg void OnBnClickedButtonLogin();
     afx_msg void OnBnClickedButtonQrymatch();
+    afx_msg void OnBnClickedCancelSendFile();
     afx_msg void OnBnClickedButtonQryposi();
     afx_msg void OnBnClickedButtonQryfund();
+    afx_msg void OnBnClickedSendFile();
+    afx_msg void OnBnClickedRecvFile();
     CEdit m_EditUser;
     CEdit m_EditPassword;
     CString m_Username;
@@ -71,5 +71,4 @@ public:
     afx_msg void OnBnClickedButtonSettlement();
     afx_msg void OnBnClickedOk();
     CEdit m_EditDate;
-    afx_msg void OnBnClickedButton4();
 };

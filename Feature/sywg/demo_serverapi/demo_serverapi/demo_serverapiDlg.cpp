@@ -85,7 +85,7 @@ BOOL Cdemo_serverapiDlg::OnInitDialog()
     ERROR_INFO errInfo;
     pApi->Init(errInfo);
     pApi->RegisterSpi(m_pRsp);
-    bool bRet = pApi->Connect("172.31.194.40",2008,errInfo);
+    bool bRet = pApi->Connect("172.31.194.40", 2008, errInfo);
     if(bRet)
     {
         InsertInfo("连接到总线172.31.194.40: 2008成功！");
@@ -147,7 +147,7 @@ void Cdemo_serverapiDlg::OnBnClickedSendFile()
     ERROR_INFO errInfo;
     m_Progress.SetPos(0);
     m_Button.SetWindowText("发送文件serverapi1.pp");
-    nCancelHandle = pApi->SendFileToService("serverapi1.pp",111,errInfo);
+    nCancelHandle = pApi->SendFileToService("serverapi1.pp", 111, errInfo);
     //pApi->SendFileToService("hello.txt",111,errInfo);
     /*CPackage *pPackage = pApi->CreatePackage();
     PACKAGEHEADER head;
