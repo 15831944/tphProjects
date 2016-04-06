@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="GB2312"?>
+<!DOCTYPE DXPConfig SYSTEM "DXPConfig.dtd">
+<DXPConfig>
+	
+	<General Description="运行管理相关的配置">
+		<SelfCheck  IsCheck="1" Description="配置文件防修改校验，IsCheck 为1表示检查 0表示不检查">
+			<item  CheckStr="ASDFGHGH!#$$$$@@@" />
+		</SelfCheck>
+		<Log>
+			<item LogType="2"  Description="1为syslog,2为文件日志,3为linbox日志" />
+			<item LogGroup="23"    Description="日志组" />
+			<item LogPath="log"  Description="日志目录" />
+			<item LogSize="1048576"  Description="日志文件的最大长度" />
+			<item Silence="0"    Description="1为没有屏幕输出，0为有" />
+			<item LogLevel="0"   Description="日志级别 调试级:0 信息级:1 警告级:2 错误级:3 致命级:4" />
+			<item DrtpSa="013001"   Description="文件名后缀" />
+		</Log>
+	</General>
+	
+	<External  Description="描述本程序与外部建立各种关系" >	
+		<NetConfig Description="描述需要建立的网络连接，及相关属性" >
+			
+			<Services  Description="服务端的相关属性"> 
+				<Service Service="tcp://127.0.0.1:2008"  Description="通讯服务端口" >
+					<item   RemoteIP="10.10.4.20"  Limit="1"  Description="允许或限制接入的外部地址，Limit=0表示限制，Limit=1表示允许" />
+				</Service>
+			</Services>
+			
+			<Clients Description="连接的其他节点">
+				<item ConnectStr="tcp://172.28.170.27:6008"  BandWidth=102400 Description="连接前置的IP、端口、带宽" />
+			</Clients>
+			
+			<Domain Enable="1" LocalDomainID="1" Description="说明：Enable(域启用标志)0-关闭 1-启用，目前保持启用" >
+				<ExtIPAllow  Description="相关的其他EIB列表,包括本域或外域，与连接建立方向无关" >
+					<item   IP="172.28.170.27" ExtDomainID="2" Description="其他域ID" />
+					<item   IP="172.28.170.25" ExtDomainID="1" Description="其他域ID" />
+				</ExtIPAllow>
+					
+				<OpenFuncList  Description="本域对外开放的服务列表,本配置项可以只配域的边界节点" >
+					<DomainID ExtID="2"  Description="XX应用部署域" >
+						<item FuncNo="1001" />
+						<item FuncNo="1002" />
+					</DomainID>
+				</OpenFuncList>
+			</Domain>
+			
+			<RegFuncs Flag="1" Description="是否允许直接注册服务 Flag: 0：不允许 1：任意 2：允许下面功能号" >
+				<item FuncNo="1001" Description="功能号100" />
+				<item FuncNo="1002" Description="功能号110" />
+				<item FuncNo="1003" Description="功能号120" />
+			</RegFuncs>
+										
+		</NetConfig>			
+	</External>
+	
+	<Private Description="描述应用程序内部的相关配置属性">
+		<AppValue>
+			<item Node="11.10.4.20" Description="本机的IP地址，需要使用真实的IP地址，这在监控上有这个需要" />
+			<item Pidpath="pid"  Description="pid文件的存放目录" />
+			<item Crypto="0"  Description="加密方式,0:不加密,1:BLOWFISH,2:RC4,3:DES3,4:RC2,5:IDEA" />
+			<item Branch="300"  Description="通讯平台组编号" />
+			<item TranSort="0"  Description="是否有序传输,0:非有序,1:有序" />
+			<item Beatheat="1"  Description="心跳,0:无心跳,1:有心跳" />
+			<item Zip="1"  Description="0不压缩，1压缩" />
+			<item MaxConnectCount="215"  Description="最大的连接数" />
+			<item BeatheatCount="29"  Description="心跳个数，在发出BEATHEARTCOUNT个心跳未收到响应后，将主动关闭连接，取值1到29" />
+			
+			<item BufferLimit="0"  Description="连接上的缓存包数，0为不限制，最小的限制是100" />
+			<item PollLimit="0"  Description="连接上的缓存包数，0为不限制，最小的限制是100" />
+			<item Maxtty="0"  Description="最大的TTY限制，0为不限制，最小为100" />
+			<item FastSyn="0"  Description="路由同步，1快速，0慢速" />
+			<item BoneNode="1"  Description="1主干节点，0叶子节点" />
+		</AppValue>
+			
+		<Queue>
+			<item Support="0"  Description="是否支持可靠队列,0不支持,1支持" />
+			<item DataPath="data"    Description="可靠队列数据的存放目录" />
+			<item WindowSize="50"   Description="发送窗口大小" />
+			<item User="admin"  Description="初始的用户名" />
+			<item Pwd="admin"  Description="初始的用户密码" />
+			<item Exprit="72000"  Description="默认的数据失效时间，单位为秒" />	
+			<item Timeout="1000"  Description="默认的超时时间，单位为毫秒" />
+			<item ExtendSize="10485760"  Description="初始容器大小，单位为字节，" />
+			<item MaxLogSize="32"  Description="活动日志的最大长度，单位为M" />
+			<item DeleteOnCommit="1"  Description="" />	
+		</Queue>
+	</Private>
+
+</DXPConfig>
